@@ -1,0 +1,11 @@
+{{ define "com.flipkart.hbaseoperator" }}
+{{- include "com.flipkart.hbaseoperator.deployment" . }}
+---
+{{- include "com.flipkart.hbaseoperator.configmap" . }}
+---
+{{- include "com.flipkart.hbaseoperator.serviceaccount" . }}
+---
+{{- include "com.flipkart.hbaseoperator.roles" . }}
+---
+{{- include "com.flipkart.hbaseoperator.rolebindings" . }}
+{{ end }}

@@ -1,0 +1,42 @@
+site_name: Hbase Operator
+repo_name: 'Flipkart/hbase-operator'
+repo_url: https://github.com/flipkart-incubator/hbase-k8s-operator
+
+nav:
+  - Hbase Operator: index.md
+  - Setup:
+    - First Time Setup: setup/resources.md
+    - Deploy Operator: setup/operator.md
+    - Deploy Hbase: setup/hbase.md
+    - Additional Setup:
+      - RackAwareness: setup/additional/rackawareness.md
+  - FAQ : faq.md
+
+edit_uri: blob/master/docs/
+markdown_extensions:
+  - admonition              # For note/tip sections
+  - footnotes
+  - pymdownx.tasklist       # Github like task lsits
+  - pymdownx.mark           # Highlight text
+  - pymdownx.superfences    # Code blocks within sections
+  - pymdownx.emoji          # Emoji using shorthands
+  - pymdownx.snippets
+  - pymdownx.inlinehilite
+  - pymdownx.highlight
+  - toc:
+      permalink: true
+theme:
+  name: 'material'
+  language: en
+  font:
+    text: 'Ubuntu'
+    code: 'Ubuntu Mono'
+  palette:
+    primary: 'blue grey'
+    accent: 'blue grey'
+  feature:
+    tabs: false
+  favicon: 'favicon.png'
+extra:
+  search:
+    language: 'en'

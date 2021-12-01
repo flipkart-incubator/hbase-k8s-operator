@@ -1,0 +1,8 @@
+apiVersion: kvstore.flipkart.com/v1
+kind: HbaseCluster
+metadata:
+  name: hbasecluster-sample
+spec:
+  # Add fields here
+  zookeeper_size: 3
+  base_image: hbase:2.4.2

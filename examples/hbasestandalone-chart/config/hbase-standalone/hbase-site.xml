@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+  <property>
+    <name>hbase.cluster.distributed</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>hbase.rootdir</name>
+    <value>/grid/1/hbase</value>
+  </property>
+  <property>
+    <name>hbase.tmp.dir</name>
+    <value>/grid/1/tmp</value>
+  </property>
+  <property>
+    <name>hbase.zookeeper.property.dataDir</name>
+    <value>/grid/1/zookeeper</value>
+  </property>
+  <property>
+    <name>hbase.unsafe.stream.capability.enforce</name>
+    <value>false</value>
+  </property>
+  <property>
+    <name>hbase.balancer.rsgroup.enabled</name>
+    <value>true</value>
+  </property>
+  <property>
+    <name>hbase.coprocessor.master.classes</name>
+    <value>org.apache.hadoop.hbase.rsgroup.RSGroupAdminEndpoint</value>
+  </property>
+  <property>
+    <name>hbase.master.loadbalancer.class</name>
+    <value>org.apache.hadoop.hbase.rsgroup.RSGroupBasedLoadBalancer</value>
+  </property>
+</configuration>

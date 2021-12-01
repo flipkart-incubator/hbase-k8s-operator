@@ -1,0 +1,20 @@
+# permissions for end users to view hbaseclusters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hbasecluster-viewer-role
+rules:
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbaseclusters
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbaseclusters/status
+  verbs:
+  - get

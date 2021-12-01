@@ -1,0 +1,24 @@
+# permissions for end users to edit hbasestandalones.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hbasestandalone-editor-role
+rules:
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasestandalones
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasestandalones/status
+  verbs:
+  - get

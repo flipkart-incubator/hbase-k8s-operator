@@ -1,0 +1,229 @@
+namespace: hbase-cluster-ns
+service:
+  name: hbase-cluster
+  image: hbase:2.4.8
+  isBootstrap: false
+  runAsUser: 1011
+  runAsGroup: 1011
+configuration:
+  hbaseConfigName: hbase-config
+  hbaseConfigRelPath: config/hbase-cluster/hbase/*
+  hbaseConfigMountPath: /etc/hbase
+  hbaseHomePath: /opt/hbase
+  hbaseLogPath: /var/log/hbase
+  hadoopConfigName: hadoop-config
+  hadoopConfigRelPath: config/hbase-cluster/hadoop/*
+  hadoopConfigMountPath: /etc/hadoop
+  hadoopHomePath: /opt/hadoop
+  hadoopLogPath: /var/log/hadoop
+tenantNamespaces:
+ - hbase-tenant-ns
+commands:
+  faultDomainCommand: "cat /etc/nodeinfo | grep 'smd' | sed 's/smd=//' | sed 's/\"//g'"
+configMaps:
+  envName: hbase-cluster
+  configs:
+   - name: mtl-zk
+     source: dir
+     sourceLoc: mtl/zk
+   - name: mtl-jn
+     source: dir
+     sourceLoc: mtl/jn
+   - name: mtl-nn
+     source: dir
+     sourceLoc: mtl/nn
+   - name: mtl-dn
+     source: dir
+     sourceLoc: mtl/dn
+   - name: mtl-hmaster
+     source: dir
+     sourceLoc: mtl/hmaster
+deployments:
+  zookeeper:
+    name: hbase-cluster-zk
+    replicas: 3
+    annotations:
+      fcp.k8s.mtl/mtl-config-map: mtl-zk
+      fcp.k8s.mtl/cosmos-jmx: enabled
+      fcp.k8s.mtl/cosmos-statsd: disabled
+      fcp.k8s.mtl/cosmos-tail: disabled
+    volumeClaims:
+    - name: data
+      size: "2Gi"
+      storageClass: "standard"
+    volumes:
+    - name: nodeinfo
+      volumeSource: HostPath
+      path: /etc/nodeinfo
+    containers:
+    - name: zookeeper
+      cpuLimit: 0.5
+      memoryLimit: "2Gi"
+      cpuRequest: 0.5
+      memoryRequest: "2Gi"
+      probeDelay: 20
+      volumeMounts:
+      - name: data
+        mountPath: /grid/1
+        readOnly: false
+  journalnode:
+    name: hbase-cluster-jn
+    replicas: 3
+    annotations:
+      fcp.k8s.mtl/mtl-config-map: mtl-jn
+      fcp.k8s.mtl/cosmos-jmx: enabled
+      fcp.k8s.mtl/cosmos-statsd: disabled
+      fcp.k8s.mtl/cosmos-tail: disabled
+    volumeClaims:
+    - name: data
+      size: "2Gi"
+      storageClass: "standard"
+    volumes:
+    - name: nodeinfo
+      volumeSource: HostPath
+      path: /etc/nodeinfo
+    containers:
+    - name: journalnode
+      cpuLimit: "0.5"
+      memoryLimit: "1Gi"
+      cpuRequest: "0.5"
+      memoryRequest: "1Gi"
+      probeDelay: 40
+      volumeMounts:
+      - name: data
+        mountPath: /grid/1
+        readOnly: false
+  hmaster:
+    name: hbase-cluster-hmaster
+    replicas: 2
+    annotations:
+      fcp.k8s.mtl/mtl-config-map: mtl-hmaster
+      fcp.k8s.mtl/cosmos-jmx: enabled
+      fcp.k8s.mtl/cosmos-statsd: disabled
+      fcp.k8s.mtl/cosmos-tail: disabled
+    volumes:
+    - name: data
+      volumeSource: EmptyDir
+    sidecarcontainers:
+    - name: rackutils
+      image: hbase-rack-utils:1.0.1
+      cpuLimit: 0.2
+      memoryLimit: 256Mi
+      cpuRequest: 0.2
+      memoryRequest: 256Mi
+      runAsUser: 1011
+      runAsGroup: 1011
+      command: ["./entrypoint"]
+      args: ["com.flipkart.hbase.HbaseRackUtils", "/etc/hbase", "/hbase-operator", "/opt/share/rack_topology.data"]
+      volumeMounts:
+      - name: data
+        mountPath: /opt/share
+    containers:
+    - name: hmaster
+      cpuLimit: 0.3
+      memoryLimit: 3Gi
+      cpuRequest: 0.3
+      memoryRequest: 3Gi
+      probeDelay: 10
+      volumeMounts:
+      - name: data
+        mountPath: /opt/share
+  datanode:
+    name: hbase-cluster-dn
+    replicas: 3
+    shareProcessNamespace: true
+    annotations:
+      fcp.k8s.mtl/mtl-config-map: mtl-dn
+      fcp.k8s.mtl/cosmos-jmx: enabled
+      fcp.k8s.mtl/cosmos-statsd: disabled
+      fcp.k8s.mtl/cosmos-tail: disabled
+    volumeClaims:
+    - name: data
+      size: "10Gi"
+      storageClass: "standard"
+    volumes:
+    - name: lifecycle 
+      volumeSource: EmptyDir
+    - name: nodeinfo
+      volumeSource: HostPath
+      path: /etc/nodeinfo
+    containers:
+    - name: datanode
+      cpuLimit: 0.5
+      memoryLimit: 3Gi
+      cpuRequest: 0.5
+      memoryRequest: 3Gi
+      probeDelay: 60
+      volumeMounts:
+      - name: data
+        mountPath: /grid/1
+      - name: lifecycle
+        mountPath: /lifecycle
+    - name: regionserver
+      cpuLimit: 0.5
+      memoryLimit: 5Gi
+      cpuRequest: 0.5
+      memoryRequest: 5Gi
+      probeDelay: 60
+      volumeMounts:
+      - name: lifecycle
+        mountPath: /lifecycle
+      - name: nodeinfo
+        mountPath: /etc/nodeinfo
+        readOnly: true 
+  namenode:
+    name: hbase-cluster-nn
+    replicas: 2
+    shareProcessNamespace: false
+    annotations:
+      fcp.k8s.mtl/mtl-config-map: mtl-nn
+      fcp.k8s.mtl/cosmos-jmx: enabled
+      fcp.k8s.mtl/cosmos-statsd: disabled
+      fcp.k8s.mtl/cosmos-tail: disabled
+    volumeClaims:
+    - name: data
+      size: "4Gi"
+      storageClass: "standard"
+    volumes:
+    - name: lifecycle 
+      volumeSource: EmptyDir
+    - name: nodeinfo
+      volumeSource: HostPath
+      path: /etc/nodeinfo
+    initContainers:
+    - name: init-namenode
+      isBootstrap: true
+      cpuLimit: 0.5
+      memoryLimit: 3Gi
+      cpuRequest: 0.5
+      memoryRequest: 3Gi
+      volumeMounts:
+      - name: data
+        mountPath: /grid/1
+    - name: init-zkfc
+      isBootstrap: true
+      cpuLimit: 0.5
+      memoryLimit: 512Mi
+      cpuRequest: 0.5
+      memoryRequest: 512Mi
+    containers:
+    - name: namenode
+      cpuLimit: 0.5
+      memoryLimit: 3Gi
+      cpuRequest: 0.5
+      memoryRequest: 3Gi
+      probeDelay: 60
+      volumeMounts:
+      - name: data
+        mountPath: /grid/1
+      - name: lifecycle
+        mountPath: /lifecycle
+    - name: zkfc
+      cpuLimit: 0.2
+      memoryLimit: 512Mi
+      cpuRequest: 0.2
+      probeDelay: 30
+      memoryRequest: 512Mi
+      volumeMounts:
+      - name: lifecycle
+        mountPath: /lifecycle

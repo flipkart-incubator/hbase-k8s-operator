@@ -1,0 +1,72 @@
+namespace: hbase-tenant-ns
+service:
+  name: hbase-tenant
+  image: hbase:2.4.8
+  runAsUser: 1011
+  runAsGroup: 1011
+configuration:
+  hbaseConfigName: hbase-config
+  hbaseConfigRelPath: config/hbase-tenant/hbase/*
+  hbaseConfigMountPath: /etc/hbase
+  hbaseHomePath: /opt/hbase
+  hbaseLogPath: /var/log/hbase
+  hadoopConfigName: hadoop-config
+  hadoopConfigRelPath: config/hbase-tenant/hadoop/*
+  hadoopConfigMountPath: /etc/hadoop
+  hadoopHomePath: /opt/hadoop
+  hadoopLogPath: /var/log/hadoop
+commands:
+  faultDomainCommand: "cat /etc/nodeinfo | grep 'smd' | sed 's/smd=//' | sed 's/\"//g'"
+configMaps:
+  envName: hbase-tenant
+  configs:
+   - name: mtl-tenant-dn
+     source: dir
+     sourceLoc: mtl/dn
+datanode:
+  name: hbase-tenant-dn
+  replicas: 4
+  shareProcessNamespace: true
+  annotations:
+    fcp.k8s.mtl/mtl-config-map: mtl-tenant-dn
+    fcp.k8s.mtl/cosmos-jmx: enabled
+    fcp.k8s.mtl/cosmos-statsd: disabled
+    fcp.k8s.mtl/cosmos-tail: disabled
+  volumeClaims:
+  - name: data
+    size: "10Gi"
+    storageClass: "standard"
+  volumes:
+  - name: lifecycle 
+    volumeSource: EmptyDir
+  - name: nodeinfo
+    volumeSource: HostPath
+    path: /etc/nodeinfo
+  containers:
+  - name: datanode
+    cpuLimit: 0.3
+    memoryLimit: 2Gi
+    cpuRequest: 0.3
+    memoryRequest: 2Gi
+    probeDelay: 60
+    volumeMounts:
+    - name: data
+      mountPath: /grid/1
+      readOnly: false
+    - name: lifecycle
+      mountPath: /lifecycle
+    - name: nodeinfo
+      mountPath: /etc/nodeinfo
+      readOnly: true
+  - name: regionserver
+    cpuLimit: 0.4
+    memoryLimit: 3Gi
+    cpuRequest: 0.4
+    memoryRequest: 3Gi
+    probeDelay: 60
+    volumeMounts:
+    - name: lifecycle
+      mountPath: /lifecycle
+    - name: nodeinfo
+      mountPath: /etc/nodeinfo
+      readOnly: true

@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# To test, supply a hostname as script input:
+if [ $# -gt 0 ]; then
+
+	TOPOLOGY_FILE="/opt/share/rack_topology.data"
+
+	if [ ! -f ${TOPOLOGY_FILE} ]; then
+		echo -n "/default-rack "
+		exit 0
+	fi
+
+	while [ $# -gt 0 ] ; do
+		nodeArg=$1
+		exec< ${TOPOLOGY_FILE}
+		result=""
+		while read line ; do
+			ar=( $line )
+			if [ "${ar[0]}" = "$nodeArg" ] ; then
+				result="${ar[1]}"
+			fi
+		done
+		shift
+		if [ -z "$result" ] ; then
+			echo -n "/default-rack "
+		else
+			echo -n "/rack-$result "
+		fi
+	done
+
+else
+	echo -n "/default-rack "
+fi

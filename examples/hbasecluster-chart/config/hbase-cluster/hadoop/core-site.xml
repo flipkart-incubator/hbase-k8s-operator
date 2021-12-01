@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+
+<property>
+<name>fs.trash.interval</name>
+<value>1440</value>
+</property>
+
+<property>
+<name>io.compression.codecs</name>
+<value>org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.BZip2Codec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec</value>
+</property>
+
+<property>
+<name>io.compression.codec.lzo.class</name>
+<value>com.hadoop.compression.lzo.LzoCodec</value>
+</property>
+
+<property>
+<name>fs.default.name</name>
+<value>hdfs://hbase-store</value>
+</property>
+
+<property>
+<name>ha.zookeeper.quorum</name>
+<value>hbase-cluster-zk-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local,hbase-cluster-zk-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local,hbase-cluster-zk-2.hbase-cluster.hbase-cluster-ns.svc.cluster.local</value>
+</property>
+
+<property>
+<name>ha.zookeeper.parent-znode</name>
+<value>/hbase/hadoop-ha</value>
+</property>
+
+</configuration>

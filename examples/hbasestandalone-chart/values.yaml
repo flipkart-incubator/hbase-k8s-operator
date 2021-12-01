@@ -1,0 +1,32 @@
+namespace: hbase-standalone-ns
+service:
+  name: hbase-standalone
+  image: hbase:2.4.8
+  runAsUser: 1011
+  runAsGroup: 1011
+configuration:
+  hbaseConfigName: hbase-config
+  hbaseConfigRelPath: config/hbase-standalone/*
+  hbaseConfigMountPath: /etc/hbase
+  hbaseHomePath: /opt/hbase
+  hbaseLogPath: /var/log/hbase
+configMaps:
+  envName: hbase-standalone
+standalone:
+  name: hbase-standalone-all
+  replicas: 1
+  volumeClaims:
+  - name: data
+    size: "2Gi"
+    storageClass: "standard"
+  containers:
+  - name: standalone
+    cpuLimit: 0.5
+    memoryLimit: "2Gi"
+    cpuRequest: 0.5
+    memoryRequest: "2Gi"
+    probeDelay: 10
+    volumeMounts:
+    - name: data
+      mountPath: /grid/1
+      readOnly: false

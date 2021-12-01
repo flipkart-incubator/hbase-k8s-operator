@@ -1,0 +1,130 @@
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: hbase-operator-manager-role
+rules:
+- apiGroups:
+  - apps
+  resources:
+  - statefulsets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - pods
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbaseclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbaseclusters/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbaseclusters/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasestandalones
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasestandalones/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasestandalones/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasetenants
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasetenants/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasetenants/status
+  verbs:
+  - get
+  - patch
+  - update

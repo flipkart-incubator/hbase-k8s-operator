@@ -1,0 +1,7 @@
+hbase-tenant-dn-0.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+hbase-tenant-dn-1.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+hbase-tenant-dn-2.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+hbase-tenant-dn-3.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+hbase-cluster-dn-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local
+hbase-cluster-dn-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local
+hbase-cluster-dn-2.hbase-cluster.hbase-cluster-ns.svc.cluster.local

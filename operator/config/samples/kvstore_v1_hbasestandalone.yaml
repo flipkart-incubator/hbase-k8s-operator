@@ -1,0 +1,7 @@
+apiVersion: kvstore.flipkart.com/v1
+kind: HbaseStandalone
+metadata:
+  name: hbasestandalone-sample
+spec:
+  # Add fields here
+  foo: bar

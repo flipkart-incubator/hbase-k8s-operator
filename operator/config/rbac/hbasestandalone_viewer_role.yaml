@@ -1,0 +1,20 @@
+# permissions for end users to view hbasestandalones.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hbasestandalone-viewer-role
+rules:
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasestandalones
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbasestandalones/status
+  verbs:
+  - get

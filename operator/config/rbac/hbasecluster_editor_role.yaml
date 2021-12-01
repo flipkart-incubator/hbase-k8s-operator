@@ -1,0 +1,24 @@
+# permissions for end users to edit hbaseclusters.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: hbasecluster-editor-role
+rules:
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbaseclusters
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - kvstore.flipkart.com
+  resources:
+  - hbaseclusters/status
+  verbs:
+  - get

@@ -1,0 +1,7 @@
+apiVersion: kvstore.flipkart.com/v1
+kind: HbaseTenant
+metadata:
+  name: hbasetenant-sample
+spec:
+  # Add fields here
+  foo: bar

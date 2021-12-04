@@ -15,6 +15,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.net.InetAddress;
+import java.net.UnknownHostException;
 
 public class HbaseRackUtils implements Runnable {
     private static final Logger LOG = LoggerFactory.getLogger(HbaseRackUtils.class);
@@ -60,6 +61,8 @@ public class HbaseRackUtils implements Runnable {
                     address = InetAddress.getByName(child).getHostAddress();
                     writer.write(address + " " + new String(value));
                     writer.newLine();
+                } catch (UnknownHostException ex) {
+                    LOG.error("Exception while resolution for address: {} with error: {}. Ignoring for now...", address, ex.getMessage(), ex);
                 } catch (Exception ex) {
                     LOG.error("Exception while resolution for address: {} with error: {}", address, ex.getMessage(), ex);
                     System.exit(1);

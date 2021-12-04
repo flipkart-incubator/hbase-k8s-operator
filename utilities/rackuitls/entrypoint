@@ -1,0 +1,42 @@
+#!/bin/bash
+
+## java vars
+APPNAME="__PACKAGE__"
+JMXPORT="9311"
+APPCONFDIR="/etc/${APPNAME}"
+APPJARDIR="/var/lib/${APPNAME}"
+LOGDIR="/var/log/flipkart/${APPNAME}"
+GCLOG="${LOGDIR}/gc.log"
+LOGBACK="${APPCONFDIR}/logback.xml"
+JAVA_CP="${APPJARDIR}/*:${APPJARDIR}/lib/*:${APPCONFDIR}/"
+
+mkdir -p "$LOGDIR"
+
+JAVA_OPTS="-server \
+-XX:+UseG1GC -verbose:gc -Xloggc:${GCLOG} -XX:+PrintGCTimeStamps -XX:+PrintGCDetails -XX:GCLogFileSize=100M -XX:-UseGCLogFileRotation \
+-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.port=${JMXPORT} -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false \
+-XX:+UnlockCommercialFeatures -XX:+FlightRecorder -DaopType=GUICE \
+-Duser.timezone=Asia/Kolkata \
+-Djava.net.preferIPv4Stack=true -Dfile.encoding=UTF-8 -XX:+PrintTenuringDistribution \
+-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005 \
+-XX:+HeapDumpOnOutOfMemoryError"
+
+if [ -f $LOGBACK ]; then
+    JAVA_OPTS="${JAVA_OPTS} -Dlogback.configurationFile=$LOGBACK"
+    echo "Stating with logback config: $LOGBACK"
+fi
+
+PID=
+function shutdown() {
+  echo "$(date): Shutting down service $APPNAME in 20 seconds"
+  sleep 20
+  kill -TERM $PID
+}
+
+trap shutdown TERM
+jcmd="java -Xms128m -Xmx128m ${JAVA_OPTS} ${JVM_PARAMS} -cp ${JAVA_CP} $@"
+
+exec $jcmd &
+PID=$!
+
+wait $PID

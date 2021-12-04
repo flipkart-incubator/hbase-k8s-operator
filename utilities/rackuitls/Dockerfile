@@ -2,6 +2,7 @@ FROM openjdk:8-jdk-buster as builder
 ARG AppName 
 COPY . /src/
 WORKDIR /src/
+RUN apt-get update && apt-get -y install maven && apt-get clean
 RUN mvn -U -DskipTests=true install
 
 FROM openjdk:8-jre-buster as baseruntime
@@ -11,7 +12,7 @@ RUN apt-get update && apt-get install -y dnsutils netcat vim less procps curl &&
 
 COPY --from=builder [ "/src/target/classes/logback.xml", "/etc/${AppName}/" ]
 COPY --from=builder [ "/src/target/", "/var/lib/${AppName}/" ]
-COPY --from=builder [ "/entrypoint", "/entrypoint" ]
+COPY --from=builder [ "/src/entrypoint", "/entrypoint" ]
 
 RUN addgroup --gid 1011 hbase
 RUN useradd --create-home --uid 1011 --gid 1011 --shell /bin/bash --system hbase

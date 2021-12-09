@@ -351,6 +351,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#via-manifest" title="via Manifest" class="md-nav__link">
+    via Manifest
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -380,6 +387,13 @@
           <li class="md-nav__item">
   <a href="#helm-chart_1" title="Helm Chart" class="md-nav__link">
     Helm Chart
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#via-manifest_1" title="via Manifest" class="md-nav__link">
+    via Manifest
   </a>
   
 </li>
@@ -427,6 +441,13 @@
           <li class="md-nav__item">
   <a href="#helm-chart_2" title="Helm Chart" class="md-nav__link">
     Helm Chart
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#via-manifest_2" title="via Manifest" class="md-nav__link">
+    via Manifest
   </a>
   
 </li>
@@ -573,6 +594,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#via-manifest" title="via Manifest" class="md-nav__link">
+    via Manifest
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -602,6 +630,13 @@
           <li class="md-nav__item">
   <a href="#helm-chart_1" title="Helm Chart" class="md-nav__link">
     Helm Chart
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#via-manifest_1" title="via Manifest" class="md-nav__link">
+    via Manifest
   </a>
   
 </li>
@@ -653,6 +688,13 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#via-manifest_2" title="via Manifest" class="md-nav__link">
+    via Manifest
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -691,7 +733,7 @@
 <h3 id="maven-pom">Maven POM<a class="headerlink" href="#maven-pom" title="Permanent link">&para;</a></h3>
 <ol>
 <li>
-<p><code>pom.xml</code> is written to bundle all of the dependencies to package in docker. Such has downloading hadoop and hbase binaries from either public repos or private repos of organisation. </p>
+<p><code>pom.xml</code> is written to bundle all of the dependencies to package in docker. Such has downloading hadoop and hbase binaries from either public repos or private repos of organisation.</p>
 </li>
 <li>
 <p>Optionally you can customise the package to suit your needs. Some Examples are: optional libraries for change propogation, modified hbase base libraries, repair libraries, etc.</p>
@@ -718,7 +760,7 @@
 <p>Base image should be kept smaller, builder image can include jdk image</p>
 </li>
 <li>
-<p>Build docker image and publish to a repository. </p>
+<p>Build docker image and publish to a repository.</p>
 <div class="highlight"><pre><span></span>docker build . --network host -t hbase:2.4.2 &amp;&amp; docker push hbase:2.4.2
 </pre></div>
 
@@ -738,7 +780,7 @@
 </li>
 <li>
 <p>You can find package <code>hbase-chart-x.x.x.tgz</code> created under root folder of this repository. Otherwise you can publish chart to <code>jfrog</code> or <code>harbor</code> or any other chart registry. For manual testing, you can move <code>hbase-chart-x.x.x.tgz</code> under <code>examples/hbasestandalone-chart/charts/</code>
-    <div class="highlight"><pre><span></span>cd hbase-operator &amp;&amp; mv hbase-chart-x.x.x.tgz examples/hbasestandalone-chart/charts/ 
+    <div class="highlight"><pre><span></span>cd hbase-operator &amp;&amp; mv hbase-chart-x.x.x.tgz examples/hbasestandalone-chart/charts/
 </pre></div></p>
 </li>
 <li>
@@ -754,6 +796,136 @@
 </pre></div></p>
 </li>
 </ol>
+<h4 id="via-manifest">via Manifest<a class="headerlink" href="#via-manifest" title="Permanent link">&para;</a></h4>
+<p>Sample configuration:</p>
+<details>
+<summary>Sample Standalone yaml configuration</summary>
+<div class="highlight"><pre><span></span># Source: hbasestandalone-chart/templates/hbasestandalone.yaml
+apiVersion: kvstore.flipkart.com/v1
+kind: HbaseStandalone
+metadata:
+  name: hbase-standalone
+  namespace: hbase-standalone-ns
+spec:
+  baseImage: hbase:2.4.8
+  fsgroup: 1011
+  configuration:
+    hbaseConfigName: hbase-config
+    hbaseConfigMountPath: /etc/hbase
+    hbaseConfig:
+      hbase-site.xml: |
+        &lt;?xml version=&quot;1.0&quot;?&gt;
+        &lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;
+        &lt;configuration&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.cluster.distributed&lt;/name&gt;
+            &lt;value&gt;false&lt;/value&gt;
+          &lt;/property&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.rootdir&lt;/name&gt;
+            &lt;value&gt;/grid/1/hbase&lt;/value&gt;
+          &lt;/property&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.tmp.dir&lt;/name&gt;
+            &lt;value&gt;/grid/1/tmp&lt;/value&gt;
+          &lt;/property&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.zookeeper.property.dataDir&lt;/name&gt;
+            &lt;value&gt;/grid/1/zookeeper&lt;/value&gt;
+          &lt;/property&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.unsafe.stream.capability.enforce&lt;/name&gt;
+            &lt;value&gt;false&lt;/value&gt;
+          &lt;/property&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.balancer.rsgroup.enabled&lt;/name&gt;
+            &lt;value&gt;true&lt;/value&gt;
+          &lt;/property&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.coprocessor.master.classes&lt;/name&gt;
+            &lt;value&gt;org.apache.hadoop.hbase.rsgroup.RSGroupAdminEndpoint&lt;/value&gt;
+          &lt;/property&gt;
+          &lt;property&gt;
+            &lt;name&gt;hbase.master.loadbalancer.class&lt;/name&gt;
+            &lt;value&gt;org.apache.hadoop.hbase.rsgroup.RSGroupBasedLoadBalancer&lt;/value&gt;
+          &lt;/property&gt;
+        &lt;/configuration&gt;
+    hadoopConfigName: hadoop-config
+    hadoopConfigMountPath: /etc/hadoop
+    hadoopConfig:
+      {}
+  standalone:
+      name: hbase-standalone-all
+      size: 1
+      isPodServiceRequired: false
+      shareProcessNamespace: false
+      terminateGracePeriod: 120
+      volumeClaims:
+      - name: data
+        storageSize: 2Gi
+        storageClassName: standard
+      containers:
+      - name: standalone
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+          export HBASE_LOG_DIR=$0
+          export HBASE_CONF_DIR=$1
+          export HBASE_HOME=$2
+          export USER=$(whoami)
+
+          mkdir -p $HBASE_LOG_DIR
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log
+
+          function shutdown() {
+            echo &quot;Stopping Standalone&quot;
+            $HBASE_HOME/bin/hbase-daemon.sh stop master
+          }
+
+          trap shutdown SIGTERM
+          exec $HBASE_HOME/bin/hbase-daemon.sh foreground_start master &amp;
+          wait
+        args:
+        - /var/log/hbase
+        - /etc/hbase
+        - /opt/hbase
+        - hbase-config
+        ports:
+        - port: 16000
+          name: standalone-0
+        - port: 16010
+          name: standalone-1
+        - port: 16030
+          name: standalone-2
+        - port: 16020
+          name: standalone-3
+        - port: 2181
+          name: standalone-4
+        livenessProbe:
+          tcpPort: 16000
+          initialDelay: 10
+        readinessProbe:
+          tcpPort: 16000
+          initialDelay: 10
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;2Gi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;2Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: false
+        volumeMounts:
+        - name: data
+          mountPath: /grid/1
+          readOnly: false
+</pre></div>
+</details>
+
 <h2 id="hbase-cluster">Hbase Cluster<a class="headerlink" href="#hbase-cluster" title="Permanent link">&para;</a></h2>
 <h3 id="package-and-deploy-hbase-cluster">Package and Deploy Hbase Cluster<a class="headerlink" href="#package-and-deploy-hbase-cluster" title="Permanent link">&para;</a></h3>
 <h4 id="helm-chart_1">Helm Chart<a class="headerlink" href="#helm-chart_1" title="Permanent link">&para;</a></h4>
@@ -771,13 +943,13 @@
 </li>
 <li>
 <p>You can find package <code>hbase-chart-x.x.x.tgz</code> created under root folder of this repository. Otherwise you can publish chart to <code>jfrog</code> or <code>harbor</code> or any other chart registry. For manual testing, you can move <code>hbase-chart-x.x.x.tgz</code> under <code>examples/hbasecluster-chart/charts/</code>
-    <div class="highlight"><pre><span></span>cd hbase-operator &amp;&amp; mv hbase-chart-x.x.x.tgz examples/hbasecluster-chart/charts/ 
+    <div class="highlight"><pre><span></span>cd hbase-operator &amp;&amp; mv hbase-chart-x.x.x.tgz examples/hbasecluster-chart/charts/
 </pre></div></p>
 </li>
 <li>
 <p>Open <code>examples/hbasecluster-chart/values.yaml</code>, and modify the values as per your requirement. Some of the recommended modifications are</p>
 <ol>
-<li>isBootstrap: Enable this flag first time you run this cluster. Which performs <code>hdfs format</code>, required at the time of cluster setup. Once cluster started, you can disable and upgrade the cluster again. </li>
+<li>isBootstrap: Enable this flag first time you run this cluster. Which performs <code>hdfs format</code>, required at the time of cluster setup. Once cluster started, you can disable and upgrade the cluster again.</li>
 <li>image: Docker image of hbase we built in previous section</li>
 <li>annotations: In this examples, we have used to demonstrate MTL (Monitoring, Telemetry and Logging)</li>
 <li>Volume claims for your k8s can be fetched using <code>kubectl get storageclass</code>. Which can be used to replace <code>storageClass</code></li>
@@ -791,6 +963,1822 @@
 </pre></div></p>
 </li>
 </ol>
+<h4 id="via-manifest_1">via Manifest<a class="headerlink" href="#via-manifest_1" title="Permanent link">&para;</a></h4>
+<p>Sample configuration:</p>
+<details>
+<summary>Sample Cluster yaml configuration</summary>
+<div class="highlight"><pre><span></span># Source: hbasecluster-chart/templates/hbasecluster.yaml
+apiVersion: kvstore.flipkart.com/v1
+kind: HbaseCluster
+metadata:
+  name: hbase-cluster
+  namespace: hbase-cluster-ns
+spec:
+  baseImage: hbase:2.4.8
+  isBootstrap: true
+  fsgroup: 1011
+  configuration:
+    hbaseConfigName: hbase-config
+    hbaseConfigMountPath: /etc/hbase
+    hbaseConfig:
+      hadoop-metrics2-hbase.properties: |
+        # Licensed to the Apache Software Foundation (ASF) under one
+        # or more contributor license agreements.  See the NOTICE file
+        # distributed with this work for additional information
+        # regarding copyright ownership.  The ASF licenses this file
+        # to you under the Apache License, Version 2.0 (the
+        # &quot;License&quot;); you may not use this file except in compliance
+        # with the License.  You may obtain a copy of the License at
+        #
+        #     http://www.apache.org/licenses/LICENSE-2.0
+        #
+        # Unless required by applicable law or agreed to in writing, software
+        # distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        # See the License for the specific language governing permissions and
+        # limitations under the License.
+
+        # syntax: [prefix].[source|sink].[instance].[options]
+        # See javadoc of package-info.java for org.apache.hadoop.metrics2 for details
+
+        *.sink.file*.class=org.apache.hadoop.metrics2.sink.FileSink
+        # default sampling period
+        *.period=10
+
+        # Below are some examples of sinks that could be used
+        # to monitor different hbase daemons.
+
+        # hbase.sink.file-all.class=org.apache.hadoop.metrics2.sink.FileSink
+        # hbase.sink.file-all.filename=all.metrics
+
+        # hbase.sink.file0.class=org.apache.hadoop.metrics2.sink.FileSink
+        # hbase.sink.file0.context=hmaster
+        # hbase.sink.file0.filename=master.metrics
+
+        # hbase.sink.file1.class=org.apache.hadoop.metrics2.sink.FileSink
+        # hbase.sink.file1.context=thrift-one
+        # hbase.sink.file1.filename=thrift-one.metrics
+
+        # hbase.sink.file2.class=org.apache.hadoop.metrics2.sink.FileSink
+        # hbase.sink.file2.context=thrift-two
+        # hbase.sink.file2.filename=thrift-one.metrics
+
+        # hbase.sink.file3.class=org.apache.hadoop.metrics2.sink.FileSink
+        # hbase.sink.file3.context=rest
+        # hbase.sink.file3.filename=rest.metrics
+      hbase-env.sh: &quot;#\n#/**\n# * Licensed to the Apache Software Foundation (ASF) under one\n# * or more contributor license agreements.  See the NOTICE file\n# * distributed with this work for additional information\n# * regarding copyright ownership.  The ASF licenses this file\n# * to you under the Apache License, Version 2.0 (the\n# * \&quot;License\&quot;); you may not use this file except in compliance\n# * with the License.  You may obtain a copy of the License at\n# *\n# *     http://www.apache.org/licenses/LICENSE-2.0\n# *\n# * Unless required by applicable law or agreed to in writing, software\n# * distributed under the License is distributed on an \&quot;AS IS\&quot; BASIS,\n# * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# * See the License for the specific language governing permissions and\n# * limitations under the License.\n# */\n\n# Set environment variables here.\n\n# This script sets variables multiple times over the course of starting an hbase process,\n# so try to keep things idempotent unless you want to take an even deeper look\n# into the startup scripts (bin/hbase, etc.)\n\n# The java implementation to use.  Java 1.7+ required.\n#export JAVA_HOME=/usr/lib/jvm/j2sdk1.8-oracle\n\n# Extra Java CLASSPATH elements.  Optional.\n# export HBASE_CLASSPATH=\n\n# The maximum amount of heap to use. Default is left to JVM default.\n# export HBASE_HEAPSIZE=1G\n\n# Uncomment below if you intend to use off heap cache. For example, to allocate 8G of \n# offheap, set the value to \&quot;8G\&quot;.\n# export HBASE_OFFHEAPSIZE=1G\n\n# Extra Java runtime options.\n# Below are what we set by default.  May only work with SUN JVM.\n# For more on why as well as other possible settings,\n# see http://wiki.apache.org/hadoop/PerformanceTuning\nexport HBASE_OPTS=\&quot;-XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ParallelGCThreads=20 -Dsun.net.inetaddr.ttl=10 \&quot;\n\n# Configure PermSize. Only needed in JDK7. You can safely remove it for JDK8+\n#export HBASE_MASTER_OPTS=\&quot;$HBASE_MASTER_OPTS -XX:PermSize=128m -XX:MaxPermSize=128m\&quot;\n#export HBASE_REGIONSERVER_OPTS=\&quot;$HBASE_REGIONSERVER_OPTS -XX:PermSize=128m -XX:MaxPermSize=128m\&quot;\n\n# Uncomment one of the below three options to enable java garbage collection logging for the server-side processes.\n\n# This enables basic gc logging to the .out file.\n# export SERVER_GC_OPTS=\&quot;-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps\&quot;\n\n# This enables basic gc logging to its own file.\n# If FILE-PATH is not replaced, the log file(.gc) would still be generated in the HBASE_LOG_DIR .\n# export SERVER_GC_OPTS=\&quot;-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:&lt;FILE-PATH&gt;\&quot;\n\n# This enables basic GC logging to its own file with automatic log rolling. Only applies to jdk 1.6.0_34+ and 1.7.0_2+.\n# If FILE-PATH is not replaced, the log file(.gc) would still be generated in the HBASE_LOG_DIR .\nexport SERVER_GC_OPTS=\&quot;-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:&lt;FILE-PATH&gt; -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=1 -XX:GCLogFileSize=512M\&quot;\n\n# Uncomment one of the below three options to enable java garbage collection logging for the client processes.\n\n# This enables basic gc logging to the .out file.\n# export CLIENT_GC_OPTS=\&quot;-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps\&quot;\n\n# This enables basic gc logging to its own file.\n# If FILE-PATH is not replaced, the log file(.gc) would still be generated in the HBASE_LOG_DIR .\n# export CLIENT_GC_OPTS=\&quot;-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:&lt;FILE-PATH&gt;\&quot;\n\n# This enables basic GC logging to its own file with automatic log rolling. Only applies to jdk 1.6.0_34+ and 1.7.0_2+.\n# If FILE-PATH is not replaced, the log file(.gc) would still be generated in the HBASE_LOG_DIR .\n# export CLIENT_GC_OPTS=\&quot;-verbose:gc -XX:+PrintGCDetails -XX:+PrintGCDateStamps -Xloggc:&lt;FILE-PATH&gt; -XX:+UseGCLogFileRotation -XX:NumberOfGCLogFiles=1 -XX:GCLogFileSize=512M\&quot;\n\n# See the package documentation for org.apache.hadoop.hbase.io.hfile for other configurations\n# needed setting up off-heap block caching. \n\n# Uncomment and adjust to enable JMX exporting\n# See jmxremote.password and jmxremote.access in $JRE_HOME/lib/management to configure remote password access.\n# More details at: http://java.sun.com/javase/6/docs/technotes/guides/management/agent.html\n# NOTE: HBase provides an alternative JMX implementation to fix the random ports issue, please see JMX\n# section in HBase Reference Guide for instructions.\n\nexport HBASE_JMX_BASE=\&quot;-Dsun.net.inetaddr.ttl=10 -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.authenticate=false\&quot;\nexport HBASE_MASTER_OPTS=\&quot;$HBASE_MASTER_OPTS $HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103  -Xms2048m -Xmx2048m \&quot;\nexport HBASE_REGIONSERVER_OPTS=\&quot;$HBASE_REGIONSERVER_OPTS $HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10104 -Xms2048m -Xmx2048m  \&quot;\n# export HBASE_THRIFT_OPTS=\&quot;$HBASE_THRIFT_OPTS $HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10103\&quot;\nexport HBASE_ZOOKEEPER_OPTS=\&quot;$HBASE_ZOOKEEPER_OPTS $HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10105  -Xms1024m -Xmx1024m \&quot;\n# export HBASE_REST_OPTS=\&quot;$HBASE_REST_OPTS $HBASE_JMX_BASE -Dcom.sun.management.jmxremote.port=10105\&quot;\n\n# File naming hosts on which HRegionServers will run.  $HBASE_HOME/conf/regionservers by default.\n# export HBASE_REGIONSERVERS=${HBASE_HOME}/conf/regionservers\n\n# Uncomment and adjust to keep all the Region Server pages mapped to be memory resident\n#HBASE_REGIONSERVER_MLOCK=true\n#HBASE_REGIONSERVER_UID=\&quot;hbase\&quot;\n\n# File naming hosts on which backup HMaster will run.  $HBASE_HOME/conf/backup-masters by default.\n# export HBASE_BACKUP_MASTERS=${HBASE_HOME}/conf/backup-masters\n\n# Extra ssh options.  Empty by default.\n# export HBASE_SSH_OPTS=\&quot;-o ConnectTimeout=1 -o SendEnv=HBASE_CONF_DIR\&quot;\n\n# Where log files are stored.  $HBASE_HOME/logs by default.\n# export HBASE_LOG_DIR=${HBASE_HOME}/logs\n\n# Enable remote JDWP debugging of major HBase processes. Meant for Core Developers \n# export HBASE_MASTER_OPTS=\&quot;$HBASE_MASTER_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8070\&quot;\n# export HBASE_REGIONSERVER_OPTS=\&quot;$HBASE_REGIONSERVER_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8071\&quot;\n# export HBASE_THRIFT_OPTS=\&quot;$HBASE_THRIFT_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8072\&quot;\n# export HBASE_ZOOKEEPER_OPTS=\&quot;$HBASE_ZOOKEEPER_OPTS -Xdebug -Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=8073\&quot;\n\n# A string representing this instance of hbase. $USER by default.\n# export HBASE_IDENT_STRING=$USER\n\n# The scheduling priority for daemon processes.  See &#39;man nice&#39;.\n# export HBASE_NICENESS=10\n\n# The directory where pid files are stored. /tmp by default.\nexport HBASE_PID_DIR=/var/run/hbase\n\n# Seconds to sleep between slave commands.  Unset by default.  This\n# can be useful in large clusters, where, e.g., slave rsyncs can\n# otherwise arrive faster than the master can service them.\n# export HBASE_SLAVE_SLEEP=0.1\n\n# Tell HBase whether it should manage it&#39;s own instance of Zookeeper or not.\nexport HBASE_MANAGES_ZK=false\n\n# The default log rolling policy is RFA, where the log file is rolled as per the size defined for the \n# RFA appender. Please refer to the log4j.properties file to see more details on this appender.\n# In case one needs to do log rolling on a date change, one should set the environment property\n# HBASE_ROOT_LOGGER to \&quot;&lt;DESIRED_LOG LEVEL&gt;,DRFA\&quot;.\n# For example:\n# HBASE_ROOT_LOGGER=INFO,DRFA\n# The reason for changing default to RFA is to avoid the boundary case of filling out disk space as \n# DRFA doesn&#39;t put any cap on the log size. Please refer to HBase-5655 for more context.\n\nexport LD_LIBRARY_PATH=/opt/hadoop/lib/native\n&quot;
+      hbase-policy.xml: &quot;&lt;?xml version=\&quot;1.0\&quot;?&gt;\n&lt;?xml-stylesheet type=\&quot;text/xsl\&quot; href=\&quot;configuration.xsl\&quot;?&gt;\n&lt;!--\n/**\n * Licensed to the Apache Software Foundation (ASF) under one\n * or more contributor license agreements.  See the NOTICE file\n * distributed with this work for additional information\n * regarding copyright ownership.  The ASF licenses this file\n * to you under the Apache License, Version 2.0 (the\n * \&quot;License\&quot;); you may not use this file except in compliance\n * with the License.  You may obtain a copy of the License at\n *\n *     http://www.apache.org/licenses/LICENSE-2.0\n *\n * Unless required by applicable law or agreed to in writing, software\n * distributed under the License is distributed on an \&quot;AS IS\&quot; BASIS,\n * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n * See the License for the specific language governing permissions and\n * limitations under the License.\n */\n--&gt;\n\n&lt;configuration&gt;\n  &lt;property&gt;\n    &lt;name&gt;security.client.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ClientProtocol and AdminProtocol implementations (ie. \n    clients talking to HRegionServers)\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;. \n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.admin.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for HMasterInterface protocol implementation (ie. \n    clients talking to HMaster for admin operations).\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;. \n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.masterregion.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for HMasterRegionInterface protocol implementations\n    (for HRegionServers communicating with HMaster)\n    The ACL is a comma-separated list of user and group names. The user and \n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;. \n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n&lt;/configuration&gt;\n&quot;
+      hbase-site.xml: |+
+        &lt;?xml version=&quot;1.0&quot;?&gt;
+        &lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;
+        &lt;configuration&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.client.retry.policy.enabled&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.client.retry.policy.spec&lt;/name&gt;
+        &lt;value&gt;1000,1&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.client.read.shortcircuit&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.domain.socket.path&lt;/name&gt;
+        &lt;value&gt;/var/run/hadoop/dn._PORT&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.assignment.usezk&lt;/name&gt;
+        &lt;value&gt;false&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.oldwals.cleaner.thread.timeout.msec&lt;/name&gt;
+        &lt;value&gt;60000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.oldwals.cleaner.thread.check.interval.msec&lt;/name&gt;
+        &lt;value&gt;60000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.replication&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.master.logcleaner.plugins&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.hbase.master.cleaner.TimeToLiveLogCleaner,org.apache.hadoop.hbase.master.cleaner.TimeToLiveProcedureWALCleaner,org.apache.hadoop.hbase.replication.master.ReplicationLogCleaner&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.procedure.master.classes&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.hbase.backup.master.LogRollMasterProcedureManager&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.procedure.regionserver.classes&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.hbase.backup.regionserver.LogRollRegionServerProcedureManager&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.cluster.distributed&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.rootdir&lt;/name&gt;
+        &lt;value&gt;hdfs://hbase-store/hbase&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.zookeeper.quorum&lt;/name&gt;
+        &lt;value&gt;hbase-cluster-zk-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local,hbase-cluster-zk-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local,hbase-cluster-zk-2.hbase-cluster.hbase-cluster-ns.svc.cluster.local&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;zookeeper.znode.parent&lt;/name&gt;
+        &lt;value&gt;/hbase&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;zookeeper.session.timeout&lt;/name&gt;
+        &lt;value&gt;30000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.hregion.memstore.flush.size&lt;/name&gt;
+        &lt;value&gt;128000000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.zookeeper.property.tickTime&lt;/name&gt;
+        &lt;value&gt;6000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.zookeeper.property.4lw.commands.whitelist&lt;/name&gt;
+        &lt;value&gt;*&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.master.hfilecleaner.ttl&lt;/name&gt;
+        &lt;value&gt;600000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.balancer.period&lt;/name&gt;
+        &lt;value&gt;1800000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.master.logcleaner.ttl&lt;/name&gt;
+        &lt;value&gt;60000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.zookeeper.property.maxClientCnxns&lt;/name&gt;
+        &lt;value&gt;4000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.zookeeper.property.autopurge.purgeInterval&lt;/name&gt;
+        &lt;value&gt;1&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.zookeeper.property.autopurge.snapRetainCount&lt;/name&gt;
+        &lt;value&gt;3&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.master.balancer.stochastic.runMaxSteps&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.master.balancer.stochastic.minCostNeedBalance&lt;/name&gt;
+        &lt;value&gt;0.05f&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;master.balancer.stochastic.maxSteps&lt;/name&gt;
+        &lt;value&gt;1000000&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.zookeeper.property.dataDir&lt;/name&gt;
+        &lt;value&gt;/grid/1/zk&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.security.authentication&lt;/name&gt;
+        &lt;value&gt;simple&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.security.authorization&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.coprocessor.master.classes&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.hbase.rsgroup.RSGroupAdminEndpoint,org.apache.hadoop.hbase.security.access.AccessController&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.coprocessor.regionserver.classes&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.hbase.security.access.AccessController&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.master.loadbalancer.class&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.hbase.rsgroup.RSGroupBasedLoadBalancer&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.nameservices&lt;/name&gt;
+        &lt;value&gt;hbase-store&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.ha.namenodes.hbase-store&lt;/name&gt;
+        &lt;value&gt;nn1,nn2&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.hbase-store.nn1&lt;/name&gt;
+        &lt;value&gt;hbase-cluster-nn-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local:8020&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.hbase-store.nn1&lt;/name&gt;
+        &lt;value&gt;hbase-cluster-nn-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local:50070&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.namenode.rpc-address.hbase-store.nn2&lt;/name&gt;
+        &lt;value&gt;hbase-cluster-nn-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local:8020&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.namenode.http-address.hbase-store.nn2&lt;/name&gt;
+        &lt;value&gt;hbase-cluster-nn-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local:50070&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.client.failover.proxy.provider.hbase-store&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;dfs.datanode.address&lt;/name&gt;
+        &lt;value&gt;0.0.0.0:9866&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.hregion.majorcompaction&lt;/name&gt;
+        &lt;value&gt;0&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.procedure.store.wal.use.hsync&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;net.topology.script.file.name&lt;/name&gt;
+        &lt;value&gt;/opt/scripts/rack_topology&lt;/value&gt;
+
+        &lt;/property&gt;
+
+
+        &lt;property&gt;
+        &lt;name&gt;hbase.regionserver.hostname.disable.master.reversedns&lt;/name&gt;
+        &lt;value&gt;true&lt;/value&gt;
+
+        &lt;/property&gt;
+
+        &lt;!-- appended configuration used in override --&gt;
+
+        &lt;/configuration&gt;
+
+      log4j.properties: &quot;# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \&quot;License\&quot;); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \&quot;AS IS\&quot; BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# Define some default values that can be overridden by system properties\nhbase.root.logger=INFO,console\nhbase.security.logger=INFO,console\nhbase.log.dir=.\nhbase.log.file=hbase.log\n\n# Define the root logger to the system property \&quot;hbase.root.logger\&quot;.\nlog4j.rootLogger=${hbase.root.logger}\n\n# Logging Threshold\nlog4j.threshold=ALL\n\n#\n# Daily Rolling File Appender\n#\nlog4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.DRFA.File=${hbase.log.dir}/${hbase.log.file}\n\n# Rollver at midnight\nlog4j.appender.DRFA.DatePattern=.yyyy-MM-dd\n\n# 30-day backup\n#log4j.appender.DRFA.MaxBackupIndex=30\nlog4j.appender.DRFA.layout=org.apache.log4j.PatternLayout\n\n# Pattern format: Date LogLevel LoggerName LogMessage\nlog4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n\n# Rolling File Appender properties\nhbase.log.maxfilesize=256MB\nhbase.log.maxbackupindex=5\n\n# Rolling File Appender\nlog4j.appender.RFA=org.apache.log4j.RollingFileAppender\nlog4j.appender.RFA.File=${hbase.log.dir}/${hbase.log.file}\n\nlog4j.appender.RFA.MaxFileSize=${hbase.log.maxfilesize}\nlog4j.appender.RFA.MaxBackupIndex=${hbase.log.maxbackupindex}\n\nlog4j.appender.RFA.layout=org.apache.log4j.PatternLayout\nlog4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n\n#\n# Security audit appender\n#\nhbase.security.log.file=SecurityAuth.audit\nhbase.security.log.maxfilesize=256MB\nhbase.security.log.maxbackupindex=5\nlog4j.appender.RFAS=org.apache.log4j.RollingFileAppender\nlog4j.appender.RFAS.File=${hbase.log.dir}/${hbase.security.log.file}\nlog4j.appender.RFAS.MaxFileSize=${hbase.security.log.maxfilesize}\nlog4j.appender.RFAS.MaxBackupIndex=${hbase.security.log.maxbackupindex}\nlog4j.appender.RFAS.layout=org.apache.log4j.PatternLayout\nlog4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\nlog4j.category.SecurityLogger=${hbase.security.logger}\nlog4j.additivity.SecurityLogger=false\n#log4j.logger.SecurityLogger.org.apache.hadoop.hbase.security.access.AccessController=TRACE\n#log4j.logger.SecurityLogger.org.apache.hadoop.hbase.security.visibility.VisibilityController=TRACE\n\n#\n# Null Appender\n#\nlog4j.appender.NullAppender=org.apache.log4j.varia.NullAppender\n\n#\n# console\n# Add \&quot;console\&quot; to rootlogger above if you want to use this \n#\nlog4j.appender.console=org.apache.log4j.ConsoleAppender\nlog4j.appender.console.target=System.err\nlog4j.appender.console.layout=org.apache.log4j.PatternLayout\nlog4j.appender.console.layout.ConversionPattern=%d{ISO8601} %-5p [%t] %c{2}: %m%n\n\n# Custom Logging levels\n\nlog4j.logger.org.apache.zookeeper=INFO\n#log4j.logger.org.apache.hadoop.fs.FSNamesystem=DEBUG\nlog4j.logger.org.apache.hadoop.hbase=INFO\n# Make these two classes INFO-level. Make them DEBUG to see more zk debug.\nlog4j.logger.org.apache.hadoop.hbase.zookeeper.ZKUtil=INFO\nlog4j.logger.org.apache.hadoop.hbase.zookeeper.ZooKeeperWatcher=INFO\n#log4j.logger.org.apache.hadoop.dfs=DEBUG\n# Set this class to log INFO only otherwise its OTT\n# Enable this to get detailed connection error/retry logging.\n# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=TRACE\n\n\n# Uncomment this line to enable tracing on _every_ RPC call (this can be a lot of output)\n#log4j.logger.org.apache.hadoop.ipc.HBaseServer.trace=DEBUG\n\n# Uncomment the below if you want to remove logging of client region caching&#39;\n# and scan of hbase:meta messages\n# log4j.logger.org.apache.hadoop.hbase.client.HConnectionManager$HConnectionImplementation=INFO\n# log4j.logger.org.apache.hadoop.hbase.client.MetaScanner=INFO\n&quot;
+    hadoopConfigName: hadoop-config
+    hadoopConfigMountPath: /etc/hadoop
+    hadoopConfig:
+      configuration.xsl: |
+        &lt;?xml version=&quot;1.0&quot;?&gt;
+        &lt;!--
+           Licensed to the Apache Software Foundation (ASF) under one or more
+           contributor license agreements.  See the NOTICE file distributed with
+           this work for additional information regarding copyright ownership.
+           The ASF licenses this file to You under the Apache License, Version 2.0
+           (the &quot;License&quot;); you may not use this file except in compliance with
+           the License.  You may obtain a copy of the License at
+
+               http://www.apache.org/licenses/LICENSE-2.0
+
+           Unless required by applicable law or agreed to in writing, software
+           distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+           WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+           See the License for the specific language governing permissions and
+           limitations under the License.
+        --&gt;
+        &lt;xsl:stylesheet xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot; version=&quot;1.0&quot;&gt;
+        &lt;xsl:output method=&quot;html&quot;/&gt;
+        &lt;xsl:template match=&quot;configuration&quot;&gt;
+        &lt;html&gt;
+        &lt;body&gt;
+        &lt;table border=&quot;1&quot;&gt;
+        &lt;tr&gt;
+         &lt;td&gt;name&lt;/td&gt;
+         &lt;td&gt;value&lt;/td&gt;
+         &lt;td&gt;description&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;xsl:for-each select=&quot;property&quot;&gt;
+        &lt;tr&gt;
+          &lt;td&gt;&lt;a name=&quot;{name}&quot;&gt;&lt;xsl:value-of select=&quot;name&quot;/&gt;&lt;/a&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;xsl:value-of select=&quot;value&quot;/&gt;&lt;/td&gt;
+          &lt;td&gt;&lt;xsl:value-of select=&quot;description&quot;/&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+        &lt;/xsl:for-each&gt;
+        &lt;/table&gt;
+        &lt;/body&gt;
+        &lt;/html&gt;
+        &lt;/xsl:template&gt;
+        &lt;/xsl:stylesheet&gt;
+      core-site.xml: |
+        &lt;?xml version=&quot;1.0&quot;?&gt;
+        &lt;?xml-stylesheet type=&quot;text/xsl&quot; href=&quot;configuration.xsl&quot;?&gt;
+        &lt;configuration&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;fs.trash.interval&lt;/name&gt;
+        &lt;value&gt;1440&lt;/value&gt;
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;io.compression.codecs&lt;/name&gt;
+        &lt;value&gt;org.apache.hadoop.io.compress.GzipCodec,org.apache.hadoop.io.compress.DefaultCodec,org.apache.hadoop.io.compress.BZip2Codec,com.hadoop.compression.lzo.LzoCodec,com.hadoop.compression.lzo.LzopCodec&lt;/value&gt;
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;io.compression.codec.lzo.class&lt;/name&gt;
+        &lt;value&gt;com.hadoop.compression.lzo.LzoCodec&lt;/value&gt;
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;fs.default.name&lt;/name&gt;
+        &lt;value&gt;hdfs://hbase-store&lt;/value&gt;
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;ha.zookeeper.quorum&lt;/name&gt;
+        &lt;value&gt;hbase-cluster-zk-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local,hbase-cluster-zk-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local,hbase-cluster-zk-2.hbase-cluster.hbase-cluster-ns.svc.cluster.local&lt;/value&gt;
+        &lt;/property&gt;
+
+        &lt;property&gt;
+        &lt;name&gt;ha.zookeeper.parent-znode&lt;/name&gt;
+        &lt;value&gt;/hbase/hadoop-ha&lt;/value&gt;
+        &lt;/property&gt;
+
+        &lt;/configuration&gt;
+      dfs.exclude: &quot;&quot;
+      dfs.include: |
+        hbase-tenant-dn-0.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+        hbase-tenant-dn-1.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+        hbase-tenant-dn-2.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+        hbase-tenant-dn-3.hbase-tenant.hbase-tenant-ns.svc.cluster.local
+        hbase-cluster-dn-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local
+        hbase-cluster-dn-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local
+        hbase-cluster-dn-2.hbase-cluster.hbase-cluster-ns.svc.cluster.local
+      hadoop-env.sh: &quot;# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \&quot;License\&quot;); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \&quot;AS IS\&quot; BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# Set Hadoop-specific environment variables here.\n\n# The only required environment variable is JAVA_HOME.  All others are\n# optional.  When running a distributed configuration it is best to\n# set JAVA_HOME in this file, so that it is correctly defined on\n# remote nodes.\n\n# The java implementation to use.\n#export JAVA_HOME=/usr/lib/jvm/j2sdk1.8-oracle\n\n# The jsvc implementation to use. Jsvc is required to run secure datanodes\n# that bind to privileged ports to provide authentication of data transfer\n# protocol.  Jsvc is not required if SASL is configured for authentication of\n# data transfer protocol using non-privileged ports.\n#export JSVC_HOME=${JSVC_HOME}\n\nexport HADOOP_CONF_DIR=/etc/hadoop\nexport HADOOP_PID_DIR=/var/run/hadoop\n\n# Extra Java CLASSPATH elements.  Automatically insert capacity-scheduler.\nfor f in $HADOOP_HOME/contrib/capacity-scheduler/*.jar; do\n  if [ \&quot;$HADOOP_CLASSPATH\&quot; ]; then\n    export HADOOP_CLASSPATH=$HADOOP_CLASSPATH:$f\n  else\n    export HADOOP_CLASSPATH=$f\n  fi\ndone\n\n# The maximum amount of heap to use, in MB. Default is 1000.\n#export HADOOP_HEAPSIZE=\&quot;\&quot;\n#export HADOOP_NAMENODE_INIT_HEAPSIZE=\&quot;\&quot;\n\n# Extra Java runtime options.  Empty by default.\n#export HADOOP_OPTS=\&quot;$HADOOP_OPTS -Djava.net.preferIPv4Stack=true -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=1234 -Dcom.sun.management.jmxremote.ssl=false -XX:+UnlockCommercialFeatures -XX:+FlightRecorder\&quot;\nexport HADOOP_OPTS=\&quot;$HADOOP_OPTs  -Djava.net.preferIPv4Stack=true -Dsun.net.inetaddr.ttl=10 -XX:+UseG1GC -XX:MaxGCPauseMillis=50 -XX:ParallelGCThreads=8 \&quot;\n\n# Command specific options appended to HADOOP_OPTS when specified\nexport HDFS_NAMENODE_OPTS=\&quot;  -Xms2048m -Xmx2048m   -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=10102 -Dcom.sun.management.jmxremote.ssl=false -Dhadoop.security.logger=${HADOOP_SECURITY_LOGGER:-INFO,RFAS} -Dhdfs.audit.logger=${HDFS_AUDIT_LOGGER:-INFO,NullAppender} \&quot;\nexport HDFS_DATANODE_OPTS=\&quot;  -Xms2048m -Xmx2048m  -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=10101 -Dcom.sun.management.jmxremote.ssl=false -Dhadoop.security.logger=ERROR,RFAS \&quot;\nexport HDFS_JOURNALNODE_OPTS=\&quot; -Xms512m -Xmx512m   -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=10106 -Dcom.sun.management.jmxremote.ssl=false \&quot;\nexport HDFS_ZKFC_OPTS=\&quot;  -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=10107 -Dcom.sun.management.jmxremote.ssl=false \&quot;\n\nexport HADOOP_SECONDARYNAMENODE_OPTS=\&quot; -Xms2048m -Xmx2048m   -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.port=10102 -Dcom.sun.management.jmxremote.ssl=false -XX:+UnlockCommercialFeatures -XX:+FlightRecorder  -Dhadoop.security.logger=${HADOOP_SECURITY_LOGGER:-INFO,RFAS} -Dhdfs.audit.logger=${HDFS_AUDIT_LOGGER:-INFO,NullAppender} \&quot;\n\nexport HADOOP_NFS3_OPTS=\&quot;$HADOOP_NFS3_OPTS\&quot;\nexport HADOOP_PORTMAP_OPTS=\&quot;-Xmx512m $HADOOP_PORTMAP_OPTS\&quot;\n\n# The following applies to multiple commands (fs, dfs, fsck, distcp etc)\nexport HADOOP_CLIENT_OPTS=\&quot;-Xmx512m $HADOOP_CLIENT_OPTS\&quot;\n#HADOOP_JAVA_PLATFORM_OPTS=\&quot;-XX:-UsePerfData $HADOOP_JAVA_PLATFORM_OPTS\&quot;\n\n# On secure datanodes, user to run the datanode as after dropping privileges.\n# This **MUST** be uncommented to enable secure HDFS if using privileged ports\n# to provide authentication of data transfer protocol.  This **MUST NOT** be\n# defined if SASL is configured for authentication of data transfer protocol\n# using non-privileged ports.\nexport HADOOP_SECURE_DN_USER=${HADOOP_SECURE_DN_USER}\n\n# Where log files are stored.  $HADOOP_HOME/logs by default.\n#export HADOOP_LOG_DIR=${HADOOP_LOG_DIR}/$USER\n\n# Where log files are stored in the secure data environment.\nexport HADOOP_SECURE_LOG_DIR=${HADOOP_LOG_DIR}/${HADOOP_HDFS_USER}\n\n###\n# HDFS Mover specific parameters\n###\n# Specify the JVM options to be used when starting the HDFS Mover.\n# These options will be appended to the options specified as HADOOP_OPTS\n# and therefore may override any similar flags set in HADOOP_OPTS\n#\n# export HADOOP_MOVER_OPTS=\&quot;\&quot;\n\n###\n# Advanced Users Only!\n###\n\n# The directory where pid files are stored. /tmp by default.\n# NOTE: this should be set to a directory that can only be written to by \n#       the user that will run the hadoop daemons.  Otherwise there is the\n#       potential for a symlink attack.\nexport HADOOP_PID_DIR=${HADOOP_PID_DIR}\nexport HADOOP_SECURE_PID_DIR=${HADOOP_PID_DIR}\n\n# A string representing this instance of hadoop. $USER by default.\nexport HADOOP_IDENT_STRING=$USER\n&quot;
+      hadoop-metrics.properties: |+
+        # Configuration of the &quot;dfs&quot; context for null
+        dfs.class=org.apache.hadoop.metrics.spi.NullContext
+
+        # Configuration of the &quot;dfs&quot; context for file
+        #dfs.class=org.apache.hadoop.metrics.file.FileContext
+        #dfs.period=10
+        #dfs.fileName=/tmp/dfsmetrics.log
+
+        # Configuration of the &quot;dfs&quot; context for ganglia
+        # Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
+        # dfs.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+        # dfs.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+        # dfs.period=10
+        # dfs.servers=localhost:8649
+
+
+        # Configuration of the &quot;mapred&quot; context for null
+        mapred.class=org.apache.hadoop.metrics.spi.NullContext
+
+        # Configuration of the &quot;mapred&quot; context for file
+        #mapred.class=org.apache.hadoop.metrics.file.FileContext
+        #mapred.period=10
+        #mapred.fileName=/tmp/mrmetrics.log
+
+        # Configuration of the &quot;mapred&quot; context for ganglia
+        # Pick one: Ganglia 3.0 (former) or Ganglia 3.1 (latter)
+        # mapred.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+        # mapred.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+        # mapred.period=10
+        # mapred.servers=localhost:8649
+
+
+        # Configuration of the &quot;jvm&quot; context for null
+        #jvm.class=org.apache.hadoop.metrics.spi.NullContext
+
+        # Configuration of the &quot;jvm&quot; context for file
+        #jvm.class=org.apache.hadoop.metrics.file.FileContext
+        #jvm.period=10
+        #jvm.fileName=/tmp/jvmmetrics.log
+
+        # Configuration of the &quot;jvm&quot; context for ganglia
+        # jvm.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+        # jvm.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+        # jvm.period=10
+        # jvm.servers=localhost:8649
+
+        # Configuration of the &quot;rpc&quot; context for null
+        rpc.class=org.apache.hadoop.metrics.spi.NullContext
+
+        # Configuration of the &quot;rpc&quot; context for file
+        #rpc.class=org.apache.hadoop.metrics.file.FileContext
+        #rpc.period=10
+        #rpc.fileName=/tmp/rpcmetrics.log
+
+        # Configuration of the &quot;rpc&quot; context for ganglia
+        # rpc.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+        # rpc.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+        # rpc.period=10
+        # rpc.servers=localhost:8649
+
+
+        # Configuration of the &quot;ugi&quot; context for null
+        ugi.class=org.apache.hadoop.metrics.spi.NullContext
+
+        # Configuration of the &quot;ugi&quot; context for file
+        #ugi.class=org.apache.hadoop.metrics.file.FileContext
+        #ugi.period=10
+        #ugi.fileName=/tmp/ugimetrics.log
+
+        # Configuration of the &quot;ugi&quot; context for ganglia
+        # ugi.class=org.apache.hadoop.metrics.ganglia.GangliaContext
+        # ugi.class=org.apache.hadoop.metrics.ganglia.GangliaContext31
+        # ugi.period=10
+        # ugi.servers=localhost:8649
+
+      hadoop-metrics2.properties: &quot;# syntax: [prefix].[source|sink].[instance].[options]\n# See javadoc of package-info.java for org.apache.hadoop.metrics2 for details\n\n*.sink.file.class=org.apache.hadoop.metrics2.sink.FileSink\n# default sampling period, in seconds\n*.period=10\n\n# The namenode-metrics.out will contain metrics from all context\n#namenode.sink.file.filename=namenode-metrics.out\n# Specifying a special sampling period for namenode:\n#namenode.sink.*.period=8\n\n#datanode.sink.file.filename=datanode-metrics.out\n\n#resourcemanager.sink.file.filename=resourcemanager-metrics.out\n\n#nodemanager.sink.file.filename=nodemanager-metrics.out\n\n#mrappmaster.sink.file.filename=mrappmaster-metrics.out\n\n#jobhistoryserver.sink.file.filename=jobhistoryserver-metrics.out\n\n# the following example split metrics of different\n# context to different sinks (in this case files)\n#nodemanager.sink.file_jvm.class=org.apache.hadoop.metrics2.sink.FileSink\n#nodemanager.sink.file_jvm.context=jvm\n#nodemanager.sink.file_jvm.filename=nodemanager-jvm-metrics.out\n#nodemanager.sink.file_mapred.class=org.apache.hadoop.metrics2.sink.FileSink\n#nodemanager.sink.file_mapred.context=mapred\n#nodemanager.sink.file_mapred.filename=nodemanager-mapred-metrics.out\n\n#\n# Below are for sending metrics to Ganglia\n#\n# for Ganglia 3.0 support\n# *.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink30\n#\n# for Ganglia 3.1 support\n# *.sink.ganglia.class=org.apache.hadoop.metrics2.sink.ganglia.GangliaSink31\n\n# *.sink.ganglia.period=10\n\n# default for supportsparse is false\n# *.sink.ganglia.supportsparse=true\n\n#*.sink.ganglia.slope=jvm.metrics.gcCount=zero,jvm.metrics.memHeapUsedM=both\n#*.sink.ganglia.dmax=jvm.metrics.threadsBlocked=70,jvm.metrics.memHeapUsedM=40\n\n# Tag values to use for the ganglia prefix. If not defined no tags are used.\n# If &#39;*&#39; all tags are used. If specifiying multiple tags separate them with \n# commas. Note that the last segment of the property name is the context name.\n#\n#*.sink.ganglia.tagsForPrefix.jvm=ProcesName\n#*.sink.ganglia.tagsForPrefix.dfs=\n#*.sink.ganglia.tagsForPrefix.rpc=\n#*.sink.ganglia.tagsForPrefix.mapred=\n\n#namenode.sink.ganglia.servers=yourgangliahost_1:8649,yourgangliahost_2:8649\n\n#datanode.sink.ganglia.servers=yourgangliahost_1:8649,yourgangliahost_2:8649\n\n#resourcemanager.sink.ganglia.servers=yourgangliahost_1:8649,yourgangliahost_2:8649\n\n#nodemanager.sink.ganglia.servers=yourgangliahost_1:8649,yourgangliahost_2:8649\n\n#mrappmaster.sink.ganglia.servers=yourgangliahost_1:8649,yourgangliahost_2:8649\n\n#jobhistoryserver.sink.ganglia.servers=yourgangliahost_1:8649,yourgangliahost_2:8649\n&quot;
+      hadoop-policy.xml: &quot;&lt;?xml version=\&quot;1.0\&quot;?&gt;\n&lt;?xml-stylesheet type=\&quot;text/xsl\&quot; href=\&quot;configuration.xsl\&quot;?&gt;\n&lt;!--\n \n Licensed to the Apache Software Foundation (ASF) under one\n or more contributor license agreements.  See the NOTICE file\n distributed with this work for additional information\n regarding copyright ownership.  The ASF licenses this file\n to you under the Apache License, Version 2.0 (the\n \&quot;License\&quot;); you may not use this file except in compliance\n with the License.  You may obtain a copy of the License at\n\n     http://www.apache.org/licenses/LICENSE-2.0\n\n Unless required by applicable law or agreed to in writing, software\n distributed under the License is distributed on an \&quot;AS IS\&quot; BASIS,\n WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n See the License for the specific language governing permissions and\n limitations under the License.\n\n--&gt;\n\n&lt;!-- Put site-specific property overrides in this file. --&gt;\n\n&lt;configuration&gt;\n  &lt;property&gt;\n    &lt;name&gt;security.client.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ClientProtocol, which is used by user code\n    via the DistributedFileSystem.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.client.datanode.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ClientDatanodeProtocol, the client-to-datanode protocol\n    for block recovery.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.datanode.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for DatanodeProtocol, which is used by datanodes to\n    communicate with the namenode.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.inter.datanode.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for InterDatanodeProtocol, the inter-datanode protocol\n    for updating generation timestamp.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.namenode.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for NamenodeProtocol, the protocol used by the secondary\n    namenode to communicate with the namenode.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n &lt;property&gt;\n    &lt;name&gt;security.admin.operations.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for AdminOperationsProtocol. Used for admin commands.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.refresh.user.mappings.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for RefreshUserMappingsProtocol. Used to refresh\n    users mappings. The ACL is a comma-separated list of user and\n    group names. The user and group list is separated by a blank. For\n    e.g. \&quot;alice,bob users,wheel\&quot;.  A special value of \&quot;*\&quot; means all\n    users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.refresh.policy.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for RefreshAuthorizationPolicyProtocol, used by the\n    dfsadmin and mradmin commands to refresh the security policy in-effect.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.ha.service.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for HAService protocol used by HAAdmin to manage the\n      active and stand-by states of namenode.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.zkfc.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for access to the ZK Failover Controller\n    &lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.qjournal.service.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for QJournalProtocol, used by the NN to communicate with\n    JNs when using the QuorumJournalManager for edit logs.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.mrhs.client.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for HSClientProtocol, used by job clients to\n    communciate with the MR History Server job status etc. \n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;!-- YARN Protocols --&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.resourcetracker.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ResourceTrackerProtocol, used by the\n    ResourceManager and NodeManager to communicate with each other.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.resourcemanager-administration.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ResourceManagerAdministrationProtocol, for admin commands. \n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.applicationclient.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ApplicationClientProtocol, used by the ResourceManager \n    and applications submission clients to communicate with each other.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.applicationmaster.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ApplicationMasterProtocol, used by the ResourceManager \n    and ApplicationMasters to communicate with each other.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.containermanagement.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ContainerManagementProtocol protocol, used by the NodeManager \n    and ApplicationMasters to communicate with each other.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.resourcelocalizer.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ResourceLocalizer protocol, used by the NodeManager \n    and ResourceLocalizer to communicate with each other.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.job.task.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for TaskUmbilicalProtocol, used by the map and reduce\n    tasks to communicate with the parent tasktracker.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.job.client.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for MRClientProtocol, used by job clients to\n    communciate with the MR ApplicationMaster to query job status etc. \n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n\n  &lt;property&gt;\n    &lt;name&gt;security.applicationhistory.protocol.acl&lt;/name&gt;\n    &lt;value&gt;*&lt;/value&gt;\n    &lt;description&gt;ACL for ApplicationHistoryProtocol, used by the timeline\n    server and the generic history service client to communicate with each other.\n    The ACL is a comma-separated list of user and group names. The user and\n    group list is separated by a blank. For e.g. \&quot;alice,bob users,wheel\&quot;.\n    A special value of \&quot;*\&quot; means all users are allowed.&lt;/description&gt;\n  &lt;/property&gt;\n&lt;/configuration&gt;\n&quot;
+      hdfs-site.xml: &quot;&lt;?xml version=\&quot;1.0\&quot;?&gt;\n&lt;?xml-stylesheet type=\&quot;text/xsl\&quot; href=\&quot;configuration.xsl\&quot;?&gt;\n&lt;configuration&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.replication&lt;/name&gt;\n&lt;value&gt;3&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.replication.max&lt;/name&gt;\n&lt;value&gt;3&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.permissions&lt;/name&gt;\n&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.permissions.superusergroup&lt;/name&gt;\n&lt;value&gt;hbase&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.name.dir&lt;/name&gt;\n&lt;value&gt;file:///grid/1/dfs/nn&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.datanode.data.dir&lt;/name&gt;\n&lt;value&gt;file:///grid/1/dfs/dn&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.datanode.failed.volumes.tolerated&lt;/name&gt;\n&lt;value&gt;0&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.datanode.max.transfer.threads&lt;/name&gt;\n&lt;value&gt;8192&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.client.read.shortcircuit&lt;/name&gt;\n&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.block.local-path-access.user&lt;/name&gt;\n&lt;value&gt;hbase&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.domain.socket.path&lt;/name&gt;\n&lt;value&gt;/var/run/hadoop/dn._PORT&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.hosts&lt;/name&gt;\n&lt;value&gt;/etc/hadoop/dfs.include&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.hosts.exclude&lt;/name&gt;\n&lt;value&gt;/etc/hadoop/dfs.exclude&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.datanode.data.dir.perm&lt;/name&gt;\n&lt;value&gt;700&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.nameservices&lt;/name&gt;\n&lt;value&gt;hbase-store&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenodes.handler.count&lt;/name&gt;\n&lt;value&gt;160&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.ha.namenodes.hbase-store&lt;/name&gt;\n&lt;value&gt;nn1,nn2&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.rpc-address.hbase-store.nn1&lt;/name&gt;\n&lt;value&gt;hbase-cluster-nn-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local:8020&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.http-address.hbase-store.nn1&lt;/name&gt;\n&lt;value&gt;hbase-cluster-nn-0.hbase-cluster.hbase-cluster-ns.svc.cluster.local:50070&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.rpc-address.hbase-store.nn2&lt;/name&gt;\n&lt;value&gt;hbase-cluster-nn-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local:8020&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.http-address.hbase-store.nn2&lt;/name&gt;\n&lt;value&gt;hbase-cluster-nn-1.hbase-cluster.hbase-cluster-ns.svc.cluster.local:50070&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.http-bind-host&lt;/name&gt;\n&lt;value&gt;0.0.0.0&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.rpc-bind-host&lt;/name&gt;\n&lt;value&gt;0.0.0.0&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.shared.edits.dir&lt;/name&gt;\n&lt;value&gt;qjournal://hbase-cluster-jn-0.hbase-cluster-ns.svc.cluster.local:8485;hbase-cluster-jn-1.hbase-cluster-ns.svc.cluster.local:8485;hbase-cluster-jn-2.hbase-cluster-ns.svc.cluster.local:8485/hbase-store&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.journalnode.edits.dir&lt;/name&gt;\n&lt;value&gt;/grid/1/dfs/jn&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.client.failover.proxy.provider.hbase-store&lt;/name&gt;\n&lt;value&gt;org.apache.hadoop.hdfs.server.namenode.ha.ConfiguredFailoverProxyProvider&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.ha.fencing.methods&lt;/name&gt;\n&lt;value&gt;sshfence\nshell(/bin/true)&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.ha.fencing.ssh.private-key-files&lt;/name&gt;\n&lt;value&gt;/var/lib/hadoop-hdfs/.ssh/id_dsa&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.ha.fencing.ssh.connect-timeout&lt;/name&gt;\n&lt;value&gt;20000&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.ha.automatic-failover.enabled&lt;/name&gt;\n&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.webhdfs.enabled&lt;/name&gt;\n&lt;value&gt;false&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.datanode.block-pinning.enabled&lt;/name&gt;\n&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.avoid.read.stale.datanode&lt;/name&gt;\n&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.avoid.write.stale.datanode&lt;/name&gt;\n&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.datanode.du.reserved&lt;/name&gt;\n&lt;value&gt;1073741824&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.namenode.resource.du.reserved&lt;/name&gt;\n&lt;value&gt;1073741824&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;!-- appendable config used to customize for override --&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.datanode.handler.count&lt;/name&gt;\n&lt;value&gt;50&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.client.retry.policy.enabled&lt;/name&gt;\n&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n&lt;name&gt;dfs.client.retry.policy.spec&lt;/name&gt;\n&lt;value&gt;1000,1&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;!--&lt;property&gt;\n  &lt;name&gt;dfs.datanode.use.datanode.hostname&lt;/name&gt;\n  &lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;\n\n&lt;property&gt;\n\t&lt;name&gt;dfs.client.use.datanode.hostname&lt;/name&gt;\n\t&lt;value&gt;true&lt;/value&gt;\n&lt;/property&gt;--&gt;\n\n&lt;!--&lt;property&gt;\n\t&lt;name&gt;dfs.namenode.datanode.registration.ip-hostnameeck&lt;/name&gt;\n\t&lt;value&gt;false&lt;/value&gt;\n&lt;/property&gt;--&gt;\n\n&lt;/configuration&gt;\n&quot;
+      httpfs-log4j.properties: |
+        #
+        # Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+        # you may not use this file except in compliance with the License.
+        # You may obtain a copy of the License at
+        #
+        #    http://www.apache.org/licenses/LICENSE-2.0
+        #
+        # Unless required by applicable law or agreed to in writing, software
+        # distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        # See the License for the specific language governing permissions and
+        # limitations under the License. See accompanying LICENSE file.
+        #
+
+        # If the Java System property &#39;httpfs.log.dir&#39; is not defined at HttpFSServer start up time
+        # Setup sets its value to &#39;${httpfs.home}/logs&#39;
+
+        log4j.appender.httpfs=org.apache.log4j.DailyRollingFileAppender
+        log4j.appender.httpfs.DatePattern=&#39;.&#39;yyyy-MM-dd
+        log4j.appender.httpfs.File=${httpfs.log.dir}/httpfs.log
+        log4j.appender.httpfs.Append=true
+        log4j.appender.httpfs.layout=org.apache.log4j.PatternLayout
+        log4j.appender.httpfs.layout.ConversionPattern=%d{ISO8601} %5p %c{1} [%X{hostname}][%X{user}:%X{doAs}] %X{op} %m%n
+
+        log4j.appender.httpfsaudit=org.apache.log4j.DailyRollingFileAppender
+        log4j.appender.httpfsaudit.DatePattern=&#39;.&#39;yyyy-MM-dd
+        log4j.appender.httpfsaudit.File=${httpfs.log.dir}/httpfs-audit.log
+        log4j.appender.httpfsaudit.Append=true
+        log4j.appender.httpfsaudit.layout=org.apache.log4j.PatternLayout
+        log4j.appender.httpfsaudit.layout.ConversionPattern=%d{ISO8601} %5p [%X{hostname}][%X{user}:%X{doAs}] %X{op} %m%n
+
+        log4j.logger.httpfsaudit=INFO, httpfsaudit
+
+        log4j.logger.org.apache.hadoop.fs.http.server=INFO, httpfs
+        log4j.logger.org.apache.hadoop.lib=INFO, httpfs
+      httpfs-signature.secret: |
+        hadoop httpfs secret
+      httpfs-site.xml: |
+        &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        &lt;!--
+          Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+          you may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+          Unless required by applicable law or agreed to in writing, software
+          distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+          WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          See the License for the specific language governing permissions and
+          limitations under the License.
+        --&gt;
+        &lt;configuration&gt;
+
+        &lt;/configuration&gt;
+      kms-acls.xml: |
+        &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        &lt;!--
+          Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+          you may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+          Unless required by applicable law or agreed to in writing, software
+          distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+          WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          See the License for the specific language governing permissions and
+          limitations under the License.
+        --&gt;
+        &lt;configuration&gt;
+
+          &lt;!-- This file is hot-reloaded when it changes --&gt;
+
+          &lt;!-- KMS ACLs --&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.CREATE&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for create-key operations.
+              If the user is not in the GET ACL, the key material is not returned
+              as part of the response.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.DELETE&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for delete-key operations.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.ROLLOVER&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for rollover-key operations.
+              If the user is not in the GET ACL, the key material is not returned
+              as part of the response.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.GET&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for get-key-version and get-current-key operations.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.GET_KEYS&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for get-keys operations.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.GET_METADATA&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for get-key-metadata and get-keys-metadata operations.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.SET_KEY_MATERIAL&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              Complementary ACL for CREATE and ROLLOVER operations to allow the client
+              to provide the key material when creating or rolling a key.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.GENERATE_EEK&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for generateEncryptedKey CryptoExtension operations.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.acl.DECRYPT_EEK&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              ACL for decryptEncryptedKey CryptoExtension operations.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;default.key.acl.MANAGEMENT&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              default ACL for MANAGEMENT operations for all key acls that are not
+              explicitly defined.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;default.key.acl.GENERATE_EEK&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              default ACL for GENERATE_EEK operations for all key acls that are not
+              explicitly defined.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;default.key.acl.DECRYPT_EEK&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              default ACL for DECRYPT_EEK operations for all key acls that are not
+              explicitly defined.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;default.key.acl.READ&lt;/name&gt;
+            &lt;value&gt;*&lt;/value&gt;
+            &lt;description&gt;
+              default ACL for READ operations for all key acls that are not
+              explicitly defined.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+
+        &lt;/configuration&gt;
+      kms-log4j.properties: |-
+        #
+        # Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+        # you may not use this file except in compliance with the License.
+        # You may obtain a copy of the License at
+        #
+        #    http://www.apache.org/licenses/LICENSE-2.0
+        #
+        # Unless required by applicable law or agreed to in writing, software
+        # distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+        # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+        # See the License for the specific language governing permissions and
+        # limitations under the License. See accompanying LICENSE file.
+        #
+
+        # If the Java System property &#39;kms.log.dir&#39; is not defined at KMS start up time
+        # Setup sets its value to &#39;${kms.home}/logs&#39;
+
+        log4j.appender.kms=org.apache.log4j.DailyRollingFileAppender
+        log4j.appender.kms.DatePattern=&#39;.&#39;yyyy-MM-dd
+        log4j.appender.kms.File=${kms.log.dir}/kms.log
+        log4j.appender.kms.Append=true
+        log4j.appender.kms.layout=org.apache.log4j.PatternLayout
+        log4j.appender.kms.layout.ConversionPattern=%d{ISO8601} %-5p %c{1} - %m%n
+
+        log4j.appender.kms-audit=org.apache.log4j.DailyRollingFileAppender
+        log4j.appender.kms-audit.DatePattern=&#39;.&#39;yyyy-MM-dd
+        log4j.appender.kms-audit.File=${kms.log.dir}/kms-audit.log
+        log4j.appender.kms-audit.Append=true
+        log4j.appender.kms-audit.layout=org.apache.log4j.PatternLayout
+        log4j.appender.kms-audit.layout.ConversionPattern=%d{ISO8601} %m%n
+
+        log4j.logger.kms-audit=INFO, kms-audit
+        log4j.additivity.kms-audit=false
+
+        log4j.rootLogger=ALL, kms
+        log4j.logger.org.apache.hadoop.conf=ERROR
+        log4j.logger.org.apache.hadoop=INFO
+        log4j.logger.com.sun.jersey.server.wadl.generators.WadlGeneratorJAXBGrammarGenerator=OFF
+      kms-site.xml: |
+        &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        &lt;!--
+          Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);
+          you may not use this file except in compliance with the License.
+          You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+          Unless required by applicable law or agreed to in writing, software
+          distributed under the License is distributed on an &quot;AS IS&quot; BASIS,
+          WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+          See the License for the specific language governing permissions and
+          limitations under the License.
+        --&gt;
+        &lt;configuration&gt;
+
+          &lt;!-- KMS Backend KeyProvider --&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.key.provider.uri&lt;/name&gt;
+            &lt;value&gt;jceks://file@/${user.home}/kms.keystore&lt;/value&gt;
+            &lt;description&gt;
+              URI of the backing KeyProvider for the KMS.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.security.keystore.JavaKeyStoreProvider.password&lt;/name&gt;
+            &lt;value&gt;none&lt;/value&gt;
+            &lt;description&gt;
+              If using the JavaKeyStoreProvider, the password for the keystore file.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;!-- KMS Cache --&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.cache.enable&lt;/name&gt;
+            &lt;value&gt;true&lt;/value&gt;
+            &lt;description&gt;
+              Whether the KMS will act as a cache for the backing KeyProvider.
+              When the cache is enabled, operations like getKeyVersion, getMetadata,
+              and getCurrentKey will sometimes return cached data without consulting
+              the backing KeyProvider. Cached values are flushed when keys are deleted
+              or modified.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.cache.timeout.ms&lt;/name&gt;
+            &lt;value&gt;600000&lt;/value&gt;
+            &lt;description&gt;
+              Expiry time for the KMS key version and key metadata cache, in
+              milliseconds. This affects getKeyVersion and getMetadata.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.current.key.cache.timeout.ms&lt;/name&gt;
+            &lt;value&gt;30000&lt;/value&gt;
+            &lt;description&gt;
+              Expiry time for the KMS current key cache, in milliseconds. This
+              affects getCurrentKey operations.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;!-- KMS Audit --&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.audit.aggregation.window.ms&lt;/name&gt;
+            &lt;value&gt;10000&lt;/value&gt;
+            &lt;description&gt;
+              Duplicate audit log events within the aggregation window (specified in
+              ms) are quashed to reduce log traffic. A single message for aggregated
+              events is printed at the end of the window, along with a count of the
+              number of aggregated events.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;!-- KMS Security --&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.type&lt;/name&gt;
+            &lt;value&gt;simple&lt;/value&gt;
+            &lt;description&gt;
+              Authentication type for the KMS. Can be either &amp;quot;simple&amp;quot;
+              or &amp;quot;kerberos&amp;quot;.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.kerberos.keytab&lt;/name&gt;
+            &lt;value&gt;${user.home}/kms.keytab&lt;/value&gt;
+            &lt;description&gt;
+              Path to the keytab with credentials for the configured Kerberos principal.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.kerberos.principal&lt;/name&gt;
+            &lt;value&gt;HTTP/localhost&lt;/value&gt;
+            &lt;description&gt;
+              The Kerberos principal to use for the HTTP endpoint.
+              The principal must start with &#39;HTTP/&#39; as per the Kerberos HTTP SPNEGO specification.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.kerberos.name.rules&lt;/name&gt;
+            &lt;value&gt;DEFAULT&lt;/value&gt;
+            &lt;description&gt;
+              Rules used to resolve Kerberos principal names.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;!-- Authentication cookie signature source --&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.signer.secret.provider&lt;/name&gt;
+            &lt;value&gt;random&lt;/value&gt;
+            &lt;description&gt;
+              Indicates how the secret to sign the authentication cookies will be
+              stored. Options are &#39;random&#39; (default), &#39;string&#39; and &#39;zookeeper&#39;.
+              If using a setup with multiple KMS instances, &#39;zookeeper&#39; should be used.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;!-- Configuration for &#39;zookeeper&#39; authentication cookie signature source --&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.signer.secret.provider.zookeeper.path&lt;/name&gt;
+            &lt;value&gt;/hadoop-kms/hadoop-auth-signature-secret&lt;/value&gt;
+            &lt;description&gt;
+              The Zookeeper ZNode path where the KMS instances will store and retrieve
+              the secret from.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.signer.secret.provider.zookeeper.connection.string&lt;/name&gt;
+            &lt;value&gt;#HOSTNAME#:#PORT#,...&lt;/value&gt;
+            &lt;description&gt;
+              The Zookeeper connection string, a list of hostnames and port comma
+              separated.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.signer.secret.provider.zookeeper.auth.type&lt;/name&gt;
+            &lt;value&gt;kerberos&lt;/value&gt;
+            &lt;description&gt;
+              The Zookeeper authentication type, &#39;none&#39; or &#39;sasl&#39; (Kerberos).
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.keytab&lt;/name&gt;
+            &lt;value&gt;/etc/hadoop/conf/kms.keytab&lt;/value&gt;
+            &lt;description&gt;
+              The absolute path for the Kerberos keytab with the credentials to
+              connect to Zookeeper.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+          &lt;property&gt;
+            &lt;name&gt;hadoop.kms.authentication.signer.secret.provider.zookeeper.kerberos.principal&lt;/name&gt;
+            &lt;value&gt;kms/#HOSTNAME#&lt;/value&gt;
+            &lt;description&gt;
+              The Kerberos service principal used to connect to Zookeeper.
+            &lt;/description&gt;
+          &lt;/property&gt;
+
+        &lt;/configuration&gt;
+      log4j.properties: &quot;# Licensed to the Apache Software Foundation (ASF) under one\n# or more contributor license agreements.  See the NOTICE file\n# distributed with this work for additional information\n# regarding copyright ownership.  The ASF licenses this file\n# to you under the Apache License, Version 2.0 (the\n# \&quot;License\&quot;); you may not use this file except in compliance\n# with the License.  You may obtain a copy of the License at\n#\n#     http://www.apache.org/licenses/LICENSE-2.0\n#\n# Unless required by applicable law or agreed to in writing, software\n# distributed under the License is distributed on an \&quot;AS IS\&quot; BASIS,\n# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n# See the License for the specific language governing permissions and\n# limitations under the License.\n\n# Define some default values that can be overridden by system properties\nhadoop.root.logger=INFO,console\nhadoop.log.dir=.\nhadoop.log.file=hadoop.log\n\n# Define the root logger to the system property \&quot;hadoop.root.logger\&quot;.\nlog4j.rootLogger=${hadoop.root.logger}, EventCounter\n\n# Logging Threshold\nlog4j.threshold=ALL\n\n# Null Appender\nlog4j.appender.NullAppender=org.apache.log4j.varia.NullAppender\n\n#\n# Rolling File Appender - cap space usage at 5gb.\n#\nhadoop.log.maxfilesize=256MB\nhadoop.log.maxbackupindex=2\nlog4j.appender.RFA=org.apache.log4j.RollingFileAppender\nlog4j.appender.RFA.File=${hadoop.log.dir}/${hadoop.log.file}\n\nlog4j.appender.RFA.MaxFileSize=${hadoop.log.maxfilesize}\nlog4j.appender.RFA.MaxBackupIndex=${hadoop.log.maxbackupindex}\n\nlog4j.appender.RFA.layout=org.apache.log4j.PatternLayout\n\n# Pattern format: Date LogLevel LoggerName LogMessage\nlog4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\n# Debugging Pattern format\n#log4j.appender.RFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n\n\n\n#\n# Daily Rolling File Appender\n#\n\nlog4j.appender.DRFA=org.apache.log4j.DailyRollingFileAppender\nlog4j.appender.DRFA.File=${hadoop.log.dir}/${hadoop.log.file}\n\n# Rollover at midnight\nlog4j.appender.DRFA.DatePattern=.yyyy-MM-dd\n\nlog4j.appender.DRFA.layout=org.apache.log4j.PatternLayout\n\n# Pattern format: Date LogLevel LoggerName LogMessage\nlog4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\n# Debugging Pattern format\n#log4j.appender.DRFA.layout.ConversionPattern=%d{ISO8601} %-5p %c{2} (%F:%M(%L)) - %m%n\n\n\n#\n# console\n# Add \&quot;console\&quot; to rootlogger above if you want to use this \n#\n\nlog4j.appender.console=org.apache.log4j.ConsoleAppender\nlog4j.appender.console.target=System.err\nlog4j.appender.console.layout=org.apache.log4j.PatternLayout\nlog4j.appender.console.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\n\n#\n# TaskLog Appender\n#\n\n#Default values\nhadoop.tasklog.taskid=null\nhadoop.tasklog.iscleanup=false\nhadoop.tasklog.noKeepSplits=4\nhadoop.tasklog.totalLogFileSize=100\nhadoop.tasklog.purgeLogSplits=true\nhadoop.tasklog.logsRetainHours=12\n\nlog4j.appender.TLA=org.apache.hadoop.mapred.TaskLogAppender\nlog4j.appender.TLA.taskId=${hadoop.tasklog.taskid}\nlog4j.appender.TLA.isCleanup=${hadoop.tasklog.iscleanup}\nlog4j.appender.TLA.totalLogFileSize=${hadoop.tasklog.totalLogFileSize}\n\nlog4j.appender.TLA.layout=org.apache.log4j.PatternLayout\nlog4j.appender.TLA.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\n\n#\n# HDFS block state change log from block manager\n#\n# Uncomment the following to suppress normal block state change\n# messages from BlockManager in NameNode.\n#log4j.logger.BlockStateChange=WARN\n\n#\n#Security appender\n#\nhadoop.security.logger=INFO,NullAppender\nhadoop.security.log.maxfilesize=256MB\nhadoop.security.log.maxbackupindex=2\nlog4j.category.SecurityLogger=${hadoop.security.logger}\nhadoop.security.log.file=SecurityAuth-${user.name}.audit\nlog4j.appender.RFAS=org.apache.log4j.RollingFileAppender \nlog4j.appender.RFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}\nlog4j.appender.RFAS.layout=org.apache.log4j.PatternLayout\nlog4j.appender.RFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\nlog4j.appender.RFAS.MaxFileSize=${hadoop.security.log.maxfilesize}\nlog4j.appender.RFAS.MaxBackupIndex=${hadoop.security.log.maxbackupindex}\n\n#\n# Daily Rolling Security appender\n#\nlog4j.appender.DRFAS=org.apache.log4j.DailyRollingFileAppender \nlog4j.appender.DRFAS.File=${hadoop.log.dir}/${hadoop.security.log.file}\nlog4j.appender.DRFAS.layout=org.apache.log4j.PatternLayout\nlog4j.appender.DRFAS.layout.ConversionPattern=%d{ISO8601} %p %c: %m%n\nlog4j.appender.DRFAS.DatePattern=.yyyy-MM-dd\n\n#\n# hadoop configuration logging\n#\n\n# Uncomment the following line to turn off configuration deprecation warnings.\n# log4j.logger.org.apache.hadoop.conf.Configuration.deprecation=WARN\n\n#\n# hdfs audit logging\n#\nhdfs.audit.logger=INFO,NullAppender\nhdfs.audit.log.maxfilesize=256MB\nhdfs.audit.log.maxbackupindex=2\nlog4j.logger.org.apache.hadoop.hdfs.server.namenode.FSNamesystem.audit=${hdfs.audit.logger}\nlog4j.additivity.org.apache.hadoop.hdfs.server.namenode.FSNamesystem.audit=false\nlog4j.appender.RFAAUDIT=org.apache.log4j.RollingFileAppender\nlog4j.appender.RFAAUDIT.File=${hadoop.log.dir}/hdfs-audit.log\nlog4j.appender.RFAAUDIT.layout=org.apache.log4j.PatternLayout\nlog4j.appender.RFAAUDIT.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n\nlog4j.appender.RFAAUDIT.MaxFileSize=${hdfs.audit.log.maxfilesize}\nlog4j.appender.RFAAUDIT.MaxBackupIndex=${hdfs.audit.log.maxbackupindex}\n\n#\n# mapred audit logging\n#\nmapred.audit.logger=INFO,NullAppender\nmapred.audit.log.maxfilesize=256MB\nmapred.audit.log.maxbackupindex=2\nlog4j.logger.org.apache.hadoop.mapred.AuditLogger=${mapred.audit.logger}\nlog4j.additivity.org.apache.hadoop.mapred.AuditLogger=false\nlog4j.appender.MRAUDIT=org.apache.log4j.RollingFileAppender\nlog4j.appender.MRAUDIT.File=${hadoop.log.dir}/mapred-audit.log\nlog4j.appender.MRAUDIT.layout=org.apache.log4j.PatternLayout\nlog4j.appender.MRAUDIT.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n\nlog4j.appender.MRAUDIT.MaxFileSize=${mapred.audit.log.maxfilesize}\nlog4j.appender.MRAUDIT.MaxBackupIndex=${mapred.audit.log.maxbackupindex}\n\n# Custom Logging levels\n\n#log4j.logger.org.apache.hadoop.mapred.JobTracker=DEBUG\n#log4j.logger.org.apache.hadoop.mapred.TaskTracker=DEBUG\n#log4j.logger.org.apache.hadoop.hdfs.server.namenode.FSNamesystem.audit=DEBUG\n\n# Jets3t library\nlog4j.logger.org.jets3t.service.impl.rest.httpclient.RestS3Service=ERROR\n\n# AWS SDK &amp; S3A FileSystem\nlog4j.logger.com.amazonaws=ERROR\nlog4j.logger.com.amazonaws.http.AmazonHttpClient=ERROR\nlog4j.logger.org.apache.hadoop.fs.s3a.S3AFileSystem=WARN\n\n#\n# Event Counter Appender\n# Sends counts of logging messages at different severity levels to Hadoop Metrics.\n#\nlog4j.appender.EventCounter=org.apache.hadoop.log.metrics.EventCounter\n\n#\n# Job Summary Appender \n#\n# Use following logger to send summary to separate file defined by \n# hadoop.mapreduce.jobsummary.log.file :\n# hadoop.mapreduce.jobsummary.logger=INFO,JSA\n# \nhadoop.mapreduce.jobsummary.logger=${hadoop.root.logger}\nhadoop.mapreduce.jobsummary.log.file=hadoop-mapreduce.jobsummary.log\nhadoop.mapreduce.jobsummary.log.maxfilesize=256MB\nhadoop.mapreduce.jobsummary.log.maxbackupindex=2\nlog4j.appender.JSA=org.apache.log4j.RollingFileAppender\nlog4j.appender.JSA.File=${hadoop.log.dir}/${hadoop.mapreduce.jobsummary.log.file}\nlog4j.appender.JSA.MaxFileSize=${hadoop.mapreduce.jobsummary.log.maxfilesize}\nlog4j.appender.JSA.MaxBackupIndex=${hadoop.mapreduce.jobsummary.log.maxbackupindex}\nlog4j.appender.JSA.layout=org.apache.log4j.PatternLayout\nlog4j.appender.JSA.layout.ConversionPattern=%d{yy/MM/dd HH:mm:ss} %p %c{2}: %m%n\nlog4j.logger.org.apache.hadoop.mapred.JobInProgress$JobSummary=${hadoop.mapreduce.jobsummary.logger}\nlog4j.additivity.org.apache.hadoop.mapred.JobInProgress$JobSummary=false\n\n#\n# Yarn ResourceManager Application Summary Log \n#\n# Set the ResourceManager summary log filename\nyarn.server.resourcemanager.appsummary.log.file=rm-appsummary.log\n# Set the ResourceManager summary log level and appender\nyarn.server.resourcemanager.appsummary.logger=${hadoop.root.logger}\n#yarn.server.resourcemanager.appsummary.logger=INFO,RMSUMMARY\n\n# To enable AppSummaryLogging for the RM, \n# set yarn.server.resourcemanager.appsummary.logger to \n# &lt;LEVEL&gt;,RMSUMMARY in hadoop-env.sh\n\n# Appender for ResourceManager Application Summary Log\n# Requires the following properties to be set\n#    - hadoop.log.dir (Hadoop Log directory)\n#    - yarn.server.resourcemanager.appsummary.log.file (resource manager app summary log filename)\n#    - yarn.server.resourcemanager.appsummary.logger (resource manager app summary log level and appender)\n\nlog4j.logger.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=${yarn.server.resourcemanager.appsummary.logger}\nlog4j.additivity.org.apache.hadoop.yarn.server.resourcemanager.RMAppManager$ApplicationSummary=false\nlog4j.appender.RMSUMMARY=org.apache.log4j.RollingFileAppender\nlog4j.appender.RMSUMMARY.File=${hadoop.log.dir}/${yarn.server.resourcemanager.appsummary.log.file}\nlog4j.appender.RMSUMMARY.MaxFileSize=256MB\nlog4j.appender.RMSUMMARY.MaxBackupIndex=2\nlog4j.appender.RMSUMMARY.layout=org.apache.log4j.PatternLayout\nlog4j.appender.RMSUMMARY.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n\n\n# HS audit log configs\n#mapreduce.hs.audit.logger=INFO,HSAUDIT\n#log4j.logger.org.apache.hadoop.mapreduce.v2.hs.HSAuditLogger=${mapreduce.hs.audit.logger}\n#log4j.additivity.org.apache.hadoop.mapreduce.v2.hs.HSAuditLogger=false\n#log4j.appender.HSAUDIT=org.apache.log4j.DailyRollingFileAppender\n#log4j.appender.HSAUDIT.File=${hadoop.log.dir}/hs-audit.log\n#log4j.appender.HSAUDIT.layout=org.apache.log4j.PatternLayout\n#log4j.appender.HSAUDIT.layout.ConversionPattern=%d{ISO8601} %p %c{2}: %m%n\n#log4j.appender.HSAUDIT.DatePattern=.yyyy-MM-dd\n\n# Http Server Request Logs\n#log4j.logger.http.requests.namenode=INFO,namenoderequestlog\n#log4j.appender.namenoderequestlog=org.apache.hadoop.http.HttpRequestLogAppender\n#log4j.appender.namenoderequestlog.Filename=${hadoop.log.dir}/jetty-namenode-yyyy_mm_dd.log\n#log4j.appender.namenoderequestlog.RetainDays=3\n\n#log4j.logger.http.requests.datanode=INFO,datanoderequestlog\n#log4j.appender.datanoderequestlog=org.apache.hadoop.http.HttpRequestLogAppender\n#log4j.appender.datanoderequestlog.Filename=${hadoop.log.dir}/jetty-datanode-yyyy_mm_dd.log\n#log4j.appender.datanoderequestlog.RetainDays=3\n\n#log4j.logger.http.requests.resourcemanager=INFO,resourcemanagerrequestlog\n#log4j.appender.resourcemanagerrequestlog=org.apache.hadoop.http.HttpRequestLogAppender\n#log4j.appender.resourcemanagerrequestlog.Filename=${hadoop.log.dir}/jetty-resourcemanager-yyyy_mm_dd.log\n#log4j.appender.resourcemanagerrequestlog.RetainDays=3\n\n#log4j.logger.http.requests.jobhistory=INFO,jobhistoryrequestlog\n#log4j.appender.jobhistoryrequestlog=org.apache.hadoop.http.HttpRequestLogAppender\n#log4j.appender.jobhistoryrequestlog.Filename=${hadoop.log.dir}/jetty-jobhistory-yyyy_mm_dd.log\n#log4j.appender.jobhistoryrequestlog.RetainDays=3\n\n#log4j.logger.http.requests.nodemanager=INFO,nodemanagerrequestlog\n#log4j.appender.nodemanagerrequestlog=org.apache.hadoop.http.HttpRequestLogAppender\n#log4j.appender.nodemanagerrequestlog.Filename=${hadoop.log.dir}/jetty-nodemanager-yyyy_mm_dd.log\n#log4j.appender.nodemanagerrequestlog.RetainDays=3\n&quot;
+  tenantNamespaces: [hbase-tenant-ns]
+  deployments:
+    zookeeper:
+      name: hbase-cluster-zk
+      size: 3
+      isPodServiceRequired: true
+      shareProcessNamespace: false
+      terminateGracePeriod: 120
+      volumeClaims:
+      - name: data
+        storageSize: 2Gi
+        storageClassName: standard
+      volumes:
+      - name: nodeinfo
+        volumeSource: HostPath
+        path: /etc/nodeinfo
+      initContainers:
+      - name: init-dnslookup
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          i=0
+          while true; do
+            echo &quot;$i iteration&quot;
+            dig +short $(hostname -f) | grep -v -e &#39;^$&#39;
+            if [ $? == 0 ]; then
+              sleep 30 # 30 seconds default dns caching
+              echo &quot;Breaking...&quot;
+              break
+            fi
+            i=$((i + 1))
+            sleep 1
+          done
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;128Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;128Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      containers:
+      - name: zookeeper
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m -x
+
+          export HBASE_LOG_DIR=$0
+          export HBASE_CONF_DIR=$1
+          export HBASE_HOME=$2
+          export USER=$(whoami)
+
+          mkdir -p $HBASE_LOG_DIR
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).log
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).out
+
+          function shutdown() {
+            echo &quot;Stopping Zookeeper&quot;
+            $HBASE_HOME/bin/hbase-daemon.sh stop zookeeper
+          }
+
+          trap shutdown SIGTERM
+          exec $HBASE_HOME/bin/hbase-daemon.sh foreground_start zookeeper &amp;
+          wait
+        args:
+        - /var/log/hbase
+        - /etc/hbase
+        - /opt/hbase
+        ports:
+        - port: 2181
+          name: zookeeper-0
+        - port: 2888
+          name: zookeeper-1
+        - port: 3888
+          name: zookeeper-2
+        startupProbe:
+          initialDelay: 30
+          timeout: 60
+          failureThreshold: 10
+          command:
+          - /bin/bash
+          - -c
+          - |
+            #! /bin/bash
+            set -m
+
+            export HBASE_LOG_DIR=$0
+            export HBASE_CONF_DIR=$1
+            export HBASE_HOME=$2
+
+            #TODO: Find better alternative
+            IFS=&#39;,&#39; read -ra ZKs &lt;&lt;&lt; $($HBASE_HOME/bin/hbase zkcli quit 2&gt; /dev/null | grep &quot;Connecting to&quot; | sed &#39;s/Connecting to //&#39;)
+            visited=&quot;&quot;
+            quorum=&quot;&quot;
+            myhost=&quot;localhost 2181&quot;
+            for zk in &quot;${ZKs[@]}&quot;; do
+              if [[ $(echo $zk | grep $(hostname -f) | wc -l) == 1 ]]; then
+                myhost=$(echo $zk | sed &#39;s/:/ /&#39;)
+              fi
+
+              if [[ $(echo &quot;stat&quot; | nc $(echo $zk | sed &#39;s/:/ /&#39;) | grep &quot;Mode: &quot; | wc -l) == 1 ]]; then
+                quorum=&quot;present&quot;
+              fi
+              visited=&quot;true&quot;
+            done
+
+            if [[ -n $visited &amp;&amp; -z $quorum ]]; then
+              echo &quot;Quorum is absent, disabling startup checks...&quot;
+              sleep 5
+              exit 0
+            fi
+
+            if [[ $(echo &quot;stat&quot; | nc $myhost | grep &quot;Mode: &quot; | wc -l) == 1 ]]; then
+              exit 0
+            else
+              echo &quot;zookeeper is not able to connect to quorum&quot;
+              exit 1
+            fi
+          - /var/log/hbase
+          - /etc/hbase
+          - /opt/hbase
+        livenessProbe:
+          tcpPort: 2181
+          initialDelay: 20
+        readinessProbe:
+          tcpPort: 2181
+          initialDelay: 20
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;2Gi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;2Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: false
+        volumeMounts:
+        - name: data
+          mountPath: /grid/1
+          readOnly: false
+    journalnode:
+      name: hbase-cluster-jn
+      size: 3
+      isPodServiceRequired: true
+      shareProcessNamespace: false
+      terminateGracePeriod: 120
+      volumeClaims:
+      - name: data
+        storageSize: 2Gi
+        storageClassName: standard
+      volumes:
+      - name: nodeinfo
+        volumeSource: HostPath
+        path: /etc/nodeinfo
+      initContainers:
+      - name: init-dnslookup
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          i=0
+          while true; do
+            echo &quot;$i iteration&quot;
+            dig +short $(hostname -f) | grep -v -e &#39;^$&#39;
+            if [ $? == 0 ]; then
+              sleep 30 # 30 seconds default dns caching
+              echo &quot;Breaking...&quot;
+              break
+            fi
+            i=$((i + 1))
+            sleep 1
+          done
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;128Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;128Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      containers:
+      - name: journalnode
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          export HADOOP_LOG_DIR=$0
+          export HADOOP_CONF_DIR=$1
+          export HADOOP_HOME=$2
+
+          function shutdown() {
+            echo &quot;Stopping Journalnode&quot;
+            $HADOOP_HOME/bin/hdfs --daemon stop journalnode
+          }
+
+          trap shutdown SIGTERM
+          exec $HADOOP_HOME/bin/hdfs journalnode start &amp;
+          wait
+        args:
+        - /var/log/hadoop
+        - /etc/hadoop
+        - /opt/hadoop
+        ports:
+        - port: 8485
+          name: journalnode-0
+        - port: 8480
+          name: journalnode-1
+        livenessProbe:
+          tcpPort: 8485
+          initialDelay: 40
+        readinessProbe:
+          tcpPort: 8485
+          initialDelay: 40
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;1Gi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;1Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: false
+        volumeMounts:
+        - name: data
+          mountPath: /grid/1
+          readOnly: false
+    hmaster:
+      name: hbase-cluster-hmaster
+      size: 2
+      isPodServiceRequired: false
+      shareProcessNamespace: false
+      terminateGracePeriod: 120
+      volumes:
+      - name: data
+        volumeSource: EmptyDir
+      initContainers:
+      - name: init-dnslookup
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          i=0
+          while true; do
+            echo &quot;$i iteration&quot;
+            dig +short $(hostname -f) | grep -v -e &#39;^$&#39;
+            if [ $? == 0 ]; then
+              sleep 30 # 30 seconds default dns caching
+              echo &quot;Breaking...&quot;
+              break
+            fi
+            i=$((i + 1))
+            sleep 1
+          done
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;128Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;128Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      sidecarContainers:
+      - name: rackutils
+        image: hbase-rack-utils:1.0.1
+        command: [./entrypoint]
+        args: [com.flipkart.hbase.HbaseRackUtils /etc/hbase /hbase-operator /opt/share/rack_topology.data]
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;256Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;256Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+        volumeMounts:
+        - name: data
+          mountPath: /opt/share
+          readOnly: false
+      containers:
+      - name: hmaster
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+          export HBASE_LOG_DIR=$0
+          export HBASE_CONF_DIR=$1
+          export HBASE_HOME=$2
+          export USER=$(whoami)
+
+          mkdir -p $HBASE_LOG_DIR
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log
+
+          function shutdown() {
+            echo &quot;Stopping Hmaster&quot;
+            $HBASE_HOME/bin/hbase-daemon.sh stop master
+          }
+
+          trap shutdown SIGTERM
+          exec $HBASE_HOME/bin/hbase-daemon.sh foreground_start master &amp;
+          wait
+        args:
+        - /var/log/hbase
+        - /etc/hbase
+        - /opt/hbase
+        ports:
+        - port: 16000
+          name: hmaster-0
+        - port: 16010
+          name: hmaster-1
+        livenessProbe:
+          tcpPort: 16000
+          initialDelay: 10
+        readinessProbe:
+          tcpPort: 16000
+          initialDelay: 10
+        cpuLimit: &quot;0.3&quot;
+        memoryLimit: &quot;3Gi&quot;
+        cpuRequest: &quot;0.3&quot;
+        memoryRequest: &quot;3Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: false
+        volumeMounts:
+        - name: data
+          mountPath: /opt/share
+          readOnly: false
+    datanode:
+      name: hbase-cluster-dn
+      size: 3
+      isPodServiceRequired: false
+      shareProcessNamespace: true
+      terminateGracePeriod: 120
+      volumeClaims:
+      - name: data
+        storageSize: 10Gi
+        storageClassName: standard
+      volumes:
+      - name: lifecycle
+        volumeSource: EmptyDir
+      - name: nodeinfo
+        volumeSource: HostPath
+        path: /etc/nodeinfo
+      initContainers:
+      - name: init-dnslookup
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          i=0
+          while true; do
+            echo &quot;$i iteration&quot;
+            dig +short $(hostname -f) | grep -v -e &#39;^$&#39;
+            if [ $? == 0 ]; then
+              sleep 30 # 30 seconds default dns caching
+              echo &quot;Breaking...&quot;
+              break
+            fi
+            i=$((i + 1))
+            sleep 1
+          done
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;128Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;128Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      - name: init-faultdomain
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m -x
+
+          export HBASE_LOG_DIR=/var/log/hbase
+          export HBASE_CONF_DIR=/etc/hbase
+          export HBASE_HOME=/opt/hbase
+
+          # Make it optional
+          FAULT_DOMAIN_COMMAND=&quot;cat /etc/nodeinfo | grep &#39;smd&#39; | sed &#39;s/smd=//&#39; | sed &#39;s/\&quot;//g&#39;&quot;
+          HOSTNAME=$(hostname -f)
+
+          echo &quot;Running command to get fault domain: $FAULT_DOMAIN_COMMAND&quot;
+          SMD=$(eval $FAULT_DOMAIN_COMMAND)
+          echo &quot;SMD value: $SMD&quot;
+
+          if [[ -n &quot;$FAULT_DOMAIN_COMMAND&quot; ]]; then
+            echo &quot;create /hbase-operator $SMD&quot; | $HBASE_HOME/bin/hbase zkcli 2&gt; /dev/null || true
+            echo &quot;create /hbase-operator/$HOSTNAME $SMD&quot; | $HBASE_HOME/bin/hbase zkcli 2&gt; /dev/null
+            echo &quot;&quot;
+            echo &quot;Completed&quot;
+          fi
+        cpuLimit: &quot;0.1&quot;
+        memoryLimit: &quot;386Mi&quot;
+        cpuRequest: &quot;0.1&quot;
+        memoryRequest: &quot;386Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+        volumeMounts:
+        - name: nodeinfo
+          mountPath: /etc/nodeinfo
+          readOnly: true
+      - name: init-refreshnn
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -x -m
+
+          export HADOOP_LOG_DIR=/var/log/hadoop
+          export HADOOP_CONF_DIR=/etc/hadoop
+          export HADOOP_HOME=/opt/hadoop
+
+          $HADOOP_HOME/bin/hdfs dfsadmin -refreshNodes
+
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;256Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;256Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      containers:
+      - name: datanode
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -x -m
+
+          export HADOOP_LOG_DIR=$0
+          export HADOOP_CONF_DIR=$1
+          export HADOOP_HOME=$2
+
+          function shutdown() {
+            while true; do
+              #TODO: Kill it beyond certain wait time
+              if [[ -f &quot;/lifecycle/rs-terminated&quot; ]]; then
+                echo &quot;Stopping datanode&quot;
+                sleep 3
+                $HADOOP_HOME/bin/hdfs --daemon stop datanode
+                break
+              fi
+              echo &quot;Waiting for regionserver to die&quot;
+              sleep 2
+            done
+          }
+
+          trap shutdown SIGTERM
+          exec $HADOOP_HOME/bin/hdfs datanode &amp;
+          PID=$!
+
+          #TODO: Correct way to identify if process is up
+          touch /lifecycle/dn-started
+
+          wait $PID
+        args:
+        - /var/log/hadoop
+        - /etc/hadoop
+        - /opt/hadoop
+        ports:
+        - port: 9866
+          name: datanode-0
+        startupProbe:
+          initialDelay: 30
+          timeout: 60
+          failureThreshold: 10
+          command:
+          - /bin/bash
+          - -c
+          - |
+            #! /bin/bash
+            set -m
+
+            export HADOOP_LOG_DIR=$0
+            export HADOOP_CONF_DIR=$1
+            export HADOOP_HOME=$2
+
+            while :
+            do
+              if [[ $($HADOOP_HOME/bin/hdfs dfsadmin -report -live | grep &quot;$(hostname -f)&quot; | wc -l) == 2 ]]; then
+                echo &quot;datanode is listed as live under namenode. Exiting...&quot;
+                exit 0
+              else
+                echo &quot;datanode is still not listed as live under namenode&quot;
+                exit 1
+              fi
+            done
+            exit 1
+          - /var/log/hadoop
+          - /etc/hadoop
+          - /opt/hadoop
+        livenessProbe:
+          tcpPort: 9866
+          initialDelay: 60
+        readinessProbe:
+          tcpPort: 9866
+          initialDelay: 60
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;3Gi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;3Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: true
+        volumeMounts:
+        - name: data
+          mountPath: /grid/1
+          readOnly: false
+        - name: lifecycle
+          mountPath: /lifecycle
+          readOnly: false
+      - name: regionserver
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+          export HBASE_LOG_DIR=$0
+          export HBASE_CONF_DIR=$1
+          export HBASE_HOME=$2
+          export USER=$(whoami)
+
+          FAULT_DOMAIN_COMMAND=$3
+
+          mkdir -p $HBASE_LOG_DIR
+          #TODO: logfile names
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).out
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).log
+
+          function shutdown() {
+            echo &quot;Stopping Regionserver&quot;
+            host=`hostname -f`
+            #TODO: Needs to be addressed
+            $HBASE_HOME/bin/hbase org.apache.hadoop.hbase.util.RSGroupAwareRegionMover -m 6 -r $host -o unload
+            touch /lifecycle/rs-terminated
+            $HBASE_HOME/bin/hbase-daemon.sh stop regionserver
+          }
+
+          while true; do
+            if [[ -f &quot;/lifecycle/dn-started&quot; ]]; then
+              echo &quot;Starting rs&quot;
+              sleep 5
+              break
+            fi
+            echo &quot;Waiting for datanode to start&quot;
+            sleep 2
+          done
+
+          trap shutdown SIGTERM
+          exec $HBASE_HOME/bin/hbase-daemon.sh foreground_start regionserver &amp;
+          wait
+        args:
+        - /var/log/hbase
+        - /etc/hbase
+        - /opt/hbase
+        ports:
+        - port: 16020
+          name: regionserver-0
+        - port: 16030
+          name: regionserver-1
+        livenessProbe:
+          tcpPort: 16020
+          initialDelay: 60
+        readinessProbe:
+          tcpPort: 16020
+          initialDelay: 60
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;5Gi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;5Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: true
+        volumeMounts:
+        - name: lifecycle
+          mountPath: /lifecycle
+          readOnly: false
+        - name: nodeinfo
+          mountPath: /etc/nodeinfo
+          readOnly: true
+    namenode:
+      name: hbase-cluster-nn
+      size: 2
+      isPodServiceRequired: true
+      shareProcessNamespace: false
+      terminateGracePeriod: 120
+      volumeClaims:
+      - name: data
+        storageSize: 4Gi
+        storageClassName: standard
+      volumes:
+      - name: lifecycle
+        volumeSource: EmptyDir
+      - name: nodeinfo
+        volumeSource: HostPath
+        path: /etc/nodeinfo
+      initContainers:
+      - name: init-dnslookup
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          i=0
+          while true; do
+            echo &quot;$i iteration&quot;
+            dig +short $(hostname -f) | grep -v -e &#39;^$&#39;
+            if [ $? == 0 ]; then
+              sleep 30 # 30 seconds default dns caching
+              echo &quot;Breaking...&quot;
+              break
+            fi
+            i=$((i + 1))
+            sleep 1
+          done
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;128Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;128Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      - name: init-namenode
+        isBootstrap: true
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m -x
+
+          export HADOOP_LOG_DIR=$0
+          export HADOOP_CONF_DIR=$1
+          export HADOOP_HOME=$2
+
+          echo &quot;N&quot; | $HADOOP_HOME/bin/hdfs namenode -format $($HADOOP_HOME/bin/hdfs getconf -confKey dfs.nameservices) || true
+        args:
+        - /var/log/hadoop
+        - /etc/hadoop
+        - /opt/hadoop
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;3Gi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;3Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+        volumeMounts:
+        - name: data
+          mountPath: /grid/1
+          readOnly: false
+      - name: init-zkfc
+        isBootstrap: true
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          export HADOOP_LOG_DIR=$0
+          export HADOOP_CONF_DIR=$1
+          export HADOOP_HOME=$2
+
+          echo &quot;N&quot; | $HADOOP_HOME/bin/hdfs zkfc -formatZK || true
+        args:
+        - /var/log/hadoop
+        - /etc/hadoop
+        - /opt/hadoop
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;512Mi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;512Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      containers:
+      - name: namenode
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m -x
+
+          export HADOOP_LOG_DIR=$0
+          export HADOOP_CONF_DIR=$1
+          export HADOOP_HOME=$2
+
+          function shutdown() {
+            echo &quot;Stopping Namenode&quot;
+            is_active=$($HADOOP_HOME/bin/hdfs haadmin -getAllServiceState | grep &quot;$(hostname -f)&quot; | grep &quot;active&quot; | wc -l)
+
+            if [[ $is_active == 1 ]]; then
+              for i in $(echo $NNS | tr &quot;,&quot; &quot;\n&quot;); do
+                if [[ $($HADOOP_HOME/bin/hdfs haadmin -getServiceState $i | grep &quot;standby&quot; | wc -l) == 1 ]]; then
+                  STANDBY_SERVICE=$i
+                  break
+                fi
+              done
+
+              echo &quot;Is Active. Transitioning to standby&quot;
+              if [[ -n &quot;$MY_SERVICE&quot; &amp;&amp; -n &quot;$STANDBY_SERVICE&quot; &amp;&amp; $MY_SERVICE != $STANDBY_SERVICE ]]; then
+                echo &quot;Failing over from $MY_SERVICE to $STANDBY_SERVICE&quot;
+                $HADOOP_HOME/bin/hdfs haadmin -failover $MY_SERVICE $STANDBY_SERVICE
+              else
+                echo &quot;$MY_SERVICE or $STANDBY_SERVICE is not defined or same. Cannot failover. Exitting...&quot;
+              fi
+            else
+             echo &quot;Is not active&quot;
+            fi
+            sleep 60
+            echo &quot;Completed shutdown cleanup&quot;
+            touch /lifecycle/nn-terminated
+            $HADOOP_HOME/bin/hdfs --daemon stop namenode
+          }
+
+          NAMESERVICES=$($HADOOP_HOME/bin/hdfs getconf -confKey dfs.nameservices)
+          NNS=$($HADOOP_HOME/bin/hdfs getconf -confKey dfs.ha.namenodes.$NAMESERVICES)
+          MY_SERVICE=&quot;&quot;
+          HTTP_ADDR=&quot;&quot;
+          for i in $(echo $NNS | tr &quot;,&quot; &quot;\n&quot;); do
+            if [[ $($HADOOP_HOME/bin/hdfs getconf -confKey dfs.namenode.rpc-address.$NAMESERVICES.$i | sed &#39;s/:[0-9]\+$//&#39; | grep $(hostname -f) | wc -l ) == 1 ]]; then
+              MY_SERVICE=$i
+              HTTP_ADDR=$($HADOOP_HOME/bin/hdfs getconf -confKey dfs.namenode.http-address.$NAMESERVICES.$i)
+            fi
+          done
+
+          echo &quot;My Service: $MY_SERVICE&quot;
+
+          trap shutdown SIGTERM
+          echo &quot;N&quot; | $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby || true
+          exec $HADOOP_HOME/bin/hdfs namenode &amp;
+          wait
+        args:
+        - /var/log/hadoop
+        - /etc/hadoop
+        - /opt/hadoop
+        ports:
+        - port: 8020
+          name: namenode-0
+        - port: 9870
+          name: namenode-1
+        - port: 50070
+          name: namenode-2
+        - port: 9000
+          name: namenode-3
+        startupProbe:
+          initialDelay: 30
+          timeout: 60
+          failureThreshold: 10
+          command:
+          - /bin/bash
+          - -c
+          - |
+            #! /bin/bash
+            set -m
+
+            export HADOOP_LOG_DIR=$0
+            export HADOOP_CONF_DIR=$1
+            export HADOOP_HOME=$2
+
+            if [[ $($HADOOP_HOME/bin/hdfs dfsadmin -safemode get | grep &quot;Safe mode is OFF&quot; | wc -l) == 0 ]]; then
+              echo &quot;Looks like there is no namenode with safemode off. Skipping checks...&quot;
+              exit 0
+            elif [[ $($HADOOP_HOME/bin/hdfs dfsadmin -safemode get | grep &quot;$(hostname -f)&quot; | grep &quot;Safe mode is OFF&quot; | wc -l) == 1 ]]; then
+              echo &quot;Namenode is out of safemode. Exiting...&quot;
+              exit 0
+            else
+              echo &quot;Namenode is still in safemode. Failing...&quot;
+              exit 1
+            fi
+
+            echo &quot;Something unexpected happened at startup probe. Failing...&quot;
+            exit 1
+          - /var/log/hadoop
+          - /etc/hadoop
+          - /opt/hadoop
+        livenessProbe:
+          tcpPort: 8020
+          initialDelay: 60
+        readinessProbe:
+          tcpPort: 8020
+          initialDelay: 60
+        cpuLimit: &quot;0.5&quot;
+        memoryLimit: &quot;3Gi&quot;
+        cpuRequest: &quot;0.5&quot;
+        memoryRequest: &quot;3Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: false
+        volumeMounts:
+        - name: data
+          mountPath: /grid/1
+          readOnly: false
+        - name: lifecycle
+          mountPath: /lifecycle
+          readOnly: false
+      - name: zkfc
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          export HADOOP_LOG_DIR=$0
+          export HADOOP_CONF_DIR=$1
+          export HADOOP_HOME=$2
+
+          function shutdown() {
+            while true; do
+              if [[ -f &quot;/lifecycle/nn-terminated&quot; ]]; then
+                echo &quot;Stopping zkfc&quot;
+                sleep 10
+                $HADOOP_HOME/bin/hdfs --daemon stop zkfc
+                break
+              fi
+              echo &quot;Waiting for namenode to die&quot;
+              sleep 2
+            done
+          }
+
+          trap shutdown SIGTERM
+          exec $HADOOP_HOME/bin/hdfs zkfc &amp;
+          wait
+        args:
+        - /var/log/hadoop
+        - /etc/hadoop
+        - /opt/hadoop
+        ports:
+        - port: 8019
+          name: zkfc-0
+        livenessProbe:
+          tcpPort: 8019
+          initialDelay: 30
+        readinessProbe:
+          tcpPort: 8019
+          initialDelay: 30
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;512Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;512Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: false
+        volumeMounts:
+        - name: lifecycle
+          mountPath: /lifecycle
+          readOnly: false
+</pre></div>
+</details>
+
 <h2 id="hbase-tenant">Hbase Tenant<a class="headerlink" href="#hbase-tenant" title="Permanent link">&para;</a></h2>
 <h3 id="operator-side">Operator Side<a class="headerlink" href="#operator-side" title="Permanent link">&para;</a></h3>
 <ol>
@@ -833,7 +2821,7 @@
 </li>
 <li>
 <p>You can find package <code>hbase-chart-x.x.x.tgz</code> created under root folder of this repository. Otherwise you can publish chart to <code>jfrog</code> or <code>harbor</code> or any other chart registry. For manual testing, you can move <code>hbase-chart-x.x.x.tgz</code> under <code>examples/hbasetenant-chart/charts/</code>
-    <div class="highlight"><pre><span></span>cd hbase-operator &amp;&amp; mv hbase-chart-x.x.x.tgz examples/hbasetenant-chart/charts/ 
+    <div class="highlight"><pre><span></span>cd hbase-operator &amp;&amp; mv hbase-chart-x.x.x.tgz examples/hbasetenant-chart/charts/
 </pre></div></p>
 </li>
 <li>
@@ -853,6 +2841,311 @@
 
 </li>
 </ol>
+<h4 id="via-manifest_2">via Manifest<a class="headerlink" href="#via-manifest_2" title="Permanent link">&para;</a></h4>
+<p>Sample configuration:</p>
+<details>
+<summary>Sample Tenant yaml configuration</summary>
+<div class="highlight"><pre><span></span># Source: hbasetenant-chart/templates/hbasetenant.yaml
+apiVersion: kvstore.flipkart.com/v1
+kind: HbaseTenant
+metadata:
+  name: hbase-tenant
+  namespace: hbase-tenant-ns
+spec:
+  baseImage: hbase:2.4.8
+  fsgroup: 1011
+  configuration:
+    hbaseConfigName: hbase-config
+    hbaseConfigMountPath: /etc/hbase
+    hbaseConfig:
+      {}
+    hadoopConfigName: hadoop-config
+    hadoopConfigMountPath: /etc/hadoop
+    hadoopConfig:
+      {}
+  datanode:
+      name: hbase-tenant-dn
+      size: 4
+      isPodServiceRequired: false
+      shareProcessNamespace: true
+      terminateGracePeriod: 120
+      volumeClaims:
+      - name: data
+        storageSize: 10Gi
+        storageClassName: standard
+      volumes:
+      - name: lifecycle
+        volumeSource: EmptyDir
+      - name: nodeinfo
+        volumeSource: HostPath
+        path: /etc/nodeinfo
+      initContainers:
+      - name: init-dnslookup
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          i=0
+          while true; do
+            echo &quot;$i iteration&quot;
+            dig +short $(hostname -f) | grep -v -e &#39;^$&#39;
+            if [ $? == 0 ]; then
+              sleep 30 # 30 seconds default dns caching
+              echo &quot;Breaking...&quot;
+              break
+            fi
+            i=$((i + 1))
+            sleep 1
+          done
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;128Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;128Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      - name: init-faultdomain
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m -x
+
+          export HBASE_LOG_DIR=/var/log/hbase
+          export HBASE_CONF_DIR=/etc/hbase
+          export HBASE_HOME=/opt/hbase
+
+          # Make it optional
+          FAULT_DOMAIN_COMMAND=&quot;cat /etc/nodeinfo | grep &#39;smd&#39; | sed &#39;s/smd=//&#39; | sed &#39;s/\&quot;//g&#39;&quot;
+          HOSTNAME=$(hostname -f)
+
+          echo &quot;Running command to get fault domain: $FAULT_DOMAIN_COMMAND&quot;
+          SMD=$(eval $FAULT_DOMAIN_COMMAND)
+          echo &quot;SMD value: $SMD&quot;
+
+          if [[ -n &quot;$FAULT_DOMAIN_COMMAND&quot; ]]; then
+            echo &quot;create /hbase-operator $SMD&quot; | $HBASE_HOME/bin/hbase zkcli 2&gt; /dev/null || true
+            echo &quot;create /hbase-operator/$HOSTNAME $SMD&quot; | $HBASE_HOME/bin/hbase zkcli 2&gt; /dev/null
+            echo &quot;&quot;
+            echo &quot;Completed&quot;
+          fi
+        cpuLimit: &quot;0.1&quot;
+        memoryLimit: &quot;386Mi&quot;
+        cpuRequest: &quot;0.1&quot;
+        memoryRequest: &quot;386Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+        volumeMounts:
+        - name: nodeinfo
+          mountPath: /etc/nodeinfo
+          readOnly: true
+      - name: init-refreshnn
+        isBootstrap: false
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -x -m
+
+          export HADOOP_LOG_DIR=/var/log/hadoop
+          export HADOOP_CONF_DIR=/etc/hadoop
+          export HADOOP_HOME=/opt/hadoop
+
+          $HADOOP_HOME/bin/hdfs dfsadmin -refreshNodes
+
+        cpuLimit: &quot;0.2&quot;
+        memoryLimit: &quot;256Mi&quot;
+        cpuRequest: &quot;0.2&quot;
+        memoryRequest: &quot;256Mi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+      containers:
+      - name: datanode
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+
+          export HADOOP_LOG_DIR=$0
+          export HADOOP_CONF_DIR=$1
+          export HADOOP_HOME=$2
+          export HADOOP_CONF_NAME=$3
+
+          function shutdown() {
+            while true; do
+              #TODO: Kill it beyond certain wait time
+              if [[ -f &quot;/lifecycle/rs-terminated&quot; ]]; then
+                echo &quot;Stopping datanode&quot;
+                sleep 3
+                $HADOOP_HOME/bin/hdfs --daemon stop datanode
+                break
+              fi
+              echo &quot;Waiting for regionserver to die&quot;
+              sleep 2
+            done
+          }
+
+          #move this to init container
+          curl -sX GET http://127.0.0.1:8802/v1/configmaps/$HADOOP_CONF_NAME | jq &#39;.data | to_entries[] | .key, .value&#39; | while IFS= read -r key; read -r value; do echo $value | jq -r &#39;.&#39; | tee $(echo $key | jq -r &#39;.&#39; | xargs -I {} echo $HADOOP_CONF_DIR/{}) &gt; /dev/null; done
+
+          sleep 1
+
+          trap shutdown SIGTERM
+          exec $HADOOP_HOME/bin/hdfs datanode &amp;
+          PID=$!
+
+          #TODO: Correct way to identify if process is up
+          touch /lifecycle/dn-started
+
+          wait $PID
+        args:
+        - /var/log/hadoop
+        - /etc/hadoop
+        - /opt/hadoop
+        - hadoop-config
+        ports:
+        - port: 9866
+          name: datanode-0
+        startupProbe:
+          initialDelay: 30
+          timeout: 60
+          failureThreshold: 10
+          command:
+          - /bin/bash
+          - -c
+          - |
+            #! /bin/bash
+            set -m
+
+            export HADOOP_LOG_DIR=$0
+            export HADOOP_CONF_DIR=$1
+            export HADOOP_HOME=$2
+
+            while :
+            do
+              if [[ $($HADOOP_HOME/bin/hdfs dfsadmin -report -live | grep &quot;$(hostname -f)&quot; | wc -l) == 2 ]]; then
+                echo &quot;datanode is listed as live under namenode. Exiting...&quot;
+                exit 0
+              else
+                echo &quot;datanode is still not listed as live under namenode&quot;
+                exit 1
+              fi
+            done
+            exit 1
+          - /var/log/hadoop
+          - /etc/hadoop
+          - /opt/hadoop
+          - hadoop-config
+        livenessProbe:
+          tcpPort: 9866
+          initialDelay: 60
+        readinessProbe:
+          tcpPort: 9866
+          initialDelay: 60
+        cpuLimit: &quot;0.3&quot;
+        memoryLimit: &quot;2Gi&quot;
+        cpuRequest: &quot;0.3&quot;
+        memoryRequest: &quot;2Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: true
+        volumeMounts:
+        - name: data
+          mountPath: /grid/1
+          readOnly: false
+        - name: lifecycle
+          mountPath: /lifecycle
+          readOnly: false
+        - name: nodeinfo
+          mountPath: /etc/nodeinfo
+          readOnly: true
+      - name: regionserver
+        command:
+        - /bin/bash
+        - -c
+        - |
+          #! /bin/bash
+          set -m
+          export HBASE_LOG_DIR=$0
+          export HBASE_CONF_DIR=$1
+          export HBASE_HOME=$2
+          export HBASE_CONF_NAME=$3
+          export USER=$(whoami)
+
+          mkdir -p $HBASE_LOG_DIR
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).out
+          ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).log
+
+          function shutdown() {
+            echo &quot;Stopping Regionserver&quot;
+            host=`hostname -f`
+            $HBASE_HOME/bin/hbase org.apache.hadoop.hbase.util.RegionMover -m 6 -r $host -o unload
+            touch /lifecycle/rs-terminated
+            $HBASE_HOME/bin/hbase-daemon.sh stop regionserver
+          }
+
+          while true; do
+            if [[ -f &quot;/lifecycle/dn-started&quot; ]]; then
+              echo &quot;Starting rs&quot;
+              sleep 5
+              break
+            fi
+            echo &quot;Waiting for datanode to start&quot;
+            sleep 2
+          done
+
+          curl -sX GET http://127.0.0.1:8802/v1/configmaps/$HBASE_CONF_NAME | jq &#39;.data | to_entries[] | .key, .value&#39; | while IFS= read -r key; read -r value; do echo $value | jq -r &#39;.&#39; | tee $(echo $key | jq -r &#39;.&#39; | xargs -I {} echo $HBASE_CONF_DIR/{}) &gt; /dev/null; done
+
+          sleep 1
+
+          trap shutdown SIGTERM
+          exec $HBASE_HOME/bin/hbase-daemon.sh foreground_start regionserver &amp;
+          wait
+        args:
+        - /var/log/hbase
+        - /etc/hbase
+        - /opt/hbase
+        - hbase-config
+        ports:
+        - port: 16030
+          name: regionserver-0
+        - port: 16020
+          name: regionserver-1
+        livenessProbe:
+          tcpPort: 16030
+          initialDelay: 60
+        readinessProbe:
+          tcpPort: 16030
+          initialDelay: 60
+        cpuLimit: &quot;0.4&quot;
+        memoryLimit: &quot;3Gi&quot;
+        cpuRequest: &quot;0.4&quot;
+        memoryRequest: &quot;3Gi&quot;
+        securityContext:
+          runAsUser: 1011
+          runAsGroup: 1011
+          addSysPtrace: true
+        volumeMounts:
+        - name: lifecycle
+          mountPath: /lifecycle
+          readOnly: false
+        - name: nodeinfo
+          mountPath: /etc/nodeinfo
+          readOnly: true
+</pre></div>
+</details>
                 
                   
                 

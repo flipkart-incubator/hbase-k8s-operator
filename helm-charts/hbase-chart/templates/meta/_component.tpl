@@ -4,9 +4,11 @@
   isPodServiceRequired: {{ default false $.isPodServiceRequired }}
   shareProcessNamespace: {{ default false .root.shareProcessNamespace }}
   terminateGracePeriod: 120
+  {{- if .root.annotations }}
   annotations:
   {{- range $key, $val := .root.annotations }}
     {{ $key }}: {{ $val | quote }}
+  {{- end }}
   {{- end }}
   {{- if .root.volumeClaims }}
   volumeClaims:

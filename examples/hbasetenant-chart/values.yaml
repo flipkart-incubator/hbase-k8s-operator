@@ -27,11 +27,6 @@ datanode:
   name: hbase-tenant-dn
   replicas: 4
   shareProcessNamespace: true
-  annotations:
-    fcp.k8s.mtl/mtl-config-map: mtl-tenant-dn
-    fcp.k8s.mtl/cosmos-jmx: enabled
-    fcp.k8s.mtl/cosmos-statsd: disabled
-    fcp.k8s.mtl/cosmos-tail: disabled
   volumeClaims:
   - name: data
     size: "10Gi"

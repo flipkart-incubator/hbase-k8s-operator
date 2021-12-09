@@ -63,5 +63,3 @@ Following are covered under helm chart
 
     * RackUtils for constructing rack topology
     * MTL(Monitoring, Telemetry, Logs) publisher sidecars
-
-1. 

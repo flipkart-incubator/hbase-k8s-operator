@@ -42,11 +42,6 @@ deployments:
   zookeeper:
     name: hbase-cluster-zk
     replicas: 3
-    annotations:
-      fcp.k8s.mtl/mtl-config-map: mtl-zk
-      fcp.k8s.mtl/cosmos-jmx: enabled
-      fcp.k8s.mtl/cosmos-statsd: disabled
-      fcp.k8s.mtl/cosmos-tail: disabled
     volumeClaims:
     - name: data
       size: "2Gi"
@@ -69,11 +64,6 @@ deployments:
   journalnode:
     name: hbase-cluster-jn
     replicas: 3
-    annotations:
-      fcp.k8s.mtl/mtl-config-map: mtl-jn
-      fcp.k8s.mtl/cosmos-jmx: enabled
-      fcp.k8s.mtl/cosmos-statsd: disabled
-      fcp.k8s.mtl/cosmos-tail: disabled
     volumeClaims:
     - name: data
       size: "2Gi"
@@ -96,11 +86,6 @@ deployments:
   hmaster:
     name: hbase-cluster-hmaster
     replicas: 2
-    annotations:
-      fcp.k8s.mtl/mtl-config-map: mtl-hmaster
-      fcp.k8s.mtl/cosmos-jmx: enabled
-      fcp.k8s.mtl/cosmos-statsd: disabled
-      fcp.k8s.mtl/cosmos-tail: disabled
     volumes:
     - name: data
       volumeSource: EmptyDir
@@ -132,11 +117,6 @@ deployments:
     name: hbase-cluster-dn
     replicas: 3
     shareProcessNamespace: true
-    annotations:
-      fcp.k8s.mtl/mtl-config-map: mtl-dn
-      fcp.k8s.mtl/cosmos-jmx: enabled
-      fcp.k8s.mtl/cosmos-statsd: disabled
-      fcp.k8s.mtl/cosmos-tail: disabled
     volumeClaims:
     - name: data
       size: "10Gi"
@@ -175,11 +155,6 @@ deployments:
     name: hbase-cluster-nn
     replicas: 2
     shareProcessNamespace: false
-    annotations:
-      fcp.k8s.mtl/mtl-config-map: mtl-nn
-      fcp.k8s.mtl/cosmos-jmx: enabled
-      fcp.k8s.mtl/cosmos-statsd: disabled
-      fcp.k8s.mtl/cosmos-tail: disabled
     volumeClaims:
     - name: data
       size: "4Gi"

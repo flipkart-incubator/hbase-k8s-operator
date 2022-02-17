@@ -1,4 +1,8 @@
 {{ define "com.flipkart.hbasestandalone" }}
+{{- include "com.flipkart.hbaseoperator.roles" . }}
+---
+{{- include "com.flipkart.hbaseoperator.rolebindings" . }}
+---
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseStandalone
 metadata:

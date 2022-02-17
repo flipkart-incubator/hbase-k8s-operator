@@ -1,4 +1,8 @@
 {{ define "com.flipkart.hbasetenant" }}
+{{- include "com.flipkart.hbaseoperator.roles" . }}
+---
+{{- include "com.flipkart.hbaseoperator.rolebindings" . }}
+---
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseTenant
 metadata:

@@ -8,6 +8,7 @@ nav:
     - First Time Setup: setup/resources.md
     - Deploy Operator: setup/operator.md
     - Deploy Hbase: setup/hbase.md
+    - RBAC: setup/rbac.md
     - Additional Setup:
       - RackAwareness: setup/additional/rackawareness.md
   - FAQ : faq.md

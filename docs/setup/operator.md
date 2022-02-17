@@ -24,6 +24,12 @@ Hbase operator is written to understand hbase tenant and hbase cluster Custom Re
     docker push hbase-operator:v1.0.0
     ```
 
+	or to run in minikube
+
+	```
+	docker save hbase-operator:v1.0.0 | pv | (eval $(minikube docker-env) && docker load)
+	```
+
 ### Deploy Operator
 
 #### Via Makefile
@@ -49,6 +55,9 @@ Hbase operator is written to understand hbase tenant and hbase cluster Custom Re
     ```
 
 #### Via Helm Chart
+
+1. Modify namespaces to watch for under `examples/operator-chart/values.yaml`. This ensures only those namespaces are watched on which objects to be created
+
 
 1. **Base Helm Chart:** You can find base helm chart which packages all the necessary manifests into single package. Navigate to `helm-charts/operator-chart` from root directory of this repository. You can build the package using following command
 

@@ -1,10 +1,10 @@
-
----
+{{- define "com.flipkart.hbaseoperator.roles" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   creationTimestamp: null
-  name: hbase-operator-manager-role
+  name: {{ .Values.managerRoleName }}
+  namespace: {{ .Values.namespace }}
 rules:
 - apiGroups:
   - apps
@@ -25,17 +25,6 @@ rules:
   verbs:
   - create
   - delete
-  - get
-  - list
-  - patch
-  - update
-  - watch
-- apiGroups:
-  - ""
-  resources:
-  - events
-  verbs:
-  - create
   - get
   - list
   - patch
@@ -139,3 +128,4 @@ rules:
   - get
   - patch
   - update
+{{ end }}

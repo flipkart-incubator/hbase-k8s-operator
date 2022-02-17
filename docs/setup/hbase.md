@@ -25,7 +25,7 @@
 1. Build docker image and publish to a repository.
 
     ```
-    docker build . --network host -t hbase:2.4.2 && docker push hbase:2.4.2
+    docker build . --network host -t hbase:2.4.8 && docker push hbase:2.4.8
     ```
 
 ## Hbase Standalone
@@ -43,7 +43,7 @@
 
 1. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasestandalone-chart/charts/`
     ```
-    cd hbase-operator && mv hbase-chart-x.x.x.tgz examples/hbasestandalone-chart/charts/
+    mv hbase-chart-x.x.x.tgz examples/hbasestandalone-chart/charts/
     ```
 
 1. Open `examples/hbasestandalone-chart/values.yaml`, and modify the values as per your requirement. Some of the recommended modifications are
@@ -53,7 +53,7 @@
 
 1. You can deploy your helm package using following command
     ```
-    helm upgrade --install --debug hbasestandalone-chart hbasestandalone-chart/ -n hbase_standalone
+    helm upgrade --install --debug hbasestandalone-chart examples/hbasestandalone-chart/ -n hbase-standalone-ns
     ```
 
 #### via Manifest
@@ -207,7 +207,7 @@ spec:
 
 1. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasecluster-chart/charts/`
     ```
-    cd hbase-operator && mv hbase-chart-x.x.x.tgz examples/hbasecluster-chart/charts/
+    mv hbase-chart-x.x.x.tgz examples/hbasecluster-chart/charts/
     ```
 
 1. Open `examples/hbasecluster-chart/values.yaml`, and modify the values as per your requirement. Some of the recommended modifications are
@@ -221,7 +221,7 @@ spec:
 
 1. You can deploy your helm package using following command
     ```
-    helm upgrade --install --debug hbasecluster-chart hbasecluster-chart/ -n hbase_cluster
+    helm upgrade --install --debug hbasecluster-chart examples/hbasecluster-chart/ -n hbase-cluster-ns
     ```
 
 #### via Manifest
@@ -2055,18 +2055,11 @@ spec:
 
 1. Create configmap with command
     ```
-     kubectl apply -f operator/config/custom/config/hbase-operator-config.yaml -n hbase_operator
+     kubectl apply -f operator/config/custom/config/hbase-operator-config.yaml -n hbase-operator-ns
     ```
 
 1. Deploy operator
 
-### Tenant Side
-
-1. Create Rolebinding under namespace which is hosting either hbasetenant or hbasecluster such as follows. Where `hbase_tenant` is the namespace on which you would deploy your resources
-
-    ```
-    ./testbin/bin/kubectl apply -f config/rbac/role_binding.yaml -n hbase_tenant
-    ```
 
 ### Package and Deploy Hbase Tenant
 
@@ -2083,7 +2076,7 @@ spec:
 
 1. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasetenant-chart/charts/`
     ```
-    cd hbase-operator && mv hbase-chart-x.x.x.tgz examples/hbasetenant-chart/charts/
+    mv hbase-chart-x.x.x.tgz examples/hbasetenant-chart/charts/
     ```
 
 1. Open `examples/hbasetenant-chart/values.yaml`, and modify the values as per your requirement. Some of the recommended modifications are
@@ -2097,7 +2090,7 @@ spec:
 1. You can deploy your helm package using following command
 
     ```
-    helm upgrade --install --debug hbasetenant-chart hbasetenant-chart/ -n hbase_tenant
+    helm upgrade --install --debug hbasetenant-chart examples/hbasetenant-chart/ -n hbase-tenant-ns
     ```
 
 #### via Manifest

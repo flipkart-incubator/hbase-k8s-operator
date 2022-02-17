@@ -1,4 +1,7 @@
 namespace: hbase-cluster-ns
+serviceAccountName: hbase-operator-controller-manager
+managerRoleName: hbase-operator-manager-role
+operatorNamespace: hbase-operator-ns
 service:
   name: hbase-cluster
   image: hbase:2.4.8

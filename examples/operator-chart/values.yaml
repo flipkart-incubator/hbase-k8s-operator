@@ -5,9 +5,9 @@ serviceAccountName: hbase-operator-controller-manager
 managerRoleName: hbase-operator-manager-role
 leaderElectionRoleName: hbase-operator-leader-election-role
 namespaces:
+  - hbase-standalone-ns
   - hbase-cluster-ns
   - hbase-tenant-ns
-  - hbase-standalone-ns
 image:
   hbase_operator:
     image_name: hbase-operator

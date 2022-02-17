@@ -1,4 +1,7 @@
 namespace: hbase-tenant-ns
+serviceAccountName: hbase-operator-controller-manager
+managerRoleName: hbase-operator-manager-role
+operatorNamespace: hbase-operator-ns
 service:
   name: hbase-tenant
   image: hbase:2.4.8

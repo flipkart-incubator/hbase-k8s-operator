@@ -13,7 +13,7 @@
     
     
       
-        <title>Deploy Operator - Hbase Operator</title>
+        <title>RBAC - Hbase Operator</title>
       
     
     
@@ -61,11 +61,6 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
-        
-        <a href="#deploy-operator" class="md-skip">
-          Skip to content
-        </a>
-      
     </div>
     <div data-md-component="announce">
       
@@ -95,7 +90,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Deploy Operator
+              RBAC
             
           </span>
         </div>
@@ -260,88 +255,11 @@
               
   
   
-    
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
-      
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          Deploy Operator
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../operator/" class="md-nav__link">
         Deploy Operator
       </a>
-      
-        
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#deploy-operator" class="md-nav__link">
-    Deploy Operator
-  </a>
-  
-    <nav class="md-nav" aria-label="Deploy Operator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#build-docker-image-for-hbase-operator" class="md-nav__link">
-    Build Docker image for Hbase Operator
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#deploy-operator_1" class="md-nav__link">
-    Deploy Operator
-  </a>
-  
-    <nav class="md-nav" aria-label="Deploy Operator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#via-makefile" class="md-nav__link">
-    Via Makefile
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#via-helm-chart" class="md-nav__link">
-    Via Helm Chart
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -365,11 +283,19 @@
               
   
   
+    
   
-    <li class="md-nav__item">
-      <a href="../rbac/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" data-md-toggle="toc" type="checkbox" id="__toc">
+      
+      
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         RBAC
       </a>
+      
     </li>
   
 
@@ -450,154 +376,60 @@
               </div>
             
             
-              
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#deploy-operator" class="md-nav__link">
-    Deploy Operator
-  </a>
-  
-    <nav class="md-nav" aria-label="Deploy Operator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#build-docker-image-for-hbase-operator" class="md-nav__link">
-    Build Docker image for Hbase Operator
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#deploy-operator_1" class="md-nav__link">
-    Deploy Operator
-  </a>
-  
-    <nav class="md-nav" aria-label="Deploy Operator">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#via-makefile" class="md-nav__link">
-    Via Makefile
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#via-helm-chart" class="md-nav__link">
-    Via Helm Chart
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-                  </div>
-                </div>
-              </div>
-            
           
           <div class="md-content" data-md-component="content">
             <article class="md-content__inner md-typeset">
               
                 
-<a href="https://github.com/flipkart-incubator/hbase-k8s-operator/blob/master/docs/setup/operator.md" title="Edit this page" class="md-content__button md-icon">
+<a href="https://github.com/flipkart-incubator/hbase-k8s-operator/blob/master/docs/setup/rbac.md" title="Edit this page" class="md-content__button md-icon">
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20.71 7.04c.39-.39.39-1.04 0-1.41l-2.34-2.34c-.37-.39-1.02-.39-1.41 0l-1.84 1.83 3.75 3.75M3 17.25V21h3.75L17.81 9.93l-3.75-3.75L3 17.25z"/></svg>
 </a>
 
 
-  <h1>Deploy Operator</h1>
+  <h1>RBAC</h1>
 
-<h2 id="deploy-operator">Deploy Operator<a class="headerlink" href="#deploy-operator" title="Permanent link">&para;</a></h2>
-<p>Hbase operator is written to understand hbase tenant and hbase cluster Custom Resource Definitions of kubernetes.</p>
-<h3 id="build-docker-image-for-hbase-operator">Build Docker image for Hbase Operator<a class="headerlink" href="#build-docker-image-for-hbase-operator" title="Permanent link">&para;</a></h3>
-<div class="admonition danger">
-<p class="admonition-title">navigate to <code>/operator</code> under parent directory of this repository</p>
+<div class="admonition warning">
+<p class="admonition-title">This is just for illustration, deploying hbase cluster/tenant/standalone comes bundled with rbac permissions</p>
 </div>
 <ol>
 <li>
-<p>You can build operator using following command</p>
-<p><div class="highlight"><pre><span></span><code>make docker-build IMG=hbase-operator:v1.0.0
-</code></pre></div>
-or</p>
-<div class="highlight"><pre><span></span><code>docker build -f Dockerfile -t hbase-operator:v1.0.0 .
-</code></pre></div>
+<p>RBAC for multi namespace deployment (Operator is deployed in its own namespace different from either cluster or tenant namesapces)</p>
+<ol>
+<li>
+<p>Create <code>ClusterRole</code> with permissions required for operator to apply on namespaces. Assuming operator is on different namespace from hbasecluster and or tenant. Modify <code>Role</code> to <code>ClusterRole</code> in config/rbac/role.yaml in case you want to have global scope or else apply hbase-cluster-ns or hbase-tenant-ns namespace without any changes
+    <div class="highlight"><pre><span></span><code>kubectl apply -f config/rbac/role.yaml
+</code></pre></div></p>
+<p><strong>Or</strong></p>
+<p>Apply contents from <code>config/rbac/role.yaml</code> using some automation tool</p>
 </li>
 <li>
-<p>Push docker image to remote registry</p>
-<div class="highlight"><pre><span></span><code>docker push hbase-operator:v1.0.0
-</code></pre></div>
-<p>or to run in minikube</p>
-<div class="highlight"><pre><span></span><code>docker save hbase-operator:v1.0.0 | pv | (eval $(minikube docker-env) &amp;&amp; docker load)
-</code></pre></div>
-</li>
-</ol>
-<h3 id="deploy-operator_1">Deploy Operator<a class="headerlink" href="#deploy-operator_1" title="Permanent link">&para;</a></h3>
-<h4 id="via-makefile">Via Makefile<a class="headerlink" href="#via-makefile" title="Permanent link">&para;</a></h4>
+<p>Create RoleBilding under namespace which is hosting either <code>hbase-tenant-ns</code> or <code>hbase-cluster-ns</code> such as follows. Where <code>hbase-tenant-ns</code> and <code>hbase-cluster-ns</code> are the namespace on which you would deploy your resources
+    <div class="highlight"><pre><span></span><code>kubectl apply -f config/rbac/role_binding.yaml -n hbase-cluster-ns
+kubectl apply -f config/rbac/role_binding.yaml -n hbase-tenant-ns
+</code></pre></div></p>
 <div class="admonition danger">
-<p class="admonition-title">navigate to <code>/operator</code> under parent directory of this repository</p>
+<p class="admonition-title">Service Account and roleRef particulars should match with which operator will be run along with namespace</p>
 </div>
-<ol>
-<li>
-<p>Deploy operator image in your kubernetes. Use <code>-n</code> optionally to specify namespace</p>
-<div class="highlight"><pre><span></span><code>make deploy IMG=hbase-operator:v1.0.0 -n hbase-operator-ns
-</code></pre></div>
-</li>
-<li>
-<p>UnDeploy operator. Use <code>-n</code> optionally to specify namespace</p>
-<div class="highlight"><pre><span></span><code>make undeploy IMG=hbase-operator:v1.0.0 -n hbase-operator-ns
-</code></pre></div>
-</li>
-<li>
-<p>Hbase operator is verbose enough on any operations performed. You can check container logs using <code>kubectl</code> or other mechanism. Example</p>
-<div class="highlight"><pre><span></span><code>kubectl logs hbase-operator-controller-manager-76b4455b76-t4bbb -c manager -f -n hbase-operator-ns
-</code></pre></div>
 </li>
 </ol>
-<h4 id="via-helm-chart">Via Helm Chart<a class="headerlink" href="#via-helm-chart" title="Permanent link">&para;</a></h4>
+</li>
+<li>
+<p>RBAC for single namespace deployment (Operator is deployed along with hbase cluster/tenant in single namespace)</p>
 <ol>
 <li>
-<p>Modify namespaces to watch for under <code>examples/operator-chart/values.yaml</code>. This ensures only those namespaces are watched on which objects to be created</p>
+<p>Create <code>Role</code> with permissions required for operator to apply on namespaces.
+    <div class="highlight"><pre><span></span><code>kubectl apply -f config/rbac/role.yaml
+</code></pre></div></p>
 </li>
 <li>
-<p><strong>Base Helm Chart:</strong> You can find base helm chart which packages all the necessary manifests into single package. Navigate to <code>helm-charts/operator-chart</code> from root directory of this repository. You can build the package using following command</p>
-<div class="highlight"><pre><span></span><code>helm package helm-charts/operator-chart/
-</code></pre></div>
+<p>Create RoleBilding under same namespace.
+    <div class="highlight"><pre><span></span><code>kubectl apply -f config/rbac/role_binding.yaml
+</code></pre></div></p>
+<div class="admonition danger">
+<p class="admonition-title">Service Account and roleRef particulars should match with which operator will be run along with namespace</p>
+</div>
 </li>
-<li>
-<p><strong>Deploy Helm Chart:</strong>: You can find example helm chart to deploy operator under <code>examples/operator-chart</code> </p>
-<div class="highlight"><pre><span></span><code>helm upgrade --install --debug example examples/operator-chart/ -n hbase-operator-ns
-</code></pre></div>
-</li>
-<li>
-<p>Hbase operator is verbose enough on any operations performed. You can check container logs using <code>kubectl</code> or other mechanism. Example</p>
-<div class="highlight"><pre><span></span><code>kubectl logs hbase-operator-controller-manager-76b4455b76-t4bbb -c manager -f -n hbase-operator-ns
-</code></pre></div>
+</ol>
 </li>
 </ol>
 
@@ -613,7 +445,7 @@ or</p>
     <nav class="md-footer__inner md-grid" aria-label="Footer">
       
         
-        <a href="../resources/" class="md-footer__link md-footer__link--prev" aria-label="Previous: First Time Setup" rel="prev">
+        <a href="../hbase/" class="md-footer__link md-footer__link--prev" aria-label="Previous: Deploy Hbase" rel="prev">
           <div class="md-footer__button md-icon">
             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12z"/></svg>
           </div>
@@ -622,20 +454,20 @@ or</p>
               <span class="md-footer__direction">
                 Previous
               </span>
-              First Time Setup
+              Deploy Hbase
             </div>
           </div>
         </a>
       
       
         
-        <a href="../hbase/" class="md-footer__link md-footer__link--next" aria-label="Next: Deploy Hbase" rel="next">
+        <a href="../additional/rackawareness/" class="md-footer__link md-footer__link--next" aria-label="Next: RackAwareness" rel="next">
           <div class="md-footer__title">
             <div class="md-ellipsis">
               <span class="md-footer__direction">
                 Next
               </span>
-              Deploy Hbase
+              RackAwareness
             </div>
           </div>
           <div class="md-footer__button md-icon">

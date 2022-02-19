@@ -3,6 +3,7 @@ namespace: hbase-operator-ns
 replicaCount: 1
 serviceAccountName: hbase-operator-controller-manager
 managerRoleName: hbase-operator-manager-role
+managerRoleBindingName: hbase-operator-manager-rolebinding
 leaderElectionRoleName: hbase-operator-leader-election-role
 namespaces:
   - hbase-standalone-ns

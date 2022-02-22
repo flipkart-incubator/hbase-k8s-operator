@@ -18,11 +18,27 @@ spec:
     hbaseConfig:
       {{- $configPath := .Values.configuration.hbaseConfigRelPath }}
       {{- ($.Files.Glob $configPath).AsConfig | nindent 6 }}
+    hbaseTenantConfig:
+      {{- $tenantConfigPath := dir .Values.configuration.hbaseConfigRelPath }}
+      {{- $tenantConfigPath := printf "%s/tenants/*/*" $tenantConfigPath }}
+      {{- range $path, $_ := .Files.Glob  $tenantConfigPath }}
+      {{- $dir := dir $path }}
+    - namespace: {{ base $dir }}
+      {{- ($.Files.Glob $path).AsConfig | nindent 6 }}
+      {{ end }}
     hadoopConfigName: {{ .Values.configuration.hadoopConfigName }}
     hadoopConfigMountPath: {{ .Values.configuration.hadoopConfigMountPath }}
     hadoopConfig:
       {{- $configPath := .Values.configuration.hadoopConfigRelPath }}
       {{- ($.Files.Glob $configPath).AsConfig | nindent 6 }}
+    hadoopTenantConfig:
+      {{- $tenantConfigPath := dir .Values.configuration.hadoopConfigRelPath }}
+      {{- $tenantConfigPath := printf "%s/tenants/*/*" $tenantConfigPath }}
+      {{- range $path, $_ := .Files.Glob  $tenantConfigPath }}
+      {{- $dir := dir $path }}
+    - namespace: {{ base $dir }}
+      {{- ($.Files.Glob $path).AsConfig | nindent 6 }}
+      {{ end }}
   {{- if .Values.tenantNamespaces }}
   tenantNamespaces: {{ .Values.tenantNamespaces }}
   {{- end }}

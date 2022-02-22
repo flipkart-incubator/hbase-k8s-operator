@@ -81,14 +81,14 @@ func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return result, err
 	}
 
-	cfg := buildConfigMap(hbasestandalone.Spec.Configuration.HbaseConfigName, hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.Configuration.HbaseConfig)
+	cfg := buildConfigMap(hbasestandalone.Spec.Configuration.HbaseConfigName, hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.Configuration.HbaseConfig, hbasestandalone.Spec.Configuration.HbaseTenantConfig)
 	ctrl.SetControllerReference(hbasestandalone, cfg, r.Scheme)
 	result, err = reconcileConfigMap(ctx, log, hbasestandalone.Namespace, cfg, r.Client)
 	if (ctrl.Result{}) != result || err != nil {
 		return result, err
 	}
 
-	cfg = buildConfigMap(hbasestandalone.Spec.Configuration.HadoopConfigName, hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.Configuration.HadoopConfig)
+	cfg = buildConfigMap(hbasestandalone.Spec.Configuration.HadoopConfigName, hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.Configuration.HadoopConfig, hbasestandalone.Spec.Configuration.HadoopTenantConfig)
 	ctrl.SetControllerReference(hbasestandalone, cfg, r.Scheme)
 	result, err = reconcileConfigMap(ctx, log, hbasestandalone.Namespace, cfg, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

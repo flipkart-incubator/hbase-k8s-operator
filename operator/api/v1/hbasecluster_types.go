@@ -158,6 +158,10 @@ type HbaseClusterConfiguration struct {
 	HadoopConfigName      string            `json:"hadoopConfigName"`
 	HadoopConfigMountPath string            `json:"hadoopConfigMountPath"`
 	HadoopConfig          map[string]string `json:"hadoopConfig"`
+	// +optional
+	HbaseTenantConfig []map[string]string `json:"hbaseTenantConfig"`
+	// +optional
+	HadoopTenantConfig []map[string]string `json:"hadoopTenantConfig"`
 }
 
 type HbaseClusterSecurity struct {

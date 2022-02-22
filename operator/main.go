@@ -101,7 +101,7 @@ func main() {
 		setupLog.Info("Watching for following namespaces: " + strings.Join(ns, ","))
 	}
 
-	//ns = []string{"default"}
+	//ns = []string{"default", "hbase-standalone-ns", "hbase-tenant-ns", "hbase-cluster-ns"}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,

@@ -48,6 +48,12 @@ spec:
                     type: string
                   hadoopConfigName:
                     type: string
+                  hadoopTenantConfig:
+                    items:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    type: array
                   hbaseConfig:
                     additionalProperties:
                       type: string
@@ -56,6 +62,12 @@ spec:
                     type: string
                   hbaseConfigName:
                     type: string
+                  hbaseTenantConfig:
+                    items:
+                      additionalProperties:
+                        type: string
+                      type: object
+                    type: array
                 required:
                 - hadoopConfig
                 - hadoopConfigMountPath

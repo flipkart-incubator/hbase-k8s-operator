@@ -19,8 +19,8 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 
-	logr "github.com/go-logr/logr"
 	kvstorev1 "github.com/flipkart-incubator/hbase-k8s-operator/api/v1"
+	logr "github.com/go-logr/logr"
 )
 
 type ConfigType int
@@ -463,7 +463,26 @@ func buildService(svcName string, crName string, namespace string, deployments [
 	return dep
 }
 
-func buildConfigMap(cfgName string, crName string, namespace string, config map[string]string) *corev1.ConfigMap {
+func buildConfigMap(cfgName string, crName string, namespace string, config map[string]string, tenantConfig []map[string]string) *corev1.ConfigMap {
+	tenantCfg := map[string]map[string]string{}
+	for _, elem := range tenantConfig {
+		ns := elem["namespace"]
+		if _, ok := tenantCfg[ns]; !ok {
+			tenantCfg[ns] = make(map[string]string)
+		}
+		for k, v := range elem {
+			if k != "namespace" {
+				tenantCfg[ns][k] = v
+			}
+		}
+	}
+
+	if _, ok := tenantCfg[namespace]; ok {
+		for k, v := range tenantCfg[namespace] {
+			config[k] = v
+		}
+	}
+
 	return &corev1.ConfigMap{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cfgName,

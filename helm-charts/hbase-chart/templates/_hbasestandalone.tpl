@@ -17,12 +17,28 @@ spec:
     hbaseConfig:
       {{- $configPath := .Values.configuration.hbaseConfigRelPath }}
       {{- ($.Files.Glob $configPath).AsConfig | nindent 6 }}
+    hbaseTenantConfig:
+      {{- $tenantConfigPath := dir .Values.configuration.hbaseConfigRelPath }}
+      {{- $tenantConfigPath := printf "%s/tenants/*/*" $tenantConfigPath }}
+      {{- range $path, $_ := .Files.Glob  $tenantConfigPath }}
+      {{- $dir := dir $path }}
+    - namespace: {{ base $dir }}
+      {{- ($.Files.Glob $path).AsConfig | nindent 6 }}
+      {{ end }}
     hadoopConfigName: hadoop-config
     hadoopConfigMountPath: /etc/hadoop
     hadoopConfig:
       {{- $configPath := .Values.configuration.hbaseConfigRelPath }}
       {{- ($.Files.Glob $configPath).AsConfig | nindent 6 }}
-  standalone: 
+    hadoopTenantConfig:
+      {{- $tenantConfigPath := dir .Values.configuration.hadoopConfigRelPath }}
+      {{- $tenantConfigPath := printf "%s/tenants/*/*" $tenantConfigPath }}
+      {{- range $path, $_ := .Files.Glob  $tenantConfigPath }}
+      {{- $dir := dir $path }}
+    - namespace: {{ base $dir }}
+      {{- ($.Files.Glob $path).AsConfig | nindent 6 }}
+      {{ end }}
+  standalone:
     {{- $ports := list 16000 16010 16030 16020 2181}}
     {{- $portsArr := list $ports }}
     {{- $arg := list .Values.configuration.hbaseLogPath .Values.configuration.hbaseConfigMountPath .Values.configuration.hbaseHomePath .Values.configuration.hbaseConfigName }}

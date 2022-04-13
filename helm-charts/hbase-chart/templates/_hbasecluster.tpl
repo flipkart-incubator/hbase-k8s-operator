@@ -40,7 +40,10 @@ spec:
       {{- ($.Files.Glob $path).AsConfig | nindent 6 }}
       {{ end }}
   {{- if .Values.tenantNamespaces }}
-  tenantNamespaces: {{ .Values.tenantNamespaces }}
+  tenantNamespaces:
+  {{- range .Values.tenantNamespaces }}
+    - {{ . }}
+  {{- end }}
   {{- end }}
   deployments:
     {{- $refreshNamenodeContainer := include "hbasecluster.refreshnn" . | indent 2 }}

@@ -1,5 +1,7 @@
 namespace: hbase-tenant-ns
 serviceAccountName: hbase-operator-controller-manager
+sharedWithOperatorNamespace: false
+managerRoleKind: Role
 managerRoleName: hbase-operator-manager-role
 managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns

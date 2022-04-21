@@ -6,7 +6,7 @@ metadata:
   namespace: {{ .Values.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: ClusterRole
+  kind: {{ default Role .Values.managerRoleKind }}
   name: {{ .Values.managerRoleName }}
 subjects:
 - kind: ServiceAccount

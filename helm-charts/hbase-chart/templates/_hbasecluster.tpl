@@ -1,6 +1,6 @@
 {{ define "com.flipkart.hbasecluster" }}
 {{- if .Values.sharedWithOperatorNamespace }}
-{{- if eq .Values.sharedWithOperatorNamespace "false" }}
+{{- if eq .Values.sharedWithOperatorNamespace false }}
 {{- include "com.flipkart.hbaseoperator.roles" . }}
 ---
 {{- include "com.flipkart.hbaseoperator.rolebindings" . }}

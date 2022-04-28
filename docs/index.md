@@ -1,9 +1,10 @@
+# Hbase Operator
+
 ## About Hbase
 
 HBase is an open-source non-relational distributed database modeled after Google's Bigtable and written in Java. It is developed as part of Apache Software Foundation's Apache Hadoop project and runs on top of HDFS (Hadoop Distributed File System) or Alluxio, providing Bigtable-like capabilities for Hadoop. That is, it provides a fault-tolerant way of storing large quantities of sparse data.
 
 ## Operator Details
-
 
 1. This operator is designed to be Namespace scoped. Single kubernetes cluster can run multiple instances of this operator in separate namespaces listening for multiple other namespaces
 
@@ -29,7 +30,7 @@ Hbase k8s operatis is a custom kubernetes controller that uses custom resource t
 
 HbaseCluster CRD's spins up a cluster with following components in an ordered fashion
 
-1. Zookeeper Quorum 
+1. Zookeeper Quorum
 1. JournalNode Quorum
 1. HA Namenodes
 1. Cluster of Datanodes + Regionservers (single pod to enable short circuiting)

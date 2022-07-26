@@ -241,6 +241,8 @@ spec:
                           - securityContext
                           type: object
                         type: array
+                      hostname:
+                        type: string
                       initContainers:
                         items:
                           properties:
@@ -306,6 +308,14 @@ spec:
                         default: false
                         type: boolean
                       name:
+                        type: string
+                      podManagementPolicy:
+                        default: Parallel
+                        description: PodManagementPolicyType defines the policy for
+                          creating pods under a stateful set.
+                        enum:
+                        - Parallel
+                        - OrderedReady
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -375,6 +385,8 @@ spec:
                         format: int32
                         minimum: 1
                         type: integer
+                      subdomain:
+                        type: string
                       terminateGracePeriod:
                         format: int64
                         minimum: 10
@@ -583,6 +595,8 @@ spec:
                           - securityContext
                           type: object
                         type: array
+                      hostname:
+                        type: string
                       initContainers:
                         items:
                           properties:
@@ -648,6 +662,14 @@ spec:
                         default: false
                         type: boolean
                       name:
+                        type: string
+                      podManagementPolicy:
+                        default: Parallel
+                        description: PodManagementPolicyType defines the policy for
+                          creating pods under a stateful set.
+                        enum:
+                        - Parallel
+                        - OrderedReady
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -717,6 +739,8 @@ spec:
                         format: int32
                         minimum: 1
                         type: integer
+                      subdomain:
+                        type: string
                       terminateGracePeriod:
                         format: int64
                         minimum: 10
@@ -925,6 +949,8 @@ spec:
                           - securityContext
                           type: object
                         type: array
+                      hostname:
+                        type: string
                       initContainers:
                         items:
                           properties:
@@ -990,6 +1016,14 @@ spec:
                         default: false
                         type: boolean
                       name:
+                        type: string
+                      podManagementPolicy:
+                        default: Parallel
+                        description: PodManagementPolicyType defines the policy for
+                          creating pods under a stateful set.
+                        enum:
+                        - Parallel
+                        - OrderedReady
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -1059,6 +1093,8 @@ spec:
                         format: int32
                         minimum: 1
                         type: integer
+                      subdomain:
+                        type: string
                       terminateGracePeriod:
                         format: int64
                         minimum: 10
@@ -1267,6 +1303,8 @@ spec:
                           - securityContext
                           type: object
                         type: array
+                      hostname:
+                        type: string
                       initContainers:
                         items:
                           properties:
@@ -1332,6 +1370,14 @@ spec:
                         default: false
                         type: boolean
                       name:
+                        type: string
+                      podManagementPolicy:
+                        default: Parallel
+                        description: PodManagementPolicyType defines the policy for
+                          creating pods under a stateful set.
+                        enum:
+                        - Parallel
+                        - OrderedReady
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -1401,6 +1447,8 @@ spec:
                         format: int32
                         minimum: 1
                         type: integer
+                      subdomain:
+                        type: string
                       terminateGracePeriod:
                         format: int64
                         minimum: 10
@@ -1609,6 +1657,8 @@ spec:
                           - securityContext
                           type: object
                         type: array
+                      hostname:
+                        type: string
                       initContainers:
                         items:
                           properties:
@@ -1674,6 +1724,14 @@ spec:
                         default: false
                         type: boolean
                       name:
+                        type: string
+                      podManagementPolicy:
+                        default: Parallel
+                        description: PodManagementPolicyType defines the policy for
+                          creating pods under a stateful set.
+                        enum:
+                        - Parallel
+                        - OrderedReady
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -1743,6 +1801,8 @@ spec:
                         format: int32
                         minimum: 1
                         type: integer
+                      subdomain:
+                        type: string
                       terminateGracePeriod:
                         format: int64
                         minimum: 10

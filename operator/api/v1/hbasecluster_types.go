@@ -18,6 +18,7 @@ package v1
 
 import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	appsv1 "k8s.io/api/apps/v1"
 )
 
 type HbaseClusterContainerPort struct {
@@ -149,6 +150,14 @@ type HbaseClusterDeployment struct {
 	ShareProcessNamespace bool `json:"shareProcessNamespace"`
 	// +kubebuilder:default:=false
 	IsPodServiceRequired bool `json:"isPodServiceRequired"`
+	// +optional
+	// +kubebuilder:default:=Parallel
+	// +kubebuilder:validation:Enum:=Parallel;OrderedReady;
+	PodManagementPolicy appsv1.PodManagementPolicyType `json:"podManagementPolicy"`
+	// +optional
+	Hostname string `json:"hostname,omitempty"`
+	// +optional
+	Subdomain string `json:"subdomain,omitempty"`
 }
 
 type HbaseClusterConfiguration struct {

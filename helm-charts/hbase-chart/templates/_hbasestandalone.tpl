@@ -1,13 +1,11 @@
 {{ define "com.flipkart.hbasestandalone" }}
-{{- if .Values.sharedWithOperatorNamespace }}
-{{- if eq .Values.sharedWithOperatorNamespace false }}
+{{- if eq .Values.sharedWithOperatorNamespace true }}
+---
+{{- else }}
 {{- include "com.flipkart.hbaseoperator.roles" . }}
 ---
 {{- include "com.flipkart.hbaseoperator.rolebindings" . }}
 ---
-{{- end }}
-{{- else }}
-{{- required "sharedWithOperatorNamespace boolean is required (true/false)" nil}}
 {{- end }}
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseStandalone

@@ -1,13 +1,11 @@
 {{ define "com.flipkart.hbasecluster" }}
-{{- if .Values.sharedWithOperatorNamespace }}
-{{- if eq .Values.sharedWithOperatorNamespace false }}
+{{- if eq .Values.sharedWithOperatorNamespace true }}
+---
+{{- else }}
 {{- include "com.flipkart.hbaseoperator.roles" . }}
 ---
 {{- include "com.flipkart.hbaseoperator.rolebindings" . }}
 ---
-{{- end }}
-{{- else }}
-{{- required "sharedWithOperatorNamespace boolean is required (true/false)" nil}}
 {{- end }}
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseCluster
@@ -57,6 +55,7 @@ spec:
     {{- if .Values.deployments.zookeeper }}
     zookeeper: 
       {{- $isPodServiceRequired := true }}
+      {{- $podManagementPolicy := "Parallel" }}
       {{- $initContainers := list $dnsContainer }}
       {{- $zkscript := include "hbasecluster.zkscript" . | indent 6 }}
       {{- $zkprobescript := include "hbasecluster.zkprobescript" . | indent 8 }}
@@ -66,11 +65,12 @@ spec:
       {{- $arg1 := list .Values.configuration.hbaseLogPath .Values.configuration.hbaseConfigMountPath .Values.configuration.hbaseHomePath }}
       {{- $args := list $arg1 }}
       {{- $probescripts := list $zkprobescript }}
-      {{- $data := dict "Values" .Values "root" .Values.deployments.zookeeper "scripts" $scripts "initContainers" $initContainers "probescripts" $probescripts "args" $args "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired }}
+      {{- $data := dict "Values" .Values "root" .Values.deployments.zookeeper "scripts" $scripts "initContainers" $initContainers "probescripts" $probescripts "args" $args "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
     {{- end }}
     journalnode: 
       {{- $isPodServiceRequired := true }}
+      {{- $podManagementPolicy := "Parallel" }}
       {{- $initContainers := list $dnsContainer }}
       {{- $jnscript := include "hbasecluster.jnscript" . | indent 6 }}
       {{- $ports := list 8485 8480 }}
@@ -78,9 +78,10 @@ spec:
       {{- $scripts := list $jnscript }}
       {{- $arg1 := list .Values.configuration.hadoopLogPath .Values.configuration.hadoopConfigMountPath .Values.configuration.hadoopHomePath }}
       {{- $args := list $arg1 }}
-      {{- $data := dict "Values" .Values "root" .Values.deployments.journalnode "scripts" $scripts "initContainers" $initContainers "args" $args "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired }}
+      {{- $data := dict "Values" .Values "root" .Values.deployments.journalnode "scripts" $scripts "initContainers" $initContainers "args" $args "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
     hmaster: 
+      {{- $podManagementPolicy := "Parallel" }}
       {{- $initContainers := list $dnsContainer }}
       {{- $hmasterscript := include "hbasecluster.hmasterscript" . | indent 6 }}
       {{- $ports := list 16000 16010}}
@@ -88,9 +89,10 @@ spec:
       {{- $scripts := list $hmasterscript }}
       {{- $arg1 := list .Values.configuration.hbaseLogPath .Values.configuration.hbaseConfigMountPath .Values.configuration.hbaseHomePath }}
       {{- $args := list $arg1 }}
-      {{- $data := dict "Values" .Values "root" .Values.deployments.hmaster "scripts" $scripts "initContainers" $initContainers "args" $args "portsArr" $portsArr }}
+      {{- $data := dict "Values" .Values "root" .Values.deployments.hmaster "scripts" $scripts "initContainers" $initContainers "args" $args "portsArr" $portsArr "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
     datanode: 
+      {{- $podManagementPolicy := "Parallel" }}
       {{- $initContainers := list $dnsContainer $refreshNamenodeContainer }}
       {{- if .Values.commands.faultDomainCommand }}
       {{- $faultdomainContainer := include "hbasecluster.faultdomain" . | indent 2 }}
@@ -107,10 +109,11 @@ spec:
       {{- $arg1 := list .Values.configuration.hadoopLogPath .Values.configuration.hadoopConfigMountPath .Values.configuration.hadoopHomePath }}
       {{- $arg2 := list .Values.configuration.hbaseLogPath .Values.configuration.hbaseConfigMountPath .Values.configuration.hbaseHomePath }}
       {{- $args := list $arg1 $arg2 }}
-      {{- $data := dict "Values" .Values "root" .Values.deployments.datanode "scripts" $scripts "probescripts" $probescripts "initContainers" $initContainers "args" $args "portsArr" $portsArr }}
+      {{- $data := dict "Values" .Values "root" .Values.deployments.datanode "scripts" $scripts "probescripts" $probescripts "initContainers" $initContainers "args" $args "portsArr" $portsArr "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
     namenode:
       {{- $isPodServiceRequired := true }}
+      {{- $podManagementPolicy := "OrderedReady" }}
       {{- $initContainers := list $dnsContainer }}
       {{- $initnnscript := include "hbasecluster.initnnscript" . | indent 6 }}
       {{- $initzkfcscript := include "hbasecluster.initzkfcscript" . | indent 6 }}
@@ -126,6 +129,6 @@ spec:
       {{- $args := list $arg1 $arg2 }}
       {{- $probescripts := list $nnprobescript "" }}
       {{- $initscripts := list $initnnscript $initzkfcscript }}
-      {{- $data := dict "Values" .Values "root" .Values.deployments.namenode "scripts" $scripts "initContainers" $initContainers "args" $args "initscripts" $initscripts "probescripts" $probescripts "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired }}
+      {{- $data := dict "Values" .Values "root" .Values.deployments.namenode "scripts" $scripts "initContainers" $initContainers "args" $args "initscripts" $initscripts "probescripts" $probescripts "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
 {{- end }}

@@ -23,14 +23,6 @@
   </property>
   <property>
     <name>hbase.balancer.rsgroup.enabled</name>
-    <value>true</value>
-  </property>
-  <property>
-    <name>hbase.coprocessor.master.classes</name>
-    <value>org.apache.hadoop.hbase.rsgroup.RSGroupAdminEndpoint</value>
-  </property>
-  <property>
-    <name>hbase.master.loadbalancer.class</name>
-    <value>org.apache.hadoop.hbase.rsgroup.RSGroupBasedLoadBalancer</value>
+    <value>false</value>
   </property>
 </configuration>

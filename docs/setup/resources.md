@@ -1,3 +1,5 @@
+# First Time Setup
+
 !!! danger "change directory to `/operator` under parent directory of this repository"
 
 !!! warning "You should install `kustomize`, `kubectl`, `minikube` for below examples to work"
@@ -8,19 +10,19 @@
 
     1. Apply crds on your cluster using kubectl
 
-        ```
+        ```sh
         kustomize build config/crd | kubectl apply -f -
         ```
 
     1. **Or** generate the crd as follows and apply using some automation tool
 
-        ```
+        ```sh
         kustomize build config/crd
         ```
 
 1. Create namespaces if not already created. lets keep `hbase-operator-ns` for namespace on which operator will be deployed, `hbase-cluster-ns` for namespace on which hbase cluster will be deployed and `hbase-tenant-ns` for namespace on which tenant will be deployed.
 
-    ```
+    ```sh
     kubectl create namespace hbase-operator-ns
     kubectl create namespace hbase-cluster-ns
     kubectl create namespace hbase-tenant-ns

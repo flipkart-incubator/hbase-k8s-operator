@@ -1,3 +1,5 @@
+# Deploy Hbase
+
 !!! danger "change directory to `/examples` under parent directory of this repository"
 
 ## Build Docker Image for Hbase
@@ -24,7 +26,7 @@
 
 1. Build docker image and publish to a repository.
 
-    ```
+    ```sh
     docker build . --network host -t hbase:2.4.8 && docker push hbase:2.4.8
     ```
 
@@ -37,32 +39,34 @@
 1. A customisable base helm chart is available to make use of and simplify deployable helm charts. You can find `./helm-charts/hbase-chart/` under root folder of this repository
 
 1. Build the base helm chart from root folder of this repository as follows
-    ```
+
+    ```sh
     helm package helm-charts/hbase-chart/
     ```
 
 1. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasestandalone-chart/charts/`
-    ```
+
+    ```sh
     mv hbase-chart-x.x.x.tgz examples/hbasestandalone-chart/charts/
     ```
 
 1. Open `examples/hbasestandalone-chart/values.yaml`, and modify the values as per your requirement. Some of the recommended modifications are
 
     1. image: Docker image of hbase we built in previous section
-    1. Memory limits / requests and CPU limits / request as per your requirements
+    2. Memory limits / requests and CPU limits / request as per your requirements
 
 1. You can deploy your helm package using following command
-    ```
+
+    ```sh
     helm upgrade --install --debug hbasestandalone-chart examples/hbasestandalone-chart/ -n hbase-standalone-ns
     ```
 
 #### via Manifest
 
-Sample configuration:
-
 <details>
 <summary>Sample Standalone yaml configuration</summary>
-```
+
+```yaml
 # Source: hbasestandalone-chart/templates/hbasestandalone.yaml
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseStandalone
@@ -188,6 +192,7 @@ spec:
           readOnly: false
 
 ```
+
 </details>
 
 ## Hbase Cluster
@@ -201,12 +206,14 @@ spec:
 1. A customisable base helm chart is available to make use of and simplify deployable helm charts. You can find `./helm-charts/hbase-chart/` under root folder of this repository
 
 1. Build the base helm chart from root folder of this repository as follows
-    ```
+
+    ```sh
     helm package helm-charts/hbase-chart/
     ```
 
 1. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasecluster-chart/charts/`
-    ```
+
+    ```sh
     mv hbase-chart-x.x.x.tgz examples/hbasecluster-chart/charts/
     ```
 
@@ -220,17 +227,17 @@ spec:
     1. Memory limits / requests and CPU limits / request as per your requirements
 
 1. You can deploy your helm package using following command
-    ```
+
+    ```sh
     helm upgrade --install --debug hbasecluster-chart examples/hbasecluster-chart/ -n hbase-cluster-ns
     ```
 
 #### via Manifest
 
-Sample configuration:
-
 <details>
 <summary>Sample Cluster yaml configuration</summary>
-```
+
+```yaml
 # Source: hbasecluster-chart/templates/hbasecluster.yaml
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseCluster
@@ -2042,6 +2049,7 @@ spec:
           readOnly: false
 
 ```
+
 </details>
 
 ## Hbase Tenant
@@ -2049,17 +2057,18 @@ spec:
 ### Operator Side
 
 1. Add additional namespaces to watch for. Here specific namespace to be onboarded for a particular tenant
-    ```
+
+    ```sh
     vim operator/config/custom/config/hbase-operator-config.yaml
     ```
 
 1. Create configmap with command
-    ```
+
+    ```sh
      kubectl apply -f operator/config/custom/config/hbase-operator-config.yaml -n hbase-operator-ns
     ```
 
 1. Deploy operator
-
 
 ### Package and Deploy Hbase Tenant
 
@@ -2070,12 +2079,14 @@ spec:
 1. A customisable base helm chart is available to make use of and simplify deployable helm charts. You can find `./helm-charts/hbase-chart/` under root folder of this repository
 
 1. Build the base helm chart from root folder of this repository as follows
-    ```
+
+    ```sh
     helm package helm-charts/hbase-chart/
     ```
 
 1. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasetenant-chart/charts/`
-    ```
+
+    ```sh
     mv hbase-chart-x.x.x.tgz examples/hbasetenant-chart/charts/
     ```
 
@@ -2089,17 +2100,16 @@ spec:
 
 1. You can deploy your helm package using following command
 
-    ```
+    ```sh
     helm upgrade --install --debug hbasetenant-chart examples/hbasetenant-chart/ -n hbase-tenant-ns
     ```
 
 #### via Manifest
 
-Sample configuration:
-
 <details>
 <summary>Sample Tenant yaml configuration</summary>
-```
+
+```yaml
 # Source: hbasetenant-chart/templates/hbasetenant.yaml
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseTenant
@@ -2401,4 +2411,5 @@ spec:
           readOnly: true
 
 ```
+
 </details>

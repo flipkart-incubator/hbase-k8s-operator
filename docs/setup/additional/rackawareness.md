@@ -1,16 +1,17 @@
-## Rackawareness
+# Rackawareness
 
-### How to enable
+## How to enable
 
 1. Build rack utils docker image as below
-    ```
+
+    ```sh
     docker build utilities/rackuitls/ --network host --build-arg AppName="RackUtils" -t "hbase-rack-utils:1.0.0"
     docker push hbase-rack-utils:1.0.0
     ```
 
 1. Enable sidecar along with hmaster container as described below in values.yaml file
 
-    ```
+    ```yaml
     sidecarcontainers:
     - name: rackutils
       image: hbase-rack-utils:1.0.0
@@ -32,26 +33,28 @@
     * `/opt/share/rack_topology.data` is path on hmaster container where topology information is stored
 
 1. Command using which rack(fault domain) information can be fetched from each datanode
-    ```
+
+    ```sh
     commands:
       faultDomainCommand: "cat /etc/nodeinfo | grep 'smd' | sed 's/smd=//' | sed 's/\"//g'"
     ```
 
 1. Add following configuration in hbase-site.xml
-    ```
+
+    ```xml
     <property>
       <name>net.topology.script.file.name</name>
       <value>/opt/scripts/rack_topology</value>
     </property>
     ```
 
-### How it works
+## How it works
 
 * Refer to previous section before reading further
 
 * Rack state for each datanode is stored in zookeeper znode example: `/hbase-operator`
 
-* Each datanode has init container refer: `chart/templates/meta/_faultdomain.tpl` which at the time of creation updates its latest faultdomain in znode 
+* Each datanode has init container refer: `chart/templates/meta/_faultdomain.tpl` which at the time of creation updates its latest faultdomain in znode
 
 * Hmaster side container as described above, reads the znode `/hbase-operator` and constructs topology file `/opt/share/rack_topology.data`
 

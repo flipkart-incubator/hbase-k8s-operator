@@ -9,7 +9,7 @@
     docker push hbase-rack-utils:1.0.0
     ```
 
-2. Enable sidecar along with hmaster container as described below in values.yaml file
+1. Enable sidecar along with hmaster container as described below in values.yaml file
 
     ```yaml
     sidecarcontainers:
@@ -32,14 +32,14 @@
     * `/hbase-operator` is zookeeper znode where rack topology information is stored for each datanode
     * `/opt/share/rack_topology.data` is path on hmaster container where topology information is stored
 
-3. Command using which rack(fault domain) information can be fetched from each datanode
+1. Command using which rack(fault domain) information can be fetched from each datanode
 
     ```sh
     commands:
       faultDomainCommand: "cat /etc/nodeinfo | grep 'smd' | sed 's/smd=//' | sed 's/\"//g'"
     ```
 
-4. Add following configuration in hbase-site.xml
+1. Add following configuration in hbase-site.xml
 
     ```xml
     <property>

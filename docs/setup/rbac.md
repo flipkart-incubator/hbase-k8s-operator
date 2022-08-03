@@ -14,7 +14,7 @@
 
         Apply contents from `config/rbac/role.yaml` using some automation tool
 
-    2. Create RoleBilding under namespace which is hosting either `hbase-tenant-ns` or `hbase-cluster-ns` such as follows. Where `hbase-tenant-ns` and `hbase-cluster-ns` are the namespace on which you would deploy your resources
+    1. Create RoleBilding under namespace which is hosting either `hbase-tenant-ns` or `hbase-cluster-ns` such as follows. Where `hbase-tenant-ns` and `hbase-cluster-ns` are the namespace on which you would deploy your resources
 
         ```sh
         kubectl apply -f config/rbac/role_binding.yaml -n hbase-cluster-ns
@@ -23,7 +23,7 @@
 
         !!! Danger "Service Account and roleRef particulars should match with which operator will be run along with namespace"
 
-2. RBAC for single namespace deployment (Operator is deployed along with hbase cluster/tenant in single namespace)
+1. RBAC for single namespace deployment (Operator is deployed along with hbase cluster/tenant in single namespace)
 
     1. Create `Role` with permissions required for operator to apply on namespaces.
 
@@ -31,7 +31,7 @@
         kubectl apply -f config/rbac/role.yaml
         ```
 
-    2. Create RoleBilding under same namespace.
+    1. Create RoleBilding under same namespace.
 
         ```sh
         kubectl apply -f config/rbac/role_binding.yaml

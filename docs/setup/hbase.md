@@ -44,18 +44,18 @@
     helm package helm-charts/hbase-chart/
     ```
 
-2. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasestandalone-chart/charts/`
+1. You can find package `hbase-chart-x.x.x.tgz` created under root folder of this repository. Otherwise you can publish chart to `jfrog` or `harbor` or any other chart registry. For manual testing, you can move `hbase-chart-x.x.x.tgz` under `examples/hbasestandalone-chart/charts/`
 
     ```sh
     mv hbase-chart-x.x.x.tgz examples/hbasestandalone-chart/charts/
     ```
 
-3. Open `examples/hbasestandalone-chart/values.yaml`, and modify the values as per your requirement. Some of the recommended modifications are
+1. Open `examples/hbasestandalone-chart/values.yaml`, and modify the values as per your requirement. Some of the recommended modifications are
 
     1. image: Docker image of hbase we built in previous section
     2. Memory limits / requests and CPU limits / request as per your requirements
 
-4. You can deploy your helm package using following command
+1. You can deploy your helm package using following command
 
     ```sh
     helm upgrade --install --debug hbasestandalone-chart examples/hbasestandalone-chart/ -n hbase-standalone-ns
@@ -2062,13 +2062,13 @@ spec:
     vim operator/config/custom/config/hbase-operator-config.yaml
     ```
 
-2. Create configmap with command
+1. Create configmap with command
 
     ```sh
      kubectl apply -f operator/config/custom/config/hbase-operator-config.yaml -n hbase-operator-ns
     ```
 
-3. Deploy operator
+1. Deploy operator
 
 ### Package and Deploy Hbase Tenant
 

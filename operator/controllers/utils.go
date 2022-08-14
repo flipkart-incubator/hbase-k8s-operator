@@ -392,6 +392,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:    &d.Size,
 			ServiceName: name,
+			PodManagementPolicy: d.PodManagementPolicy,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
 			},
@@ -414,6 +415,14 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 				},
 			},
 		},
+	}
+
+	if len(d.Hostname) > 0 {
+		dep.Spec.Template.Spec.Hostname = d.Hostname
+	}
+
+	if len(d.Subdomain) > 0 {
+		dep.Spec.Template.Spec.Subdomain = d.Subdomain
 	}
 	return dep
 }

@@ -7,7 +7,7 @@ managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
 service:
   name: hbase-tenant
-  image: hbase:2.4.8
+  image: hbase:2.4.12
   runAsUser: 1011
   runAsGroup: 1011
 configuration:

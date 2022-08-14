@@ -14,7 +14,7 @@
 		<project.version>1.0.0</project.version>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
-		<hbase.version>2.4.8</hbase.version>
+		<hbase.version>2.4.12</hbase.version>
 		<hadoop.version>3.2.2</hadoop.version>
 	</properties>
 

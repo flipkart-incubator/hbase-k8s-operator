@@ -7,7 +7,7 @@ managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
 service:
   name: hbase-standalone
-  image: hbase:2.4.8
+  image: hbase:2.4.12
   runAsUser: 1011
   runAsGroup: 1011
 configuration:
@@ -16,6 +16,11 @@ configuration:
   hbaseConfigMountPath: /etc/hbase
   hbaseHomePath: /opt/hbase
   hbaseLogPath: /var/log/hbase
+  hadoopConfigName: hbase-config
+  hadoopConfigRelPath: config/hbase-standalone/*
+  hadoopConfigMountPath: /etc/hbase
+  hadoopHomePath: /opt/hbase
+  hadoopLogPath: /var/log/hbase
 configMaps:
   envName: hbase-standalone
 standalone:

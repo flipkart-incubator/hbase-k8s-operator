@@ -3,6 +3,19 @@
   size: {{ .root.replicas }}
   isPodServiceRequired: {{ default false $.isPodServiceRequired }}
   shareProcessNamespace: {{ default false .root.shareProcessNamespace }}
+  {{- if .root.podManagementPolicy }}
+  podManagementPolicy: {{ .root.podManagementPolicy }}
+  {{- else if $.podManagementPolicy }}
+  podManagementPolicy: {{ $.podManagementPolicy }}
+  {{- else }}
+  podManagementPolicy: "Parallel"
+  {{- end }}
+  {{- if .root.hostname }}
+  hostname: {{ .root.hostname }}
+  {{- end }}
+  {{- if .root.subdomain }}
+  subdomain: {{ .root.subdomain }}
+  {{- end }}
   terminateGracePeriod: 120
   {{- if .root.annotations }}
   annotations:

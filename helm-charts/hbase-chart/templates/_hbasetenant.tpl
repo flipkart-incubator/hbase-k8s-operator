@@ -1,13 +1,11 @@
 {{ define "com.flipkart.hbasetenant" }}
-{{- if .Values.sharedWithOperatorNamespace }}
-{{- if eq .Values.sharedWithOperatorNamespace false }}
+{{- if eq .Values.sharedWithOperatorNamespace true }}
+---
+{{- else }}
 {{- include "com.flipkart.hbaseoperator.roles" . }}
 ---
 {{- include "com.flipkart.hbaseoperator.rolebindings" . }}
 ---
-{{- end }}
-{{- else }}
-{{- required "sharedWithOperatorNamespace boolean is required (true/false)" nil}}
 {{- end }}
 apiVersion: kvstore.flipkart.com/v1
 kind: HbaseTenant
@@ -29,6 +27,7 @@ spec:
       {{- $configPath := .Values.configuration.hadoopConfigRelPath }}
       {{- ($.Files.Glob $configPath).AsConfig | nindent 6 }}
   datanode: 
+    {{- $podManagementPolicy := "Parallel" }}
     {{- $dnsContainer := include "hbasecluster.dnslookup" . | indent 2 }}
     {{- $refreshNamenodeContainer := include "hbasecluster.refreshnn" . | indent 2 }}
     {{- $initContainers := list $dnsContainer $refreshNamenodeContainer }}
@@ -49,6 +48,6 @@ spec:
     {{- $arg1 := list .Values.configuration.hadoopLogPath .Values.configuration.hadoopConfigMountPath .Values.configuration.hadoopHomePath .Values.configuration.hadoopConfigName }}
     {{- $arg2 := list .Values.configuration.hbaseLogPath .Values.configuration.hbaseConfigMountPath .Values.configuration.hbaseHomePath .Values.configuration.hbaseConfigName }}
     {{- $args := list $arg1 $arg2 }}
-    {{- $data := dict "Values" .Values "root" .Values.datanode "scripts" $scripts "probescripts" $probescripts "initContainers" $initContainers "args" $args "portsArr" $portsArr }}
+    {{- $data := dict "Values" .Values "root" .Values.datanode "scripts" $scripts "probescripts" $probescripts "initContainers" $initContainers "args" $args "portsArr" $portsArr "podManagementPolicy" $podManagementPolicy }}
     {{- include "hbasecluster.component" $data | indent 4 }}
 {{- end }}

@@ -128,7 +128,6 @@ spec:
       {{- $arg2 := list .Values.configuration.hadoopLogPath .Values.configuration.hadoopConfigMountPath .Values.configuration.hadoopHomePath }}
       {{- $args := list $arg1 $arg2 }}
       {{- $probescripts := list $nnprobescript "" }}
-      {{- $initscripts := list $initnnscript $initzkfcscript }}
-      {{- $data := dict "Values" .Values "root" .Values.deployments.namenode "scripts" $scripts "initContainers" $initContainers "args" $args "initscripts" $initscripts "probescripts" $probescripts "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired "podManagementPolicy" $podManagementPolicy }}
+      {{- $data := dict "Values" .Values "root" .Values.deployments.namenode "scripts" $scripts "initContainers" $initContainers "args" $args "probescripts" $probescripts "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
 {{- end }}

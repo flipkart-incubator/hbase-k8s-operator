@@ -374,7 +374,8 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 			}
 			//TODO: Other file types
 		} else {
-			return ctrl.Result{}, errs.New("Config: " + key + " not allowed. Allowed configs are " + fmt.Sprint(allowedConfigs))
+			// Ignore and move on for unknown files
+			// return ctrl.Result{}, errs.New("Config: " + key + " not allowed. Allowed configs are " + fmt.Sprint(allowedConfigs))
 		}
 	}
 

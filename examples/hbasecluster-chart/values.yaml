@@ -178,6 +178,7 @@ deployments:
       memoryLimit: 3Gi
       cpuRequest: 0.5
       memoryRequest: 3Gi
+      templateName: hbasecluster.initnnscript
       volumeMounts:
       - name: data
         mountPath: /grid/1
@@ -187,6 +188,7 @@ deployments:
       memoryLimit: 512Mi
       cpuRequest: 0.5
       memoryRequest: 512Mi
+      templateName: hbasecluster.initzkfcscript
     containers:
     - name: namenode
       cpuLimit: 0.5

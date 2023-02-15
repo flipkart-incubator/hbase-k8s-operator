@@ -55,7 +55,7 @@
     - /bin/bash
     - -c
     - |
-      {{- index $.initscripts $index }}
+      {{- include $elem.templateName . | indent 6 }}
     args:
     {{- range index $.args $index }}
     - {{ . }}

@@ -56,10 +56,6 @@
     - -c
     - |
       {{- include $elem.templateName . | indent 6 }}
-    args:
-    {{- range index $.args $index }}
-    - {{ . }}
-    {{- end }}
     cpuLimit: {{ .cpuLimit | quote }}
     memoryLimit: {{ .memoryLimit | quote }}
     cpuRequest: {{ .cpuRequest | quote }}

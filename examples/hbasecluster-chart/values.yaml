@@ -22,6 +22,9 @@ configuration:
   hadoopConfigMountPath: /etc/hadoop
   hadoopHomePath: /opt/hadoop
   hadoopLogPath: /var/log/hadoop
+mount:
+  namenodeMountName: data
+  namenodeMountPath: /grid/1
 tenantNamespaces:
  - hbase-tenant-ns
 commands:
@@ -171,24 +174,6 @@ deployments:
     - name: nodeinfo
       volumeSource: HostPath
       path: /etc/nodeinfo
-    initContainers:
-    - name: init-namenode
-      isBootstrap: true
-      cpuLimit: 0.5
-      memoryLimit: 3Gi
-      cpuRequest: 0.5
-      memoryRequest: 3Gi
-      templateName: hbasecluster.initnnscript
-      volumeMounts:
-      - name: data
-        mountPath: /grid/1
-    - name: init-zkfc
-      isBootstrap: true
-      cpuLimit: 0.5
-      memoryLimit: 512Mi
-      cpuRequest: 0.5
-      memoryRequest: 512Mi
-      templateName: hbasecluster.initzkfcscript
     containers:
     - name: namenode
       cpuLimit: 0.5

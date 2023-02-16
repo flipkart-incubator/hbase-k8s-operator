@@ -52,6 +52,8 @@ spec:
   deployments:
     {{- $refreshNamenodeContainer := include "hbasecluster.refreshnn" . | indent 2 }}
     {{- $dnsContainer := include "hbasecluster.dnslookup" . | indent 2 }}
+    {{- $initnnContainer := include "hbasecluster.initnnscript" . | indent 2 }}
+    {{- $initzkfcContainer := include "hbasecluster.initzkfcscript" . | indent 2 }}
     {{- if .Values.deployments.zookeeper }}
     zookeeper: 
       {{- $isPodServiceRequired := true }}
@@ -114,9 +116,7 @@ spec:
     namenode:
       {{- $isPodServiceRequired := true }}
       {{- $podManagementPolicy := "OrderedReady" }}
-      {{- $initContainers := list $dnsContainer }}
-      {{- $initnnscript := include "hbasecluster.initnnscript" . | indent 6 }}
-      {{- $initzkfcscript := include "hbasecluster.initzkfcscript" . | indent 6 }}
+      {{- $initContainers := list $dnsContainer $initnnContainer $initzkfcContainer }}
       {{- $nnscript := include "hbasecluster.nnscript" . | indent 6 }}
       {{- $zkfcscript := include "hbasecluster.zkfcscript" . | indent 6 }}
       {{- $nnprobescript := include "hbasecluster.nnprobescript" . | indent 8 }}
@@ -128,7 +128,6 @@ spec:
       {{- $arg2 := list .Values.configuration.hadoopLogPath .Values.configuration.hadoopConfigMountPath .Values.configuration.hadoopHomePath }}
       {{- $args := list $arg1 $arg2 }}
       {{- $probescripts := list $nnprobescript "" }}
-      {{- $initscripts := list $initnnscript $initzkfcscript }}
-      {{- $data := dict "Values" .Values "root" .Values.deployments.namenode "scripts" $scripts "initContainers" $initContainers "args" $args "initscripts" $initscripts "probescripts" $probescripts "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired "podManagementPolicy" $podManagementPolicy }}
+      {{- $data := dict "Values" .Values "root" .Values.deployments.namenode "scripts" $scripts "initContainers" $initContainers "args" $args "probescripts" $probescripts "portsArr" $portsArr "isPodServiceRequired" $isPodServiceRequired "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
 {{- end }}

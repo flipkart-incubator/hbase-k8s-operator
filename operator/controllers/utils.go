@@ -42,6 +42,7 @@ var allowedConfigs = map[string]ConfigType{
 	"kms-acls.xml":                     XML,
 	"kms-site.xml":                     XML,
 	"log4j.properties":                 PROPS,
+	"log4j2.properties":                PROPS,
 	"hadoop-metrics2-hbase.properties": PROPS,
 	"hadoop-metrics2.properties":       PROPS,
 	"hadoop-metrics.properties":        PROPS,

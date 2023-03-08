@@ -22,6 +22,7 @@ configuration:
   hadoopConfigMountPath: /etc/hadoop
   hadoopHomePath: /opt/hadoop
   hadoopLogPath: /var/log/hadoop
+  regionMoverClass: org.apache.hadoop.hbase.util.RegionMover
 mount:
   namenodeMountName: data
   namenodeMountPath: /grid/1

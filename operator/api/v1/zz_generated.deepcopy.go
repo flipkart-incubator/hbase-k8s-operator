@@ -22,6 +22,7 @@ limitations under the License.
 package v1
 
 import (
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 )
@@ -203,6 +204,18 @@ func (in *HbaseClusterDeployment) DeepCopyInto(out *HbaseClusterDeployment) {
 		in, out := &in.Volumes, &out.Volumes
 		*out = make([]HbaseClusterVolume, len(*in))
 		copy(*out, *in)
+	}
+	if in.DNSConfig != nil {
+		in, out := &in.DNSConfig, &out.DNSConfig
+		*out = new(corev1.PodDNSConfig)
+		(*in).DeepCopyInto(*out)
+	}
+	if in.HostAliases != nil {
+		in, out := &in.HostAliases, &out.HostAliases
+		*out = make([]corev1.HostAlias, len(*in))
+		for i := range *in {
+			(*in)[i].DeepCopyInto(&(*out)[i])
+		}
 	}
 }
 

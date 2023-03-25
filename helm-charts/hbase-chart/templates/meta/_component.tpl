@@ -43,6 +43,36 @@
     {{- end }}
   {{- end }}
   {{- end }}
+  {{- if .root.dnsPolicy }}
+  dnsPolicy: {{ .root.dnsPolicy }}
+  {{- end }}
+  {{- if .root.dnsConfig }}
+  dnsConfig:
+    Nameservers:
+    {{- if .root.dnsConfig.nameservers }}
+    {{- range .root.dnsConfig.nameservers }}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    Searches:
+    {{- if .root.dnsConfig.searches }}
+    {{- range .root.dnsConfig.searches }}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+    Options:
+    {{- if .root.dnsConfig.options }}
+    {{- range .root.dnsConfig.options }}
+    - {{ . }}
+    {{- end }}
+    {{- end }}
+  {{- end }}
+  {{- if .root.hostAliases }}
+  hostAliases:
+  {{- range .root.hostAliases }}
+  - {{ . }}
+  {{- end }}
+  {{- end }}
   {{- if or .root.initContainers $.initContainers }}
   initContainers:
   {{- range $index, $elem := $.initContainers }}

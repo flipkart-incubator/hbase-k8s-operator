@@ -391,8 +391,8 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 			Namespace: namespace,
 		},
 		Spec: appsv1.StatefulSetSpec{
-			Replicas:    &d.Size,
-			ServiceName: name,
+			Replicas:            &d.Size,
+			ServiceName:         name,
 			PodManagementPolicy: d.PodManagementPolicy,
 			Selector: &metav1.LabelSelector{
 				MatchLabels: ls,
@@ -425,6 +425,19 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	if len(d.Subdomain) > 0 {
 		dep.Spec.Template.Spec.Subdomain = d.Subdomain
 	}
+
+	if len(d.DNSPolicy) > 0 {
+		dep.Spec.Template.Spec.DNSPolicy = d.DNSPolicy
+	}
+
+	if d.DNSConfig != nil {
+		dep.Spec.Template.Spec.DNSConfig = d.DNSConfig
+	}
+
+	if len(d.HostAliases) > 0 {
+		dep.Spec.Template.Spec.HostAliases = d.HostAliases
+	}
+
 	return dep
 }
 
@@ -502,7 +515,7 @@ func buildConfigMap(cfgName string, crName string, namespace string, config map[
 	}
 }
 
-//TODO: Take UUID reference of object under event scope
+// TODO: Take UUID reference of object under event scope
 func buildEvent(namespace string, reason string, message string, level string, kind string) *corev1.Event {
 	return &corev1.Event{
 		ObjectMeta: metav1.ObjectMeta{

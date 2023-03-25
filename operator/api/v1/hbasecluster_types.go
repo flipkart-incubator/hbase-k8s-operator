@@ -17,8 +17,9 @@ limitations under the License.
 package v1
 
 import (
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type HbaseClusterContainerPort struct {
@@ -158,6 +159,12 @@ type HbaseClusterDeployment struct {
 	Hostname string `json:"hostname,omitempty"`
 	// +optional
 	Subdomain string `json:"subdomain,omitempty"`
+	// +optional
+	DNSPolicy corev1.DNSPolicy `json:"dnsPolicy,omitempty"`
+	// +optional
+	DNSConfig *corev1.PodDNSConfig `json:"dnsConfig,omitempty"`
+	// +optional
+	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty" patchStrategy:"merge" patchMergeKey:"ip"`
 }
 
 type HbaseClusterConfiguration struct {

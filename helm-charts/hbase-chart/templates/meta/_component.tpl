@@ -48,29 +48,31 @@
   {{- end }}
   {{- if .root.dnsConfig }}
   dnsConfig:
-    Nameservers:
+    nameservers:
     {{- if .root.dnsConfig.nameservers }}
     {{- range .root.dnsConfig.nameservers }}
     - {{ . }}
     {{- end }}
     {{- end }}
-    Searches:
+    searches:
     {{- if .root.dnsConfig.searches }}
     {{- range .root.dnsConfig.searches }}
     - {{ . }}
     {{- end }}
     {{- end }}
-    Options:
+    options:
     {{- if .root.dnsConfig.options }}
-    {{- range .root.dnsConfig.options }}
-    - {{ . }}
+    {{- range $index, $elem := .root.dnsConfig.options }}
+    - name: {{ $elem.name }}
+      value: {{ $elem.value | quote }}
     {{- end }}
     {{- end }}
   {{- end }}
   {{- if .root.hostAliases }}
   hostAliases:
-  {{- range .root.hostAliases }}
-  - {{ . }}
+  {{- range $index, $elem := .root.hostAliases }}
+  - ip: {{ $elem.ip }}
+    hostnames: {{ $elem.hostnames }}
   {{- end }}
   {{- end }}
   {{- if or .root.initContainers $.initContainers }}

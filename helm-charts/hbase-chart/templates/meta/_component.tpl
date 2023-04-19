@@ -17,6 +17,12 @@
   subdomain: {{ .root.subdomain }}
   {{- end }}
   terminateGracePeriod: 120
+  {{- if .root.labels }}
+  labels:
+  {{- range $key, $val := .root.labels }}
+    {{ $key }}: {{ $val | quote }}
+  {{- end }}
+  {{- end }}
   {{- if .root.annotations }}
   annotations:
   {{- range $key, $val := .root.annotations }}

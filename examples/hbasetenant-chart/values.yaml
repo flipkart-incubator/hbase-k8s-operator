@@ -32,6 +32,10 @@ configMaps:
 datanode:
   name: hbase-tenant-dn
   replicas: 4
+  labels:
+  - key: value
+  annotations:
+  - key: value
   shareProcessNamespace: true
   volumeClaims:
   - name: data

@@ -52,6 +52,10 @@ deployments:
   zookeeper:
     name: hbase-cluster-zk
     replicas: 3
+    labels:
+    - key: value
+    annotations:
+    - key: value
     volumeClaims:
     - name: data
       size: "2Gi"
@@ -74,6 +78,10 @@ deployments:
   journalnode:
     name: hbase-cluster-jn
     replicas: 3
+    labels:
+    - key: value
+    annotations:
+    - key: value
     volumeClaims:
     - name: data
       size: "2Gi"
@@ -96,6 +104,10 @@ deployments:
   hmaster:
     name: hbase-cluster-hmaster
     replicas: 2
+    labels:
+    - key: value
+    annotations:
+    - key: value
     volumes:
     - name: data
       volumeSource: EmptyDir
@@ -126,6 +138,10 @@ deployments:
   datanode:
     name: hbase-cluster-dn
     replicas: 3
+    labels:
+    - key: value
+    annotations:
+    - key: value
     shareProcessNamespace: true
     volumeClaims:
     - name: data
@@ -164,6 +180,10 @@ deployments:
   namenode:
     name: hbase-cluster-nn
     replicas: 2
+    labels:
+    - key: value
+    annotations:
+    - key: value
     shareProcessNamespace: false
     volumeClaims:
     - name: data

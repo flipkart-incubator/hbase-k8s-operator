@@ -363,6 +363,10 @@ spec:
                       isPodServiceRequired:
                         default: false
                         type: boolean
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
                       name:
                         type: string
                       podManagementPolicy:
@@ -773,6 +777,10 @@ spec:
                       isPodServiceRequired:
                         default: false
                         type: boolean
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
                       name:
                         type: string
                       podManagementPolicy:
@@ -1183,6 +1191,10 @@ spec:
                       isPodServiceRequired:
                         default: false
                         type: boolean
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
                       name:
                         type: string
                       podManagementPolicy:
@@ -1593,6 +1605,10 @@ spec:
                       isPodServiceRequired:
                         default: false
                         type: boolean
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
                       name:
                         type: string
                       podManagementPolicy:
@@ -2003,6 +2019,10 @@ spec:
                       isPodServiceRequired:
                         default: false
                         type: boolean
+                      labels:
+                        additionalProperties:
+                          type: string
+                        type: object
                       name:
                         type: string
                       podManagementPolicy:

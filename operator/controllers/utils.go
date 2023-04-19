@@ -385,6 +385,10 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool, configuration kvstorev1.HbaseClusterConfiguration, fsgroup int64, d kvstorev1.HbaseClusterDeployment) *appsv1.StatefulSet {
 	ls := labelsForHbaseCluster(name)
 
+	for key, value := range ls {
+		d.Labels[key] = value
+	}
+
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.Name,
@@ -400,7 +404,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 			VolumeClaimTemplates: buildVolumeClaims(namespace, d.VolumeClaims),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      ls,
+					Labels:      d.Labels,
 					Annotations: d.Annotations,
 				},
 

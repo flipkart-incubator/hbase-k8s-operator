@@ -134,6 +134,8 @@ type HbaseClusterDeployment struct {
 	// +kubebuilder:validation:Minimum:=1
 	Size int32 `json:"size"`
 	// +optional
+	Labels map[string]string `json:"labels"`
+	// +optional
 	Annotations map[string]string       `json:"annotations"`
 	Containers  []HbaseClusterContainer `json:"containers"`
 	// +optional

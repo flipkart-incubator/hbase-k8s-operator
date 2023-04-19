@@ -385,6 +385,14 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool, configuration kvstorev1.HbaseClusterConfiguration, fsgroup int64, d kvstorev1.HbaseClusterDeployment) *appsv1.StatefulSet {
 	ls := labelsForHbaseCluster(name)
 
+	if d.Labels == nil {
+		d.Labels = make(map[string]string)
+	}
+
+	if d.Annotations == nil {
+		d.Annotations = make(map[string]string)
+	}
+
 	for key, value := range ls {
 		d.Labels[key] = value
 	}

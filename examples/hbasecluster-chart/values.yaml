@@ -52,6 +52,7 @@ deployments:
   zookeeper:
     name: hbase-cluster-zk
     replicas: 3
+    isPodServiceRequired: true
     labels:
     - key: value
     annotations:
@@ -78,6 +79,7 @@ deployments:
   journalnode:
     name: hbase-cluster-jn
     replicas: 3
+    isPodServiceRequired: true
     labels:
     - key: value
     annotations:

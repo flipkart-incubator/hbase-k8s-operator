@@ -1,7 +1,7 @@
 {{ define "hbasecluster.component" }}
   name: {{ .root.name }}
   size: {{ .root.replicas }}
-  isPodServiceRequired: {{ default false $.isPodServiceRequired }}
+  isPodServiceRequired: {{ default false .root.isPodServiceRequired }}
   shareProcessNamespace: {{ default false .root.shareProcessNamespace }}
   {{- if .root.podManagementPolicy }}
   podManagementPolicy: {{ .root.podManagementPolicy }}

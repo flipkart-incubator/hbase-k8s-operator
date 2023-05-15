@@ -15,6 +15,12 @@ metadata:
 spec:
   baseImage: {{ .Values.service.image }}
   fsgroup: {{ .Values.service.runAsGroup }}
+  {{- if .Values.serviceLabels }}
+  serviceLabels:
+  {{- range $key, $val := .Values.serviceLabels }}
+    {{ $key }}: {{ $val | quote }}
+  {{- end }}
+  {{- end }}
   configuration:
     hbaseConfigName: {{ .Values.configuration.hbaseConfigName }}
     hbaseConfigMountPath: {{ .Values.configuration.hbaseConfigMountPath }}

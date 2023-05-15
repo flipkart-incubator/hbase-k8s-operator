@@ -21,6 +21,8 @@ configuration:
   hadoopConfigMountPath: /etc/hbase
   hadoopHomePath: /opt/hbase
   hadoopLogPath: /var/log/hbase
+serviceLabels:
+ - key: value
 configMaps:
   envName: hbase-standalone
 standalone:

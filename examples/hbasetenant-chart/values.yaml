@@ -23,6 +23,8 @@ configuration:
   hadoopLogPath: /var/log/hadoop
 commands:
   faultDomainCommand: "cat /etc/nodeinfo | grep 'smd' | sed 's/smd=//' | sed 's/\"//g'"
+serviceLabels:
+ - key: value
 configMaps:
   envName: hbase-tenant
   configs:

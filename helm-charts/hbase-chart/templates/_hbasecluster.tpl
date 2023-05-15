@@ -16,6 +16,12 @@ spec:
   baseImage: {{ .Values.service.image }}
   isBootstrap: {{ default false .Values.service.isBootstrap }}
   fsgroup: {{ .Values.service.runAsGroup }}
+  {{- if .Values.serviceLabels }}
+  serviceLabels:
+  {{- range $key, $val := .Values.serviceLabels }}
+    {{ $key }}: {{ $val | quote }}
+  {{- end }}
+  {{- end }}
   configuration:
     hbaseConfigName: {{ .Values.configuration.hbaseConfigName }}
     hbaseConfigMountPath: {{ .Values.configuration.hbaseConfigMountPath }}

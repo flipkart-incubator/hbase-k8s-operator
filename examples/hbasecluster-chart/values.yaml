@@ -28,6 +28,8 @@ mount:
   namenodeMountPath: /grid/1
 tenantNamespaces:
  - hbase-tenant-ns
+serviceLabels:
+ - key: value
 commands:
   faultDomainCommand: "cat /etc/nodeinfo | grep 'smd' | sed 's/smd=//' | sed 's/\"//g'"
 configMaps:

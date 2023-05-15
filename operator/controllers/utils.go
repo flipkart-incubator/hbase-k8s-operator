@@ -383,7 +383,7 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 }
 
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool, configuration kvstorev1.HbaseClusterConfiguration, fsgroup int64, d kvstorev1.HbaseClusterDeployment) *appsv1.StatefulSet {
-	ls := labelsForHbaseCluster(name)
+	ls := labelsForHbaseCluster(name, nil)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -453,7 +453,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	return dep
 }
 
-func buildService(svcName string, crName string, namespace string, deployments []kvstorev1.HbaseClusterDeployment, isClusterSvc bool) *corev1.Service {
+func buildService(svcName string, crName string, namespace string, labels map[string]string, deployments []kvstorev1.HbaseClusterDeployment, isClusterSvc bool) *corev1.Service {
 
 	ports := []corev1.ServicePort{}
 
@@ -476,14 +476,14 @@ func buildService(svcName string, crName string, namespace string, deployments [
 			Type:                     corev1.ServiceTypeClusterIP,
 			ClusterIP:                "None",
 			PublishNotReadyAddresses: true,
-			Selector:                 labelsForHbaseCluster(svcName),
+			Selector:                 labelsForHbaseCluster(svcName, labels),
 			Ports:                    ports,
 		}
 	} else {
 		spec = corev1.ServiceSpec{
 			Type:                     corev1.ServiceTypeClusterIP,
 			PublishNotReadyAddresses: true,
-			Selector:                 labelsForPodService(crName, svcName),
+			Selector:                 labelsForPodService(crName, svcName, labels),
 			Ports:                    ports,
 		}
 	}
@@ -705,14 +705,27 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 	return ctrl.Result{}, nil
 }
 
-func labelsForPodService(crName string, name string) map[string]string {
-	return map[string]string{"app": "hbasecluster", "hbasecluster_cr": crName, "statefulset.kubernetes.io/pod-name": name}
+func labelsForPodService(crName string, name string, labels map[string]string) map[string]string {
+	if labels == nil {
+		return map[string]string{"app": "hbasecluster", "hbasecluster_cr": crName, "statefulset.kubernetes.io/pod-name": name}
+	} else {
+		labels["app"] = "hbasecluster"
+		labels["hbasecluster_cr"] = crName
+		labels["statefulset.kubernetes.io/pod-name"] = name
+		return labels
+	}
 }
 
 // labelsForHbaseCluster returns the labels for selecting the resources
 // belonging to the given hbasecluster CR name.
-func labelsForHbaseCluster(name string) map[string]string {
-	return map[string]string{"app": "hbasecluster", "hbasecluster_cr": name}
+func labelsForHbaseCluster(name string, labels map[string]string) map[string]string {
+	if labels == nil {
+		return map[string]string{"app": "hbasecluster", "hbasecluster_cr": name}
+	} else {
+		labels["app"] = "hbasecluster"
+		labels["hbasecluster_cr"] = name
+		return labels
+	}
 }
 
 // getPodNames returns the pod names of the array of pods passed in

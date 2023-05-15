@@ -27,6 +27,8 @@ type HbaseTenantSpec struct {
 	Configuration HbaseClusterConfiguration `json:"configuration"`
 	FSGroup       int64                     `json:"fsgroup"`
 	BaseImage     string                    `json:"baseImage"`
+	// +optional
+	ServiceLabels map[string]string `json:"serviceLabels"`
 }
 
 // HbaseTenantStatus defines the observed state of HbaseTenant

@@ -207,6 +207,8 @@ type HbaseClusterSpec struct {
 	BaseImage     string                    `json:"baseImage"`
 	// +optional
 	TenantNamespaces []string `json:"tenantNamespaces"`
+	// +optional
+	ServiceLabels map[string]string `json:"serviceLabels"`
 }
 
 // HbaseClusterStatus defines the observed state of HbaseCluster

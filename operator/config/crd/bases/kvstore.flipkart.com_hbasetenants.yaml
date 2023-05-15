@@ -492,6 +492,10 @@ spec:
               fsgroup:
                 format: int64
                 type: integer
+              serviceLabels:
+                additionalProperties:
+                  type: string
+                type: object
             required:
             - baseImage
             - configuration

@@ -2159,6 +2159,10 @@ spec:
                 type: integer
               isBootstrap:
                 type: boolean
+              serviceLabels:
+                additionalProperties:
+                  type: string
+                type: object
               tenantNamespaces:
                 items:
                   type: string

@@ -80,6 +80,10 @@ spec:
               fsgroup:
                 format: int64
                 type: integer
+              serviceLabels:
+                additionalProperties:
+                  type: string
+                type: object
               standalone:
                 description: 'Important: Run "make" to regenerate code after modifying
                   this file'

@@ -15,9 +15,9 @@ metadata:
 spec:
   baseImage: {{ .Values.service.image }}
   fsgroup: {{ .Values.service.runAsGroup }}
-  {{- if .Values.serviceLabels }}
+  {{- if .Values.service.labels }}
   serviceLabels:
-  {{- range $key, $val := .Values.serviceLabels }}
+  {{- range $key, $val := .Values.service.labels }}
     {{ $key }}: {{ $val | quote }}
   {{- end }}
   {{- end }}

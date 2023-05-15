@@ -29,6 +29,8 @@ type HbaseTenantSpec struct {
 	BaseImage     string                    `json:"baseImage"`
 	// +optional
 	ServiceLabels map[string]string `json:"serviceLabels"`
+	// +optional
+	ServiceSelectorLabels map[string]string `json:"serviceSelectorLabels"`
 }
 
 // HbaseTenantStatus defines the observed state of HbaseTenant

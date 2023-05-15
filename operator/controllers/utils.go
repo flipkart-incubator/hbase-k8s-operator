@@ -453,7 +453,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	return dep
 }
 
-func buildService(svcName string, crName string, namespace string, labels map[string]string, deployments []kvstorev1.HbaseClusterDeployment, isClusterSvc bool) *corev1.Service {
+func buildService(svcName string, crName string, namespace string, labels map[string]string, selectorLabels map[string]string, deployments []kvstorev1.HbaseClusterDeployment, isClusterSvc bool) *corev1.Service {
 
 	ports := []corev1.ServicePort{}
 
@@ -476,22 +476,27 @@ func buildService(svcName string, crName string, namespace string, labels map[st
 			Type:                     corev1.ServiceTypeClusterIP,
 			ClusterIP:                "None",
 			PublishNotReadyAddresses: true,
-			Selector:                 labelsForHbaseCluster(svcName, labels),
+			Selector:                 labelsForHbaseCluster(svcName, selectorLabels),
 			Ports:                    ports,
 		}
 	} else {
 		spec = corev1.ServiceSpec{
 			Type:                     corev1.ServiceTypeClusterIP,
 			PublishNotReadyAddresses: true,
-			Selector:                 labelsForPodService(crName, svcName, labels),
+			Selector:                 labelsForPodService(crName, svcName, selectorLabels),
 			Ports:                    ports,
 		}
+	}
+
+	if labels == nil {
+		labels = map[string]string{}
 	}
 
 	dep := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      svcName,
 			Namespace: namespace,
+			Labels:    labels,
 		},
 		Spec: spec,
 	}

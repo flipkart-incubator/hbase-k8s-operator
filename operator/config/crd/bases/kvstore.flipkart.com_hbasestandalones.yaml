@@ -84,6 +84,10 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              serviceSelectorLabels:
+                additionalProperties:
+                  type: string
+                type: object
               standalone:
                 description: 'Important: Run "make" to regenerate code after modifying
                   this file'

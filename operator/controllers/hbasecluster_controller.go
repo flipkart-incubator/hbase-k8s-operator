@@ -85,7 +85,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		deployments = append([]kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Zookeeper}, deployments...)
 	}
 
-	svc := buildService(hbasecluster.Name, hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.ServiceLabels, deployments, true)
+	svc := buildService(hbasecluster.Name, hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.ServiceLabels, hbasecluster.Spec.ServiceSelectorLabels, deployments, true)
 	ctrl.SetControllerReference(hbasecluster, svc, r.Scheme)
 	result, err := reconcileService(ctx, log, hbasecluster.Namespace, svc, r.Client)
 	if (ctrl.Result{}) != result || err != nil {
@@ -124,7 +124,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			var index int32 = 0
 			for index < d.Size {
 				name = d.Name + "-" + strconv.Itoa(int(index))
-				svc = buildService(name, hbasecluster.Name, hbasecluster.Namespace, nil, []kvstorev1.HbaseClusterDeployment{d}, false)
+				svc = buildService(name, hbasecluster.Name, hbasecluster.Namespace, nil, nil, []kvstorev1.HbaseClusterDeployment{d}, false)
 				ctrl.SetControllerReference(hbasecluster, svc, r.Scheme)
 				result, err = reconcileService(ctx, log, hbasecluster.Namespace, svc, r.Client)
 				if (ctrl.Result{}) != result || err != nil {

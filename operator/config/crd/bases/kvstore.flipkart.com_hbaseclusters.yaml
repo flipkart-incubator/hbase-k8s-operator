@@ -2163,6 +2163,10 @@ spec:
                 additionalProperties:
                   type: string
                 type: object
+              serviceSelectorLabels:
+                additionalProperties:
+                  type: string
+                type: object
               tenantNamespaces:
                 items:
                   type: string

@@ -36,6 +36,8 @@ type HbaseStandaloneSpec struct {
 	BaseImage     string                    `json:"baseImage"`
 	// +optional
 	ServiceLabels map[string]string `json:"serviceLabels"`
+	// +optional
+	ServiceSelectorLabels map[string]string `json:"serviceSelectorLabels"`
 }
 
 // HbaseStandaloneStatus defines the observed state of HbaseStandalone

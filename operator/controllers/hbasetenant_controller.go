@@ -76,7 +76,7 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
-	svc := buildService(hbasetenant.Name, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.ServiceLabels, []kvstorev1.HbaseClusterDeployment{hbasetenant.Spec.Datanode}, true)
+	svc := buildService(hbasetenant.Name, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.ServiceLabels, hbasetenant.Spec.ServiceSelectorLabels, []kvstorev1.HbaseClusterDeployment{hbasetenant.Spec.Datanode}, true)
 	ctrl.SetControllerReference(hbasetenant, svc, r.Scheme)
 	result, err := reconcileService(ctx, log, hbasetenant.Namespace, svc, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

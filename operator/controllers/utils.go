@@ -514,7 +514,7 @@ func buildConfigMap(cfgName string, crName string, namespace string, config map[
 		for k, v := range elem {
 			if k != "namespace" {
 				tenantCfg[ns][k] = v
-				log.Info("Override config", k, "for namespace", ns)
+				log.Info("Override config for", "Key:", k, "Namespace:", ns)
 			}
 		}
 	}

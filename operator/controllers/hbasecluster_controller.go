@@ -115,8 +115,6 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if (ctrl.Result{}) != result || err != nil {
 			return result, err
 		}
-
-		log.Info("Updated configuration for namespace", namespace)
 	}
 
 	for _, d := range deployments {

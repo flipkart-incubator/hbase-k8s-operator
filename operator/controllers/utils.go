@@ -503,7 +503,8 @@ func buildService(svcName string, crName string, namespace string, labels map[st
 	return dep
 }
 
-func buildConfigMap(cfgName string, crName string, namespace string, config map[string]string, tenantConfig []map[string]string) *corev1.ConfigMap {
+func buildConfigMap(cfgName string, crName string, namespace string, config map[string]string, tenantConfig []map[string]string, log logr.Logger) *corev1.ConfigMap {
+	newConfig := map[string]string{}
 	tenantCfg := map[string]map[string]string{}
 	for _, elem := range tenantConfig {
 		ns := elem["namespace"]
@@ -513,13 +514,18 @@ func buildConfigMap(cfgName string, crName string, namespace string, config map[
 		for k, v := range elem {
 			if k != "namespace" {
 				tenantCfg[ns][k] = v
+				log.Info("Override config", k, "for namespace", ns)
 			}
 		}
 	}
 
+	for k, v := range config {
+		newConfig[k] = v
+	}
+
 	if _, ok := tenantCfg[namespace]; ok {
 		for k, v := range tenantCfg[namespace] {
-			config[k] = v
+			newConfig[k] = v
 		}
 	}
 
@@ -528,7 +534,7 @@ func buildConfigMap(cfgName string, crName string, namespace string, config map[
 			Name:      cfgName,
 			Namespace: namespace,
 		},
-		Data: config,
+		Data: newConfig,
 	}
 }
 

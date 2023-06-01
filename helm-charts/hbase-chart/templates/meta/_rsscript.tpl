@@ -16,7 +16,6 @@ ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).log
 function shutdown() {
   echo "Stopping Regionserver"
   host=`hostname -f`
-  #TODO: Needs to be addressed 
   $HBASE_HOME/bin/hbase {{ default "org.apache.hadoop.hbase.util.RegionMover" .Values.configuration.regionMoverClass }} -m 6 -r $host -o unload
   touch /lifecycle/rs-terminated
   $HBASE_HOME/bin/hbase-daemon.sh stop regionserver

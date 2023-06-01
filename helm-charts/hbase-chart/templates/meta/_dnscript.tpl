@@ -7,24 +7,19 @@ export HADOOP_CONF_DIR=$1
 export HADOOP_HOME=$2
 
 function shutdown() {
-  while true; do
-    #TODO: Kill it beyond certain wait time
-    if [[ -f "/lifecycle/rs-terminated" ]]; then
-      echo "Stopping datanode"
-      sleep 3
-      $HADOOP_HOME/bin/hdfs --daemon stop datanode
-      break
-    fi
-    echo "Waiting for regionserver to die"
-    sleep 2
-  done
+  while [[ ! -f "/lifecycle/rs-terminated" ]]; do echo "Waiting for regionserver to die"; sleep 2; done
+  echo "Stopping datanode"
+  sleep 5
+  $HADOOP_HOME/bin/hdfs --daemon stop datanode
 }
 
 trap shutdown SIGTERM
 exec $HADOOP_HOME/bin/hdfs datanode &
 PID=$!
 
-#TODO: Correct way to identify if process is up
+DOMAIN_SOCKET=$($HADOOP_HOME/bin/hdfs getconf -confKey dfs.domain.socket.path)
+DOMAIN_SOCKET=$(echo $DOMAIN_SOCKET | sed -e 's/_PORT/*/g')
+while [ ! -e ${DOMAIN_SOCKET} ]; do sleep 1; done
 touch /lifecycle/dn-started
 
 wait $PID

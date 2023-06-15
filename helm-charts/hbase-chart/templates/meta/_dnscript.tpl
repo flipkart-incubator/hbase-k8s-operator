@@ -9,7 +9,7 @@ export HADOOP_HOME=$2
 function shutdown() {
   while [[ ! -f "/lifecycle/rs-terminated" ]]; do echo "Waiting for regionserver to die"; sleep 2; done
   echo "Stopping datanode"
-  sleep 5
+  sleep 10
   $HADOOP_HOME/bin/hdfs --daemon stop datanode
 }
 

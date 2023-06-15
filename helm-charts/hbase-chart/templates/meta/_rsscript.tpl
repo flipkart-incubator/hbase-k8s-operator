@@ -16,8 +16,15 @@ ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).log
 function shutdown() {
   echo "Stopping Regionserver"
   host=`hostname -f`
+  export HBASE_STOP_TIMEOUT=20
+  echo "swtich off balancer"
+  echo "balance_switch false" | $HBASE_HOME/bin/hbase shell &>/tmp/null
   $HBASE_HOME/bin/hbase {{ default "org.apache.hadoop.hbase.util.RegionMover" .Values.configuration.regionMoverClass }} -m 6 -r $host -o unload
+  sleep 5
+  echo "swtich on balancer"
+  echo "balance_switch true" | $HBASE_HOME/bin/hbase shell &>/tmp/null
   touch /lifecycle/rs-terminated
+  echo "stopping server now"
   $HBASE_HOME/bin/hbase-daemon.sh stop regionserver
 }
 

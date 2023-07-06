@@ -126,13 +126,13 @@
     {{- if .args }}
     args: {{ .args }}
     {{- end }}
-    cpuLimit: {{ .cpuLimit | quote }}
-    memoryLimit: {{ .memoryLimit | quote }}
-    cpuRequest: {{ .cpuRequest | quote }}
-    memoryRequest: {{ .memoryRequest | quote }}
+    cpuLimit: {{ default "100m" .cpuLimit | quote }}
+    memoryLimit: {{ default "128Mi" .memoryLimit | quote }}
+    cpuRequest: {{ default "100m" .cpuRequest | quote }}
+    memoryRequest: {{ default "128Mi" .memoryRequest | quote }}
     securityContext:
-      runAsUser: {{ .runAsUser }}
-      runAsGroup: {{ .runAsGroup }}
+      runAsUser: {{ default $.Values.service.runAsUser .runAsUser}}
+      runAsGroup: {{ default $.Values.service.runAsGroup .runAsGroup}}
     {{- if .volumeMounts }}
     volumeMounts:
     {{- range .volumeMounts }}

@@ -7,8 +7,8 @@ export HBASE_HOME=$2
 export USER=$(whoami)
 
 mkdir -p $HBASE_LOG_DIR
-ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out
-ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log
+touch $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log && tail -F $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log &
+touch $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out && tail -F $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out &
 
 function shutdown() {
   echo "Stopping Hmaster"

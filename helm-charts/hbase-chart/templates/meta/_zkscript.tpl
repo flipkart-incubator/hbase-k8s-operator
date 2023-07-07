@@ -8,8 +8,8 @@ export HBASE_HOME=$2
 export USER=$(whoami)
 
 mkdir -p $HBASE_LOG_DIR
-ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).log
-ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).out
+touch $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).log &&  tail -F $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).log &
+touch $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).out &&  tail -F $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).out &
 
 function shutdown() {
   echo "Stopping Zookeeper"

@@ -9,9 +9,8 @@ export USER=$(whoami)
 FAULT_DOMAIN_COMMAND=$3
 
 mkdir -p $HBASE_LOG_DIR
-#TODO: logfile names
-ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).out
-ln -sf /dev/stdout $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).log
+touch $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).log && tail -F $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).log &
+touch $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).out && tail -F $HBASE_LOG_DIR/hbase-$USER-regionserver-$(hostname).out &
 
 function shutdown() {
   echo "Stopping Regionserver"

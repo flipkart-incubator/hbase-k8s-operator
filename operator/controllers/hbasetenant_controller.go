@@ -83,7 +83,7 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	err = r.Client.Get(ctx, types.NamespacedName{Name: hbasetenant.Spec.Configuration.HbaseConfigName, Namespace: req.Namespace}, configuration)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			log.Info("ConfigMap resource not found. Ignoring since without configMap no tenant can run")
+			log.Error(err, "ConfigMap resource not found. Ignoring since without configMap no tenant can run")
 		} else {
 			log.Error(err, "Failed to get ConfigMap")
 		}
@@ -98,7 +98,8 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return result, err
 	}
 
-	newSS := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false, hbasetenant.Spec.Configuration, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode)
+	newSS := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
+		hbasetenant.Spec.Configuration, configuration.ResourceVersion, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode)
 	ctrl.SetControllerReference(hbasetenant, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasetenant.Namespace, newSS, hbasetenant.Spec.Datanode, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

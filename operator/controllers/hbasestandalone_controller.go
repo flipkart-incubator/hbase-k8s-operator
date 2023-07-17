@@ -95,7 +95,7 @@ func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return result, err
 	}
 
-	newSS := buildStatefulSet(hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.BaseImage, false, hbasestandalone.Spec.Configuration, hbasestandalone.Spec.FSGroup, hbasestandalone.Spec.Standalone)
+	newSS := buildStatefulSet(hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.BaseImage, false, hbasestandalone.Spec.Configuration, cfg.ResourceVersion, hbasestandalone.Spec.FSGroup, hbasestandalone.Spec.Standalone)
 	ctrl.SetControllerReference(hbasestandalone, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasestandalone.Namespace, newSS, hbasestandalone.Spec.Standalone, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

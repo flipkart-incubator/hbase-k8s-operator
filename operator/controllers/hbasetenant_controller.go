@@ -19,6 +19,7 @@ package controllers
 import (
 	context "context"
 	corev1 "k8s.io/api/core/v1"
+	"k8s.io/apimachinery/pkg/types"
 	time "time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -77,23 +78,18 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
+	log.Info("Tenant - ", "Config: ", hbasetenant.Spec.Configuration.HbaseConfigName)
 	configuration := &corev1.ConfigMap{}
-	configuration.Name = "hbase-config"
-	configuration.Namespace = req.Namespace
-	err = r.Client.Get(ctx, req.NamespacedName, configuration)
+	err = r.Client.Get(ctx, types.NamespacedName{Name: hbasetenant.Spec.Configuration.HbaseConfigName, Namespace: req.Namespace}, configuration)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			// Request object not found, could have been deleted after reconcile request.
-			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
-			// Return and don't requeue
-			log.Info("HbaseTenant resource not found. Ignoring since object must be deleted")
-			return ctrl.Result{}, nil
+			log.Info("ConfigMap resource not found. Ignoring since without configMap no tenant can run")
+		} else {
+			log.Error(err, "Failed to get ConfigMap")
 		}
-		// Error reading the object - requeue the request.
-		log.Error(err, "Failed to get HbaseTenant")
-		return ctrl.Result{RequeueAfter: time.Second * 5}, err
+	} else {
+		log.Info("Received ", "Config Version:", configuration.ResourceVersion)
 	}
-	log.Info("ConfigMap version: ", configuration.ResourceVersion)
 
 	svc := buildService(hbasetenant.Name, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.ServiceLabels, hbasetenant.Spec.ServiceSelectorLabels, []kvstorev1.HbaseClusterDeployment{hbasetenant.Spec.Datanode}, true)
 	ctrl.SetControllerReference(hbasetenant, svc, r.Scheme)

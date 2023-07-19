@@ -152,7 +152,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, configuration.ResourceVersion,
-			hbasecluster.Spec.FSGroup, d)
+			hbasecluster.Spec.FSGroup, d, log)
 		ctrl.SetControllerReference(hbasecluster, newSS, r.Scheme)
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)
 		if (ctrl.Result{}) != result || err != nil {

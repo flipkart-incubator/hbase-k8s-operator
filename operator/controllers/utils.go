@@ -384,7 +384,7 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
-	d kvstorev1.HbaseClusterDeployment) *appsv1.StatefulSet {
+	d kvstorev1.HbaseClusterDeployment, log logr.Logger) *appsv1.StatefulSet {
 	ls := labelsForHbaseCluster(name, nil)
 
 	if d.Labels == nil {
@@ -400,6 +400,9 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	}
 
 	d.Annotations["hbase-operator/config-version"] = configVersion
+	for key, value := range d.Annotations {
+		log.Info("Annotation", "Key:", key, "Value:", value)
+	}
 
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{

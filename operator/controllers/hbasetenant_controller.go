@@ -99,7 +99,7 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	newSS := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
-		hbasetenant.Spec.Configuration, configuration.ResourceVersion, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode)
+		hbasetenant.Spec.Configuration, configuration.ResourceVersion, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, log)
 	ctrl.SetControllerReference(hbasetenant, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasetenant.Namespace, newSS, hbasetenant.Spec.Datanode, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

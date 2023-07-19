@@ -385,7 +385,7 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment) *appsv1.StatefulSet {
-	ls := labelsForHbaseClusterWithConfigVersion(name, configVersion, nil)
+	ls := labelsForHbaseCluster(name, nil)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -398,6 +398,8 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	for key, value := range ls {
 		d.Labels[key] = value
 	}
+
+	d.Annotations["hbase-operator/config-version"] = configVersion
 
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
@@ -739,12 +741,6 @@ func labelsForHbaseCluster(name string, labels map[string]string) map[string]str
 		labels["hbasecluster_cr"] = name
 		return labels
 	}
-}
-
-func labelsForHbaseClusterWithConfigVersion(name string, configVersion string, labels map[string]string) map[string]string {
-	labelsWithConfigMapVersion := labelsForHbaseCluster(name, labels)
-	labelsWithConfigMapVersion["config_version"] = configVersion
-	return labelsWithConfigMapVersion
 }
 
 // getPodNames returns the pod names of the array of pods passed in

@@ -104,14 +104,16 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	namespaces := hbasecluster.Spec.TenantNamespaces
 	namespaces = append(namespaces, hbasecluster.Namespace)
 	for _, namespace := range namespaces {
-		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, log)
+		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace,
+			hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, log)
 		ctrl.SetControllerReference(hbasecluster, cfg, r.Scheme)
 		result, err = reconcileConfigMap(ctx, log, namespace, cfg, r.Client)
 		if (ctrl.Result{}) != result || err != nil {
 			return result, err
 		}
 
-		cfg = buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, log)
+		cfg = buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace,
+			hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, log)
 		ctrl.SetControllerReference(hbasecluster, cfg, r.Scheme)
 		result, err = reconcileConfigMap(ctx, log, namespace, cfg, r.Client)
 		if (ctrl.Result{}) != result || err != nil {

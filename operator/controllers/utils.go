@@ -344,13 +344,13 @@ func buildVolumeMounts(vs []kvstorev1.HbaseClusterVolumeMount, c kvstorev1.Hbase
 
 	volumeMounts = append(volumeMounts, corev1.VolumeMount{
 		Name:      c.HbaseConfigName,
-		ReadOnly:  false,
+		ReadOnly:  true,
 		MountPath: c.HbaseConfigMountPath,
 	})
 
 	volumeMounts = append(volumeMounts, corev1.VolumeMount{
 		Name:      c.HadoopConfigName,
-		ReadOnly:  false,
+		ReadOnly:  true,
 		MountPath: c.HadoopConfigMountPath,
 	})
 

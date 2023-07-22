@@ -688,6 +688,10 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 	//s, _ := json.MarshalIndent(newSS.Spec.Template.Spec, "", "\t")
 	//s, _ := json.MarshalIndent(existingSS.Status, "", "\t")
 	//fmt.Print(string(s))
+	log.Info("Current ", "Replicas: ", existingSS.Status.CurrentReplicas,
+		"Current Revision: ", existingSS.Status.CurrentRevision, " Update Revision: ", existingSS.Status.UpdateRevision,
+		"Replicas: ", existingSS.Status.Replicas, "Updated Replicas: ", existingSS.Status.UpdatedReplicas)
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Define statefulset

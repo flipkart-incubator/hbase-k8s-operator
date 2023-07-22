@@ -34,6 +34,10 @@ function shutdown() {
   $HADOOP_HOME/bin/hdfs --daemon stop namenode
 }
 
+# Create temp file for exclude hosts if not exists.
+EXCLUDEPATH=$($HADOOP_HOME/bin/hdfs getconf -confKey dfs.hosts.exclude)
+touch $EXCLUDEPATH || true # Ignore if failed
+
 NAMESERVICES=$($HADOOP_HOME/bin/hdfs getconf -confKey dfs.nameservices)
 NNS=$($HADOOP_HOME/bin/hdfs getconf -confKey dfs.ha.namenodes.$NAMESERVICES)
 MY_SERVICE=""

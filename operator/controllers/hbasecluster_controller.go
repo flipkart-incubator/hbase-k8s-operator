@@ -119,6 +119,24 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if (ctrl.Result{}) != result || err != nil {
 			return result, err
 		}
+
+		tenantStatefulset := &appsv1.StatefulSet{}
+		errFromTenant := r.Client.Get(ctx, types.NamespacedName{Namespace: namespace}, tenantStatefulset)
+		if errFromTenant != nil {
+			if errors.IsNotFound(errFromTenant) {
+				log.Error(errFromTenant, "HBaseTenant resource not found. May be its a CoreCluster")
+			} else {
+				log.Error(errFromTenant, "Failed to get HBaseTenant")
+			}
+		} else {
+			log.Info("Current ", "Replicas: ", tenantStatefulset.Status.CurrentReplicas,
+				"Current Revision: ", tenantStatefulset.Status.CurrentRevision,
+				"Update Revision: ", tenantStatefulset.Status.UpdateRevision,
+				"Replicas: ", tenantStatefulset.Status.Replicas,
+				"Updated Replicas: ", tenantStatefulset.Status.UpdatedReplicas,
+				"Ready Replicas: ", tenantStatefulset.Status.ReadyReplicas)
+		}
+
 	}
 
 	configuration := &corev1.ConfigMap{}

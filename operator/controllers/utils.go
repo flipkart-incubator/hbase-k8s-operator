@@ -626,7 +626,7 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 		}
 		hashStore["cfg-"+cfg.Name+cfg.Namespace] = asSha256(cfgMarshal)
 		log.Info("Updated ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
-		time.Sleep(10 * time.Second)
+		time.Sleep(30 * time.Second)
 		return ctrl.Result{}, nil
 	}
 	return ctrl.Result{}, nil

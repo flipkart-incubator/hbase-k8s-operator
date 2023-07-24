@@ -398,8 +398,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	for key, value := range ls {
 		d.Labels[key] = value
 	}
-
-	d.Annotations["hbase-operator/config-version"] = configVersion
+	
 	for key, value := range d.Annotations {
 		log.Info("Annotation", "Key:", key, "Value:", value)
 	}

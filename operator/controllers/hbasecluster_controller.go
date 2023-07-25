@@ -104,43 +104,25 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	namespaces := hbasecluster.Spec.TenantNamespaces
 	namespaces = append(namespaces, hbasecluster.Namespace)
 	for _, namespace := range namespaces {
-		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace,
-			hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, log)
+		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, log)
 		ctrl.SetControllerReference(hbasecluster, cfg, r.Scheme)
 		result, err = reconcileConfigMap(ctx, log, namespace, cfg, r.Client)
 		if (ctrl.Result{}) != result || err != nil {
 			return result, err
 		}
 
-		cfg = buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace,
-			hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, log)
+		cfg = buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, log)
 		ctrl.SetControllerReference(hbasecluster, cfg, r.Scheme)
 		result, err = reconcileConfigMap(ctx, log, namespace, cfg, r.Client)
 		if (ctrl.Result{}) != result || err != nil {
 			return result, err
-		}
-
-		tenantStatefulset := &appsv1.StatefulSet{}
-		errFromTenant := r.Client.Get(ctx, types.NamespacedName{Namespace: namespace}, tenantStatefulset)
-		if errFromTenant != nil {
-			if errors.IsNotFound(errFromTenant) {
-				log.Error(errFromTenant, "HBaseTenant resource not found. May be its a CoreCluster")
-			} else {
-				log.Error(errFromTenant, "Failed to get HBaseTenant")
-			}
-		} else {
-			log.Info("Current ", "Replicas: ", tenantStatefulset.Status.CurrentReplicas,
-				"Current Revision: ", tenantStatefulset.Status.CurrentRevision,
-				"Update Revision: ", tenantStatefulset.Status.UpdateRevision,
-				"Replicas: ", tenantStatefulset.Status.Replicas,
-				"Updated Replicas: ", tenantStatefulset.Status.UpdatedReplicas,
-				"Ready Replicas: ", tenantStatefulset.Status.ReadyReplicas)
 		}
 
 	}
 
-	configuration := &corev1.ConfigMap{}
-	err = r.Client.Get(ctx, types.NamespacedName{Name: hbasecluster.Spec.Configuration.HbaseConfigName, Namespace: req.Namespace}, configuration)
+	hbaseConfigMap := &corev1.ConfigMap{}
+	currentConfigMapResourceVersion := ""
+	err = r.Client.Get(ctx, types.NamespacedName{Name: hbasecluster.Spec.Configuration.HbaseConfigName, Namespace: req.Namespace}, hbaseConfigMap)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Error(err, "ConfigMap resource not found. Ignoring since without configMap no tenant can run")
@@ -148,7 +130,12 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			log.Error(err, "Failed to get ConfigMap")
 		}
 	} else {
-		log.Info("Received ", "Config Version:", configuration.ResourceVersion)
+		log.Info("Received ", "Config Version:", hbaseConfigMap.ResourceVersion)
+		_, exists := hbaseConfigMap.Annotations["hbase-operator/update-time"]
+		if exists {
+			currentConfigMapResourceVersion = hbaseConfigMap.ResourceVersion
+		}
+		log.Info("Setting ConfigMap", "Version", currentConfigMapResourceVersion)
 	}
 
 	for _, d := range deployments {
@@ -169,7 +156,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 
 		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
-			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, configuration.ResourceVersion,
+			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, currentConfigMapResourceVersion,
 			hbasecluster.Spec.FSGroup, d, log)
 		ctrl.SetControllerReference(hbasecluster, newSS, r.Scheme)
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)

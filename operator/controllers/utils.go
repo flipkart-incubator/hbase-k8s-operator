@@ -398,9 +398,10 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	for key, value := range ls {
 		d.Labels[key] = value
 	}
-	
-	for key, value := range d.Annotations {
-		log.Info("Annotation", "Key:", key, "Value:", value)
+
+	if configVersion != "" {
+		d.Annotations["hbase-operator/hbase-config-version"] = configVersion
+		log.Info("Updating Template Spec", "Annotation", configVersion)
 	}
 
 	dep := &appsv1.StatefulSet{
@@ -618,6 +619,15 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	} else if asSha256(cfgMarshal) != hashStore["cfg-"+cfg.Name+cfg.Namespace] {
 		log.Info("Updating ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
+		_, ok := hashStore["cfg-"+cfg.Name+cfg.Namespace]
+		if ok {
+			if cfg.Annotations == nil {
+				cfg.Annotations = make(map[string]string)
+			}
+			cfg.Annotations["hbase-operator/update-time"] = time.Now().String()
+			log.Info("Updating ConfigMap", "Annotation", cfg.Annotations["hbase-operator/update-time"])
+		}
+
 		err = cl.Update(ctx, cfg)
 		if err != nil {
 			log.Error(err, "Failed to update ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
@@ -625,7 +635,7 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 		}
 		hashStore["cfg-"+cfg.Name+cfg.Namespace] = asSha256(cfgMarshal)
 		log.Info("Updated ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
-		time.Sleep(30 * time.Second)
+		time.Sleep(10 * time.Second)
 		return ctrl.Result{}, nil
 	}
 	return ctrl.Result{}, nil
@@ -687,10 +697,7 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 	//s, _ := json.MarshalIndent(newSS.Spec.Template.Spec, "", "\t")
 	//s, _ := json.MarshalIndent(existingSS.Status, "", "\t")
 	//fmt.Print(string(s))
-	log.Info("Current ", "Replicas: ", existingSS.Status.CurrentReplicas,
-		"Current Revision: ", existingSS.Status.CurrentRevision, " Update Revision: ", existingSS.Status.UpdateRevision,
-		"Replicas: ", existingSS.Status.Replicas, "Updated Replicas: ", existingSS.Status.UpdatedReplicas)
-
+	
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Define statefulset

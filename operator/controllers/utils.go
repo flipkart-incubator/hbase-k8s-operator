@@ -31,6 +31,9 @@ const (
 	TEXT
 )
 
+const CFG_V2_ANNOTATION = "hbase-operator/update-time"
+const STATEFULSET_V2_ANNOTATION = "hbase-operator/hbase-config-version"
+
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
 	"hbase-site.xml":                   XML,
@@ -57,6 +60,33 @@ var allowedConfigs = map[string]ConfigType{
 
 func isValidXML(s string) bool {
 	return xml.Unmarshal([]byte(s), new(interface{})) == nil
+}
+
+func getConfigMap(log logr.Logger, cl client.Client, ctx context.Context, configMapName string, namespaceName string) (*corev1.ConfigMap, error) {
+	hbaseConfigMap := &corev1.ConfigMap{}
+	err := cl.Get(ctx, types.NamespacedName{Name: configMapName, Namespace: namespaceName}, hbaseConfigMap)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Error(err, "ConfigMap resource not found. Ignoring since without configMap no tenant can run")
+		} else {
+			log.Error(err, "Failed to get ConfigMap")
+		}
+		return hbaseConfigMap, err
+	} else {
+		return hbaseConfigMap, nil
+	}
+}
+
+func getCfgResourceVersionIfV2OrNil(log logr.Logger, cl client.Client, ctx context.Context, configMapName string, namespaceName string) string {
+	hbaseCfgMap, cfgError := getConfigMap(log, cl, ctx, configMapName, namespaceName)
+	currentConfigMapResourceVersion := ""
+	if cfgError == nil {
+		_, exists := hbaseCfgMap.Annotations[CFG_V2_ANNOTATION]
+		if exists {
+			currentConfigMapResourceVersion = hbaseCfgMap.ResourceVersion
+		}
+	}
+	return currentConfigMapResourceVersion
 }
 
 func buildVolumes(c kvstorev1.HbaseClusterConfiguration, vs []kvstorev1.HbaseClusterVolume) []corev1.Volume {
@@ -400,7 +430,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	}
 
 	if configVersion != "" {
-		d.Annotations["hbase-operator/hbase-config-version"] = configVersion
+		d.Annotations[STATEFULSET_V2_ANNOTATION] = configVersion
 		log.Info("Updating Template Spec", "Annotation", configVersion)
 	}
 
@@ -624,8 +654,8 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 			if cfg.Annotations == nil {
 				cfg.Annotations = make(map[string]string)
 			}
-			cfg.Annotations["hbase-operator/update-time"] = time.Now().String()
-			log.Info("Updating ConfigMap", "Annotation", cfg.Annotations["hbase-operator/update-time"])
+			cfg.Annotations[CFG_V2_ANNOTATION] = time.Now().String()
+			log.Info("Updating ConfigMap", "Annotation", cfg.Annotations[CFG_V2_ANNOTATION])
 		}
 
 		err = cl.Update(ctx, cfg)
@@ -697,7 +727,7 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 	//s, _ := json.MarshalIndent(newSS.Spec.Template.Spec, "", "\t")
 	//s, _ := json.MarshalIndent(existingSS.Status, "", "\t")
 	//fmt.Print(string(s))
-	
+
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Define statefulset

@@ -20,8 +20,6 @@ import (
 	context "context"
 	sha256 "crypto/sha256"
 	fmt "fmt"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	strconv "strconv"
 	time "time"
 
@@ -117,26 +115,10 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		if (ctrl.Result{}) != result || err != nil {
 			return result, err
 		}
-
 	}
 
-	hbaseConfigMap := &corev1.ConfigMap{}
-	currentConfigMapResourceVersion := ""
-	err = r.Client.Get(ctx, types.NamespacedName{Name: hbasecluster.Spec.Configuration.HbaseConfigName, Namespace: req.Namespace}, hbaseConfigMap)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Error(err, "ConfigMap resource not found. Ignoring since without configMap no tenant can run")
-		} else {
-			log.Error(err, "Failed to get ConfigMap")
-		}
-	} else {
-		log.Info("Received ", "Config Version:", hbaseConfigMap.ResourceVersion)
-		_, exists := hbaseConfigMap.Annotations["hbase-operator/update-time"]
-		if exists {
-			currentConfigMapResourceVersion = hbaseConfigMap.ResourceVersion
-		}
-		log.Info("Setting ConfigMap", "Version", currentConfigMapResourceVersion)
-	}
+	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
+		hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Namespace)
 
 	for _, d := range deployments {
 		//TODO: Error handling
@@ -156,7 +138,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 
 		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
-			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, currentConfigMapResourceVersion,
+			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, resourceVersionOfHbaseConfigMap,
 			hbasecluster.Spec.FSGroup, d, log)
 		ctrl.SetControllerReference(hbasecluster, newSS, r.Scheme)
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)

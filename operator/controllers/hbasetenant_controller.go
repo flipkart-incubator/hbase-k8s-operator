@@ -18,8 +18,6 @@ package controllers
 
 import (
 	context "context"
-	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/types"
 	time "time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -78,23 +76,8 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
-	hbaseConfigMap := &corev1.ConfigMap{}
-	currentConfigMapResourceVersion := ""
-	err = r.Client.Get(ctx, types.NamespacedName{Name: hbasetenant.Spec.Configuration.HbaseConfigName, Namespace: req.Namespace}, hbaseConfigMap)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			log.Error(err, "ConfigMap resource not found. Ignoring since without configMap no tenant can run")
-		} else {
-			log.Error(err, "Failed to get ConfigMap")
-		}
-	} else {
-		log.Info("Received ", "Config Version:", hbaseConfigMap.ResourceVersion)
-		_, exists := hbaseConfigMap.Annotations["hbase-operator/update-time"]
-		if exists {
-			currentConfigMapResourceVersion = hbaseConfigMap.ResourceVersion
-		}
-		log.Info("Setting ConfigMap", "Version", currentConfigMapResourceVersion)
-	}
+	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
+		hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Namespace)
 
 	svc := buildService(hbasetenant.Name, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.ServiceLabels, hbasetenant.Spec.ServiceSelectorLabels, []kvstorev1.HbaseClusterDeployment{hbasetenant.Spec.Datanode}, true)
 	ctrl.SetControllerReference(hbasetenant, svc, r.Scheme)
@@ -104,7 +87,7 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	newSS := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
-		hbasetenant.Spec.Configuration, currentConfigMapResourceVersion, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, log)
+		hbasetenant.Spec.Configuration, resourceVersionOfHbaseConfigMap, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, log)
 	ctrl.SetControllerReference(hbasetenant, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasetenant.Namespace, newSS, hbasetenant.Spec.Datanode, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

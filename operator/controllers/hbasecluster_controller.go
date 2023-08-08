@@ -117,6 +117,9 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
+	// gets the resource version of the configmap if it has create-time annotation - else returns nil
+	// this is to make deployment backward compatible with v1 - else upon new operator deployment, entire cluster will
+	// be restarted at the sametime - which is not desirable.
 	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
 		hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Namespace)
 

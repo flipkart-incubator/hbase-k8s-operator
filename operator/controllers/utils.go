@@ -31,7 +31,10 @@ const (
 	TEXT
 )
 
+// CFG_V2_ANNOTATION configmap annotation to indicate that the configmap is in v2 format
 const CFG_V2_ANNOTATION = "hbase-operator/update-time"
+
+// STATEFULSET_V2_ANNOTATION statefulset annotation to indicate that hbase-config is tied to StatefulSet spec
 const STATEFULSET_V2_ANNOTATION = "hbase-operator/hbase-config-version"
 
 var allowedConfigs = map[string]ConfigType{
@@ -429,9 +432,10 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		d.Labels[key] = value
 	}
 
-	if configVersion != "" {
+	// Add annotation to statefulset template spec if config version is present - in older deployments, this annotation will not be present.
+	if len(configVersion) > 0 {
 		d.Annotations[STATEFULSET_V2_ANNOTATION] = configVersion
-		log.Info("Updating Template Spec", "Annotation", configVersion)
+		log.Info("Updating StatefulSet Template Spec With ConfigVersion", STATEFULSET_V2_ANNOTATION, configVersion)
 	}
 
 	dep := &appsv1.StatefulSet{
@@ -649,13 +653,16 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	} else if asSha256(cfgMarshal) != hashStore["cfg-"+cfg.Name+cfg.Namespace] {
 		log.Info("Updating ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
-		_, ok := hashStore["cfg-"+cfg.Name+cfg.Namespace]
-		if ok {
+		// if it's there in hashstore, then operator has bootstrapped - else, DO NOT inject the annotation
+		_, bootstrapDone := hashStore["cfg-"+cfg.Name+cfg.Namespace]
+		if bootstrapDone {
+			// if it's there in hashstore, and annotation is not present (that is updating from v1 to v2), then create empty annotation
 			if cfg.Annotations == nil {
 				cfg.Annotations = make(map[string]string)
 			}
+			// and inject creation timestamp, this will be used to identify change in configMap event and trigger restart of pods
 			cfg.Annotations[CFG_V2_ANNOTATION] = time.Now().String()
-			log.Info("Updating ConfigMap", "Annotation", cfg.Annotations[CFG_V2_ANNOTATION])
+			log.Info("Adding annotation to ConfigMap", CFG_V2_ANNOTATION, cfg.Annotations[CFG_V2_ANNOTATION])
 		}
 
 		err = cl.Update(ctx, cfg)

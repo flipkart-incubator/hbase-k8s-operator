@@ -101,6 +101,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 	namespaces := hbasecluster.Spec.TenantNamespaces
 	namespaces = append(namespaces, hbasecluster.Namespace)
+	// make sure ReconcileConfig under HbaseTenantSpec is set to False, otherwise it will lead to duplicate action
 	for _, namespace := range namespaces {
 		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, log)
 		ctrl.SetControllerReference(hbasecluster, cfg, r.Scheme)

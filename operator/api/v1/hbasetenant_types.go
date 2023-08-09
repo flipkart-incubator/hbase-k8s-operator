@@ -28,6 +28,9 @@ type HbaseTenantSpec struct {
 	FSGroup       int64                     `json:"fsgroup"`
 	BaseImage     string                    `json:"baseImage"`
 	// +optional
+	// +kubebuilder:default:=false
+	ReconcileConfig bool `json:"reconcileConfig"`
+	// +optional
 	ServiceLabels map[string]string `json:"serviceLabels"`
 	// +optional
 	ServiceSelectorLabels map[string]string `json:"serviceSelectorLabels"`

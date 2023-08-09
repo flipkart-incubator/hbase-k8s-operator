@@ -76,6 +76,34 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
+	// reconciles the configmap for the HbaseTenant only reconcileConfigMap is true, otherwise it will be ignored.
+	// this is to avoid multiple reconcile if the configmap is updated.
+	// reconcileConfigMap is set to be True only when HBaseClusterSpec is not monitoring TenantNamespaces for configmap changes.
+	// Default value for reconcileConfigMap is false.
+	if hbasetenant.Spec.ReconcileConfig {
+		log.Info("Reconciling configmaps for tenant, stating to validate")
+		validated, err := validateConfiguration(ctx, log, hbasetenant.Namespace, hbasetenant.Spec.Configuration, r.Client)
+		if err != nil {
+			publishEvent(ctx, log, hbasetenant.Namespace, "ConfigValidateFailed", err.Error(), "Warning", "ConfigMap", r.Client)
+			log.Error(err, "Failed to validate configuration")
+			return validated, err
+		}
+		log.Info("Configuration validated successfully, starting reconcile for HBASE configMaps")
+		cfg := buildConfigMap(hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HbaseConfig, hbasetenant.Spec.Configuration.HbaseTenantConfig, log)
+		ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
+		hbaseCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
+		if (ctrl.Result{}) != hbaseCfgReconRes || err != nil {
+			return hbaseCfgReconRes, err
+		}
+		log.Info("Configuration validated successfully, starting reconcile for HADOOP configMaps")
+		cfg = buildConfigMap(hbasetenant.Spec.Configuration.HadoopConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HadoopConfig, hbasetenant.Spec.Configuration.HadoopTenantConfig, log)
+		ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
+		hadoopCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
+		if (ctrl.Result{}) != hadoopCfgReconRes || err != nil {
+			return hadoopCfgReconRes, err
+		}
+	}
+
 	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
 		hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Namespace)
 

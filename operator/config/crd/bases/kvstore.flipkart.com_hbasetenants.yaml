@@ -492,6 +492,9 @@ spec:
               fsgroup:
                 format: int64
                 type: integer
+              reconcileConfig:
+                default: false
+                type: boolean
               serviceLabels:
                 additionalProperties:
                   type: string

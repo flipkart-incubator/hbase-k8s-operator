@@ -117,6 +117,12 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		}
 	}
 
+	// gets the resource version of the configmap if it has create-time annotation - else returns nil
+	// this is to make deployment backward compatible with v1 - else upon new operator deployment, entire cluster will
+	// be restarted at the sametime - which is not desirable.
+	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
+		hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Namespace)
+
 	for _, d := range deployments {
 		//TODO: Error handling
 		if d.IsPodServiceRequired {
@@ -134,7 +140,9 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			}
 		}
 
-		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage, hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, hbasecluster.Spec.FSGroup, d)
+		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, resourceVersionOfHbaseConfigMap,
+			hbasecluster.Spec.FSGroup, d, log)
 		ctrl.SetControllerReference(hbasecluster, newSS, r.Scheme)
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)
 		if (ctrl.Result{}) != result || err != nil {

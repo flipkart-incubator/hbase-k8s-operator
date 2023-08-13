@@ -38,6 +38,8 @@ type HbaseTenantReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+const RECONCILE_CONFIG_LABEL = "hbase.operator.tenant-config/enable"
+
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants/finalizers,verbs=update
@@ -76,11 +78,18 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
-	// reconciles the configmap for the HbaseTenant only reconcileConfigMap is true, otherwise it will be ignored.
-	// this is to avoid multiple reconcile if the configmap is updated.
-	// reconcileConfigMap is set to be True only when HBaseClusterSpec is not monitoring TenantNamespaces for configmap changes.
-	// Default value for reconcileConfigMap is false.
-	if hbasetenant.Spec.ReconcileConfig {
+	// Reconcile configmaps if enabled, by default it is disabled
+	reconcileConfigMapFromTenant := false
+
+	// Check if the configmap reconciliation is enabled from tenant controller, this is controlled from serviceLabels
+	// If the desired service label is set to true, then we will reconcile the configmaps
+	value, exists := hbasetenant.Spec.ServiceLabels[RECONCILE_CONFIG_LABEL]
+	if exists {
+		reconcileConfigMapFromTenant = value == "true"
+	}
+
+	// If reconcileConfigMapFromTenant set to true, then validate the config format and reconcile afterwards
+	if reconcileConfigMapFromTenant {
 		log.Info("Reconciling configmaps for tenant, stating to validate")
 		validated, err := validateConfiguration(ctx, log, hbasetenant.Namespace, hbasetenant.Spec.Configuration, r.Client)
 		if err != nil {

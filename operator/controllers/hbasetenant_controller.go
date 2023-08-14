@@ -78,18 +78,12 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
-	// Reconcile configmaps if enabled, by default it is disabled
-	reconcileConfigMapFromTenant := false
-
 	// Check if the configmap reconciliation is enabled from tenant controller, this is controlled from serviceLabels
 	// If the desired service label is set to true, then we will reconcile the configmaps
 	value, exists := hbasetenant.Spec.ServiceLabels[RECONCILE_CONFIG_LABEL]
-	if exists {
-		reconcileConfigMapFromTenant = value == "true"
-	}
 
-	// If reconcileConfigMapFromTenant set to true, then validate the config format and reconcile afterwards
-	if reconcileConfigMapFromTenant {
+	// If label exists and set to true, then validate the config format and reconcile afterwards
+	if exists && (value == "true" || value == "yes") {
 		log.Info("Reconciling configmaps for tenant, stating to validate")
 		validated, err := validateConfiguration(ctx, log, hbasetenant.Namespace, hbasetenant.Spec.Configuration, r.Client)
 		if err != nil {

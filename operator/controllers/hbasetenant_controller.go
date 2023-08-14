@@ -38,6 +38,8 @@ type HbaseTenantReconciler struct {
 	Scheme *runtime.Scheme
 }
 
+const RECONCILE_CONFIG_LABEL = "hbase.operator.tenant-config/enable"
+
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants/finalizers,verbs=update
@@ -76,6 +78,36 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
+	// Check if the configmap reconciliation is enabled from tenant controller, this is controlled from serviceLabels
+	// If the desired service label is set to true, then we will reconcile the configmaps
+	value, exists := hbasetenant.Spec.ServiceLabels[RECONCILE_CONFIG_LABEL]
+
+	// If label exists and set to true, then validate the config format and reconcile afterwards
+	if exists && (value == "true" || value == "yes") {
+		log.Info("Reconciling configmaps for tenant, stating to validate")
+		validated, err := validateConfiguration(ctx, log, hbasetenant.Namespace, hbasetenant.Spec.Configuration, r.Client)
+		if err != nil {
+			publishEvent(ctx, log, hbasetenant.Namespace, "ConfigValidateFailed", err.Error(), "Warning", "ConfigMap", r.Client)
+			log.Error(err, "Failed to validate configuration")
+			return validated, err
+		}
+		log.Info("Configuration validated successfully, starting reconcile for HBASE configMaps")
+		cfg := buildConfigMap(hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HbaseConfig, hbasetenant.Spec.Configuration.HbaseTenantConfig, log)
+		ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
+		hbaseCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
+		if (ctrl.Result{}) != hbaseCfgReconRes || err != nil {
+			return hbaseCfgReconRes, err
+		}
+		log.Info("Configuration validated successfully, starting reconcile for HADOOP configMaps")
+		cfg = buildConfigMap(hbasetenant.Spec.Configuration.HadoopConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HadoopConfig, hbasetenant.Spec.Configuration.HadoopTenantConfig, log)
+		ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
+		hadoopCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
+		if (ctrl.Result{}) != hadoopCfgReconRes || err != nil {
+			return hadoopCfgReconRes, err
+		}
+	}
+
+	// Get the resource version of the configmap, if it is v2 then we will use the resource version
 	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
 		hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Namespace)
 

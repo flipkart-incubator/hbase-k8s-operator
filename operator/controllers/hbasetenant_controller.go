@@ -113,6 +113,7 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		}
 	}
 
+	// Get the resource version of the configmap, if it is v2 then we will use the resource version
 	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
 		hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Namespace)
 

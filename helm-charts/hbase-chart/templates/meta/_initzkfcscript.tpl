@@ -1,6 +1,6 @@
 {{- define "hbasecluster.initzkfcscript" }}
 - name: init-zkfc
-  isBootstrap: {{ default true .isBootstrap }}
+  isBootstrap: {{ default false .isBootstrap }}
   command:
   - /bin/bash
   - -c

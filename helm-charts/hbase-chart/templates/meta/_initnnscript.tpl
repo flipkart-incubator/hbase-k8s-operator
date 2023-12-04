@@ -1,6 +1,6 @@
 {{- define "hbasecluster.initnnscript" }}
 - name: init-namenode
-  isBootstrap: {{ default true .isBootstrap }}
+  isBootstrap: {{ default false .isBootstrap }}
   command:
   - /bin/bash
   - -c

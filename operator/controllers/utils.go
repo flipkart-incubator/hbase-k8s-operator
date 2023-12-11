@@ -98,9 +98,9 @@ func getExistingAnnotationOfStatefulSet(log logr.Logger, cl client.Client, ctx c
 	err := cl.Get(ctx, types.NamespacedName{Name: tenant.Spec.Datanode.Name, Namespace: tenant.Namespace}, existingStatefulSet)
 	if err != nil {
 		if errors.IsNotFound(err) {
-			log.Error(err, "Statefulset not found", tenant.Spec.Datanode.Name)
+			log.Error(err, "StatefulSet not found, Maybe it is getting deployed for first time. Null value will be returned as existing Value.")
 		} else {
-			log.Error(err, "Failed to get Statefulset")
+			log.Error(err, "Failed to get StatefulSet")
 		}
 		return lastStatefulSetConfigVersion
 	}

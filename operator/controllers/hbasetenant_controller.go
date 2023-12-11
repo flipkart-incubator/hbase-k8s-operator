@@ -108,10 +108,12 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// If label exists and set to true, then validate the config format and reconcile afterwards
 	if exists && (value == "true" || value == "yes") {
 		// Get the resource version of the configmap, if it is v2 then we will use the resource version
+		log.Info("Configmap recon enabled, new Resource Version will be used")
 		resourceVersionOfHbaseConfigMap = getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
 			hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Namespace)
 	} else {
-		// if Restart of statefulSet is turned of, use existing Annotation as reference
+		// if Restart of statefulSet is turned off, use existing Annotation as reference
+		log.Info("Configmap recon not enabled, getting existing resource version")
 		resourceVersionOfHbaseConfigMap = getExistingAnnotationOfStatefulSet(log, r.Client, ctx, hbasetenant)
 	}
 

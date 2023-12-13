@@ -92,6 +92,25 @@ func getCfgResourceVersionIfV2OrNil(log logr.Logger, cl client.Client, ctx conte
 	return currentConfigMapResourceVersion
 }
 
+func getExistingAnnotationOfStatefulSet(log logr.Logger, cl client.Client, ctx context.Context, tenant *kvstorev1.HbaseTenant) string {
+	existingStatefulSet := &appsv1.StatefulSet{}
+	lastStatefulSetConfigVersion := ""
+	err := cl.Get(ctx, types.NamespacedName{Name: tenant.Spec.Datanode.Name, Namespace: tenant.Namespace}, existingStatefulSet)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			log.Error(err, "StatefulSet not found, Maybe it is getting deployed for first time. Null value will be returned as existing Value.")
+		} else {
+			log.Error(err, "Failed to get StatefulSet")
+		}
+		return lastStatefulSetConfigVersion
+	}
+	resourceAnnotation, exists := existingStatefulSet.Spec.Template.Annotations[STATEFULSET_V2_ANNOTATION]
+	if exists {
+		lastStatefulSetConfigVersion = resourceAnnotation
+	}
+	return lastStatefulSetConfigVersion
+}
+
 func buildVolumes(c kvstorev1.HbaseClusterConfiguration, vs []kvstorev1.HbaseClusterVolume) []corev1.Volume {
 	volumes := []corev1.Volume{}
 	volumes = append(volumes, corev1.Volume{

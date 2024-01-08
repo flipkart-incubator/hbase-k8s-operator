@@ -5,6 +5,11 @@ set -m -x
 export HADOOP_LOG_DIR=$0
 export HADOOP_CONF_DIR=$1
 export HADOOP_HOME=$2
+export USER=$(whoami)
+export HADOOP_LOG_FILE=$HADOOP_LOG_DIR/hadoop-$USER-namenode-$(hostname).log
+
+mkdir -p $HADOOP_LOG_DIR
+touch $HADOOP_LOG_FILE
 
 function shutdown() {
   echo "Stopping Namenode"
@@ -53,6 +58,6 @@ echo "My Service: $MY_SERVICE"
 
 trap shutdown SIGTERM
 echo "N" | $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby || true
-exec $HADOOP_HOME/bin/hdfs namenode &
+exec $HADOOP_HOME/bin/hdfs namenode 2>&1 | tee -a $HADOOP_LOG_FILE &
 wait
 {{- end }}

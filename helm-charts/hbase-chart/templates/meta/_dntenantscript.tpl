@@ -6,6 +6,11 @@ export HADOOP_LOG_DIR=$0
 export HADOOP_CONF_DIR=$1
 export HADOOP_HOME=$2
 export HADOOP_CONF_NAME=$3
+export USER=$(whoami)
+export HADOOP_LOG_FILE=$HADOOP_LOG_DIR/hadoop-$USER-datanode-$(hostname).log
+
+mkdir -p $HADOOP_LOG_DIR
+touch $HADOOP_LOG_FILE
 
 function shutdown() {
   while true; do
@@ -27,7 +32,7 @@ curl -sX GET http://127.0.0.1:8802/v1/configmaps/$HADOOP_CONF_NAME | jq '.data |
 sleep 1
 
 trap shutdown SIGTERM
-exec $HADOOP_HOME/bin/hdfs datanode &
+exec $HADOOP_HOME/bin/hdfs datanode 2>&1 | tee -a $HADOOP_LOG_FILE &
 PID=$!
 
 #TODO: Correct way to identify if process is up

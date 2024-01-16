@@ -82,26 +82,29 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	// If the desired service label is set to true, then we will reconcile the configmaps
 	value, exists := hbasetenant.Spec.ServiceLabels[RECONCILE_CONFIG_LABEL]
 
-	log.Info("Reconciling configmaps for tenant, starting to validate")
-	validated, err := validateConfiguration(ctx, log, hbasetenant.Namespace, hbasetenant.Spec.Configuration, r.Client)
-	if err != nil {
-		publishEvent(ctx, log, hbasetenant.Namespace, "ConfigValidateFailed", err.Error(), "Warning", "ConfigMap", r.Client)
-		log.Error(err, "Failed to validate configuration")
-		return validated, err
-	}
-	log.Info("Configuration validated successfully, starting reconcile for HBASE configMaps")
-	cfg := buildConfigMap(hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HbaseConfig, hbasetenant.Spec.Configuration.HbaseTenantConfig, log)
-	ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
-	hbaseCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
-	if (ctrl.Result{}) != hbaseCfgReconRes || err != nil {
-		return hbaseCfgReconRes, err
-	}
-	log.Info("Configuration validated successfully, starting reconcile for HADOOP configMaps")
-	cfg = buildConfigMap(hbasetenant.Spec.Configuration.HadoopConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HadoopConfig, hbasetenant.Spec.Configuration.HadoopTenantConfig, log)
-	ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
-	hadoopCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
-	if (ctrl.Result{}) != hadoopCfgReconRes || err != nil {
-		return hadoopCfgReconRes, err
+	// Reconcile configmap only if set from label. "config-only" value will lead configMap update but not restart of StatefulSet
+	if exists && (value == "config-only" || value == "true" || value == "yes") {
+		log.Info("Reconciling configmaps for tenant, starting to validate")
+		validated, err := validateConfiguration(ctx, log, hbasetenant.Namespace, hbasetenant.Spec.Configuration, r.Client)
+		if err != nil {
+			publishEvent(ctx, log, hbasetenant.Namespace, "ConfigValidateFailed", err.Error(), "Warning", "ConfigMap", r.Client)
+			log.Error(err, "Failed to validate configuration")
+			return validated, err
+		}
+		log.Info("Configuration validated successfully, starting reconcile for HBASE configMaps")
+		cfg := buildConfigMap(hbasetenant.Spec.Configuration.HbaseConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HbaseConfig, hbasetenant.Spec.Configuration.HbaseTenantConfig, log)
+		ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
+		hbaseCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
+		if (ctrl.Result{}) != hbaseCfgReconRes || err != nil {
+			return hbaseCfgReconRes, err
+		}
+		log.Info("Configuration validated successfully, starting reconcile for HADOOP configMaps")
+		cfg = buildConfigMap(hbasetenant.Spec.Configuration.HadoopConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HadoopConfig, hbasetenant.Spec.Configuration.HadoopTenantConfig, log)
+		ctrl.SetControllerReference(hbasetenant, cfg, r.Scheme)
+		hadoopCfgReconRes, err := reconcileConfigMap(ctx, log, hbasetenant.Namespace, cfg, r.Client)
+		if (ctrl.Result{}) != hadoopCfgReconRes || err != nil {
+			return hadoopCfgReconRes, err
+		}
 	}
 
 	resourceVersionOfHbaseConfigMap := ""

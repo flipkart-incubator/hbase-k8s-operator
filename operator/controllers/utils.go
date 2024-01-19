@@ -37,6 +37,9 @@ const CFG_V2_ANNOTATION = "hbase-operator/update-time"
 // STATEFULSET_V2_ANNOTATION statefulset annotation to indicate that hbase-config is tied to StatefulSet spec
 const STATEFULSET_V2_ANNOTATION = "hbase-operator/hbase-config-version"
 
+// RECONCILE_CONFIG_LABEL annotation is used to control if configMap changes needs to be bound with StatefulSet
+const RECONCILE_CONFIG_LABEL = "hbase-operator.cfg-statefulset-update/enable"
+
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
 	"hbase-site.xml":                   XML,

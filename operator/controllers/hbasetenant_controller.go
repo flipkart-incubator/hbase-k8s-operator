@@ -38,8 +38,6 @@ type HbaseTenantReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-const RECONCILE_CONFIG_LABEL = "hbase.operator.tenant-config/enable"
-
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants/status,verbs=get;update;patch
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbasetenants/finalizers,verbs=update

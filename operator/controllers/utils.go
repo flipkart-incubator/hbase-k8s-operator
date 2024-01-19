@@ -37,6 +37,9 @@ const CFG_V2_ANNOTATION = "hbase-operator/update-time"
 // STATEFULSET_V2_ANNOTATION statefulset annotation to indicate that hbase-config is tied to StatefulSet spec
 const STATEFULSET_V2_ANNOTATION = "hbase-operator/hbase-config-version"
 
+// RECONCILE_CONFIG_LABEL annotation is used to control if configMap changes needs to be bound with StatefulSet
+const RECONCILE_CONFIG_LABEL = "hbase-operator.cfg-statefulset-update/enable"
+
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
 	"hbase-site.xml":                   XML,
@@ -93,9 +96,17 @@ func getCfgResourceVersionIfV2OrNil(log logr.Logger, cl client.Client, ctx conte
 }
 
 func getExistingAnnotationOfStatefulSet(log logr.Logger, cl client.Client, ctx context.Context, tenant *kvstorev1.HbaseTenant) string {
+	return getStatefulSetAnnotation(log, cl, ctx, tenant.Spec.Datanode.Name, tenant.Namespace)
+}
+
+func getExistingAnnotationOfClusterStatefulSet(log logr.Logger, cl client.Client, ctx context.Context, cluster *kvstorev1.HbaseCluster) string {
+	return getStatefulSetAnnotation(log, cl, ctx, cluster.Spec.Deployments.Datanode.Name, cluster.Namespace)
+}
+
+func getStatefulSetAnnotation(log logr.Logger, cl client.Client, ctx context.Context, statefulSetName string, namespace string) string {
 	existingStatefulSet := &appsv1.StatefulSet{}
 	lastStatefulSetConfigVersion := ""
-	err := cl.Get(ctx, types.NamespacedName{Name: tenant.Spec.Datanode.Name, Namespace: tenant.Namespace}, existingStatefulSet)
+	err := cl.Get(ctx, types.NamespacedName{Name: statefulSetName, Namespace: namespace}, existingStatefulSet)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			log.Error(err, "StatefulSet not found, Maybe it is getting deployed for first time. Null value will be returned as existing Value.")

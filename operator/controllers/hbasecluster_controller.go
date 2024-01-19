@@ -80,6 +80,10 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		return ctrl.Result{RequeueAfter: time.Second * 5}, err
 	}
 
+	// Check if the configmap reconciliation is enabled from cluster, this is controlled from serviceLabels
+	// If the desired service label is set to true, then we will reconcile the configmaps
+	value, exists := hbasecluster.Spec.ServiceLabels[RECONCILE_CONFIG_LABEL]
+
 	deployments := []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Journalnode, hbasecluster.Spec.Deployments.Namenode, hbasecluster.Spec.Deployments.Datanode, hbasecluster.Spec.Deployments.Hmaster}
 	if hbasecluster.Spec.Deployments.Zookeeper.Size != 0 {
 		deployments = append([]kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Zookeeper}, deployments...)
@@ -122,8 +126,18 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	// gets the resource version of the configmap if it has create-time annotation - else returns nil
 	// this is to make deployment backward compatible with v1 - else upon new operator deployment, entire cluster will
 	// be restarted at the sametime - which is not desirable.
-	resourceVersionOfHbaseConfigMap := getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
-		hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Namespace)
+	resourceVersionOfHbaseConfigMap := ""
+	// If label exists and set to true, then validate the config format and reconcile afterwards
+	if exists && (value == "true" || value == "yes") {
+		// Get the resource version of the configmap, if it is v2 then we will use the resource version
+		log.Info("Configmap recon enabled, new Resource Version will be used")
+		resourceVersionOfHbaseConfigMap = getCfgResourceVersionIfV2OrNil(log, r.Client, ctx,
+			hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Namespace)
+	} else {
+		// if Restart of statefulSet is turned off, use existing Annotation as reference
+		log.Info("Configmap recon not enabled, getting existing resource version")
+		resourceVersionOfHbaseConfigMap = getExistingAnnotationOfClusterStatefulSet(log, r.Client, ctx, hbasecluster)
+	}
 
 	for _, d := range deployments {
 		//TODO: Error handling

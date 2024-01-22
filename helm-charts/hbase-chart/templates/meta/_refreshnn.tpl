@@ -12,7 +12,7 @@
     export HADOOP_CONF_DIR={{ .Values.configuration.hadoopConfigMountPath }}
     export HADOOP_HOME={{ .Values.configuration.hadoopHomePath }}
 
-    $HADOOP_HOME/bin/hdfs dfsadmin -refreshNodes
+    $HADOOP_HOME/bin/hdfs dfsadmin -refreshNodes || true
 
   cpuLimit: "0.2"
   memoryLimit: "256Mi"

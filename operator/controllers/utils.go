@@ -448,7 +448,7 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment, log logr.Logger) *appsv1.StatefulSet {
-	ls := labelsForHbaseCluster(name, nil)
+	ls := labelsForHbaseCluster(name, map[string]string{"statefulset.kubernetes.io/statefulset-name": d.Name})
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)

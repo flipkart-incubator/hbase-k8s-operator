@@ -448,7 +448,17 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment, log logr.Logger) *appsv1.StatefulSet {
-	ls := labelsForHbaseCluster(name, map[string]string{"statefulset.kubernetes.io/statefulset-name": d.Name})
+
+	// Add statefulSet label if configVersion is mentioned
+	// This is to prevent cluster restart at once for all namespaces when Operator change is deployed
+	// The change will start to take effect with STATEFULSET_V2_ANNOTATION change
+	statefulSetLabel := make(map[string]string)
+	// TODO: Remove this check once the migration is completed
+	if len(configVersion) > 0 {
+		statefulSetLabel["statefulset.kubernetes.io/statefulset-name"] = d.Name
+	}
+
+	ls := labelsForHbaseCluster(name, statefulSetLabel)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -463,6 +473,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	}
 
 	// Add annotation to statefulset template spec if config version is present - in older deployments, this annotation will not be present.
+	// TODO: Remove this check once the migration is completed
 	if len(configVersion) > 0 {
 		d.Annotations[STATEFULSET_V2_ANNOTATION] = configVersion
 		log.Info("Updating StatefulSet Template Spec With ConfigVersion", STATEFULSET_V2_ANNOTATION, configVersion)

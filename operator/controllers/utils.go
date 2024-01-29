@@ -458,7 +458,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		statefulSetLabel["statefulset.kubernetes.io/statefulset-name"] = d.Name
 	}
 
-	ls := labelsForHbaseCluster(name, statefulSetLabel)
+	ls := labelsForHbaseCluster(name, nil)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -483,6 +483,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.Name,
 			Namespace: namespace,
+			Labels:    statefulSetLabel,
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:            &d.Size,

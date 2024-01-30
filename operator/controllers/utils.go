@@ -449,15 +449,6 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment, log logr.Logger) *appsv1.StatefulSet {
 
-	// Add statefulSet label if configVersion is mentioned
-	// This is to prevent cluster restart at once for all namespaces when Operator change is deployed
-	// The change will start to take effect with STATEFULSET_V2_ANNOTATION change
-	statefulSetLabel := make(map[string]string)
-	// TODO: Remove this check once the migration is completed
-	if len(configVersion) > 0 {
-		statefulSetLabel["statefulset.kubernetes.io/statefulset-name"] = d.Name
-	}
-
 	ls := labelsForHbaseCluster(name, nil)
 
 	if d.Labels == nil {
@@ -483,7 +474,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.Name,
 			Namespace: namespace,
-			Labels:    statefulSetLabel,
+			Labels:    labelsForStatefulSet(d.Name, configVersion),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:            &d.Size,
@@ -833,6 +824,19 @@ func labelsForHbaseCluster(name string, labels map[string]string) map[string]str
 		labels["hbasecluster_cr"] = name
 		return labels
 	}
+}
+
+// Add statefulSet label if configVersion is mentioned
+// This is to prevent cluster restart at once for all namespaces when Operator change is deployed
+// The change will start to take effect with STATEFULSET_V2_ANNOTATION change
+func labelsForStatefulSet(name string, configVersionWithStatefulSet string) map[string]string {
+	statefulSetLabel := make(map[string]string)
+	// TODO: Remove this check once the migration is completed
+	if len(configVersionWithStatefulSet) > 0 {
+		statefulSetLabel["statefulset.kubernetes.io/statefulset-name"] = name
+		return statefulSetLabel
+	}
+	return nil
 }
 
 // getPodNames returns the pod names of the array of pods passed in

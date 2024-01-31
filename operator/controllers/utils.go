@@ -448,6 +448,7 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment, log logr.Logger) *appsv1.StatefulSet {
+
 	ls := labelsForHbaseCluster(name, nil)
 
 	if d.Labels == nil {
@@ -463,6 +464,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	}
 
 	// Add annotation to statefulset template spec if config version is present - in older deployments, this annotation will not be present.
+	// TODO: Remove this check once the migration is completed
 	if len(configVersion) > 0 {
 		d.Annotations[STATEFULSET_V2_ANNOTATION] = configVersion
 		log.Info("Updating StatefulSet Template Spec With ConfigVersion", STATEFULSET_V2_ANNOTATION, configVersion)
@@ -472,6 +474,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.Name,
 			Namespace: namespace,
+			Labels:    labelsForStatefulSet(d.Name, configVersion),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:            &d.Size,
@@ -821,6 +824,19 @@ func labelsForHbaseCluster(name string, labels map[string]string) map[string]str
 		labels["hbasecluster_cr"] = name
 		return labels
 	}
+}
+
+// Add statefulSet label if configVersion is mentioned
+// This is to prevent cluster restart at once for all namespaces when Operator change is deployed
+// The change will start to take effect with STATEFULSET_V2_ANNOTATION change
+func labelsForStatefulSet(name string, configVersionWithStatefulSet string) map[string]string {
+	statefulSetLabel := make(map[string]string)
+	// TODO: Remove this check once the migration is completed
+	if len(configVersionWithStatefulSet) > 0 {
+		statefulSetLabel["statefulset.kubernetes.io/statefulset-name"] = name
+		return statefulSetLabel
+	}
+	return nil
 }
 
 // getPodNames returns the pod names of the array of pods passed in

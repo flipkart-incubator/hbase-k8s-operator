@@ -1,6 +1,7 @@
 {{- define "hbasecluster.initzkfcscript" }}
+{{/* init containers which are required one time only during bootstrap  define their isBootstrap flag as true */}}
 - name: init-zkfc
-  isBootstrap: {{ default false .isBootstrap }}
+  isBootstrap: true
   command:
   - /bin/bash
   - -c

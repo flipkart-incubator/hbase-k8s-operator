@@ -25,13 +25,37 @@ spec:
     hbaseConfigName: {{ .Values.configuration.hbaseConfigName }}
     hbaseConfigMountPath: {{ .Values.configuration.hbaseConfigMountPath }}
     hbaseConfig:
-      {{- $configPath := .Values.configuration.hbaseConfigRelPath }}
-      {{- ($.Files.Glob $configPath).AsConfig | nindent 6 }}
+    {{- $tenantConfigPath := dir .Values.configuration.hbaseConfigRelPath }}
+    {{- $tenantHbaseConfigPath := dir $tenantConfigPath }}
+    {{- $tenantConfigPathHierarchy := regexSplit "/" $tenantHbaseConfigPath -1 }}
+    {{- $prevLoc := "" }}
+    {{- $files := .Files }}
+    {{- $finalConfigMap:= dict -}}
+    {{- range $tenantConfigPathHierarchy }}
+    {{- $prevLoc = printf "%s%s/" $prevLoc . }}
+    {{- $hbaseDir := cat $prevLoc "hbase/*" | nospace }}
+    {{- range $path, $_ :=  $files.Glob $hbaseDir }}
+      {{- $_ := set $finalConfigMap (base $path) ($files.Get $path ) }}
+    {{- end }}
+    {{- end }}
+    {{ $finalConfigMap | toYaml | nindent 6 }}
     hadoopConfigName: {{ .Values.configuration.hadoopConfigName }}
     hadoopConfigMountPath: {{ .Values.configuration.hadoopConfigMountPath }}
     hadoopConfig:
-      {{- $configPath := .Values.configuration.hadoopConfigRelPath }}
-      {{- ($.Files.Glob $configPath).AsConfig | nindent 6 }}
+    {{- $tenantConfigPath := dir .Values.configuration.hadoopConfigRelPath }}
+    {{- $tenantHadoopConfigPath := dir $tenantConfigPath }}
+    {{- $tenantConfigPathHierarchy := regexSplit "/" $tenantHadoopConfigPath -1 }}
+    {{- $prevLoc := "" }}
+    {{- $files := .Files }}
+    {{- $finalConfigMap:= dict -}}
+    {{- range $tenantConfigPathHierarchy }}
+    {{- $prevLoc = printf "%s%s/" $prevLoc . }}
+    {{- $hadoopDir := cat $prevLoc "hadoop/*" | nospace }}
+    {{- range $path, $_ :=  $files.Glob $hadoopDir }}
+      {{- $_ := set $finalConfigMap (base $path) ($files.Get $path ) }}
+    {{- end }}
+    {{- end }}
+    {{ $finalConfigMap | toYaml | nindent 6 }}
   datanode: 
     {{- $podManagementPolicy := "Parallel" }}
     {{- $dnsContainer := include "hbasecluster.dnslookup" . | indent 2 }}

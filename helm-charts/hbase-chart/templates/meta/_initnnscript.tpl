@@ -1,6 +1,7 @@
 {{- define "hbasecluster.initnnscript" }}
+{{/* init containers which are required one time only during bootstrap  define their isBootstrap flag as true */}}
 - name: init-namenode
-  isBootstrap: {{ default false .isBootstrap }}
+  isBootstrap: true
   command:
   - /bin/bash
   - -c

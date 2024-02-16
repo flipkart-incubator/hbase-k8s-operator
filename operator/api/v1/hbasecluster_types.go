@@ -124,6 +124,8 @@ type HbaseClusterVolume struct {
 	//+kubebuilder:validation:Enum:=ConfigMap;EmptyDir;HostPath;
 	VolumeSource string `json:"volumeSource"`
 	//+optional
+	SecretName string `json:"secretName"`
+	//+optional
 	ConfigName string `json:"configName"`
 	//+optional
 	Path string `json:"path"`

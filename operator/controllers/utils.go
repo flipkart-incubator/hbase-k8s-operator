@@ -168,7 +168,16 @@ func buildVolumes(c kvstorev1.HbaseClusterConfiguration, vs []kvstorev1.HbaseClu
 				},
 			}
 		}
-
+		if v.VolumeSource == "Secret" {
+			volume = corev1.Volume{
+				Name: v.Name,
+				VolumeSource: corev1.VolumeSource{
+					Secret: &corev1.SecretVolumeSource{
+						SecretName: v.SecretName,
+					},
+				},
+			}
+		}
 		if v.VolumeSource == "HostPath" {
 			volume = corev1.Volume{
 				Name: v.Name,

@@ -471,10 +471,13 @@ spec:
                           type: string
                         path:
                           type: string
+                        secretName:
+                          type: string
                         volumeSource:
                           enum:
                           - ConfigMap
                           - EmptyDir
+                          - Secret
                           - HostPath
                           type: string
                       required:

@@ -121,7 +121,7 @@ type HbaseClusterVolumeClaim struct {
 
 type HbaseClusterVolume struct {
 	Name string `json:"name"`
-	//+kubebuilder:validation:Enum:=ConfigMap;EmptyDir;HostPath;
+	//+kubebuilder:validation:Enum:=ConfigMap;EmptyDir;Secret;HostPath;
 	VolumeSource string `json:"volumeSource"`
 	//+optional
 	SecretName string `json:"secretName"`

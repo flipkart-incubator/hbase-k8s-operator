@@ -44,6 +44,8 @@
     volumeSource: {{ .volumeSource }}
     {{- if .path }}
     path: {{ .path }}
+    {{- else if .secretName }}
+    secretName: {{ .secretName }}
     {{- else if .configName }}
     configName: {{ .configName }}
     {{- end }}

@@ -139,9 +139,9 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		resourceVersionOfHbaseConfigMap = getExistingAnnotationOfClusterStatefulSet(log, r.Client, ctx, hbasecluster)
 	}
 
-	selectorMatchLabelsUpdateValue, selectorMatchLabelsUpdateExists := hbasecluster.Spec.ServiceLabels[SELECTOR_MATCH_LABELS_UPDATE]
-	if !selectorMatchLabelsUpdateExists {
-		selectorMatchLabelsUpdateValue = "false"
+	statefulSetLabelsUpdateValue, statefulSetLabelsUpdateExists := hbasecluster.Spec.ServiceLabels[STATEFULSET_LABELS_UPDATE]
+	if !statefulSetLabelsUpdateExists {
+		statefulSetLabelsUpdateValue = "false"
 	}
 
 	templateLabelsUpdateValue, templateLabelsUpdateExists := hbasecluster.Spec.ServiceLabels[TEMPLATE_LABELS_UPDATE]
@@ -168,7 +168,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, resourceVersionOfHbaseConfigMap,
-			hbasecluster.Spec.FSGroup, d, log, selectorMatchLabelsUpdateValue, templateLabelsUpdateValue)
+			hbasecluster.Spec.FSGroup, d, log, statefulSetLabelsUpdateValue)
 		ctrl.SetControllerReference(hbasecluster, newSS, r.Scheme)
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)
 		if (ctrl.Result{}) != result || err != nil {

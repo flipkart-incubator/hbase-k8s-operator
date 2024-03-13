@@ -40,14 +40,9 @@ const STATEFULSET_V2_ANNOTATION = "hbase-operator/hbase-config-version"
 // RECONCILE_CONFIG_LABEL annotation is used to control if configMap changes needs to be bound with StatefulSet
 const RECONCILE_CONFIG_LABEL = "hbase-operator.cfg-statefulset-update/enable"
 
-// UPDATE_SELECTOR_MATCH_LABEL annotation is used to update matchLabels of StatefulSet , when statefulset is deleted with pods in orphaned state
-// TODO:: Remove this label in future once all the statefulsets are updated with this label
-const SELECTOR_MATCH_LABELS_UPDATE = "hbase-operator.cfg-selector-matchLabels-update"
-
-// TEMPLATE_LABELS_UPDATE annotation is used to update labels of StatefulSet template spec
-// TODO:: Remove this label in future once all the statefulsets are updated with this label
-const TEMPLATE_LABELS_UPDATE = "hbase-operator.cfg-template-labels-update"
-
+// STATEFULSET_LABELS_UPDATE annotation is used to update template labels and matchLabels of StatefulSet
+// While Updating TemplateLabels only give this flag as "templateLabels" , while updating matchLabels give this flag as "matchLabels"
+// TODO:: Remove this label in future once all the statefulsets are updated with the new template and match labels
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
 	"hbase-site.xml":                   XML,
@@ -467,13 +462,14 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
-	d kvstorev1.HbaseClusterDeployment, log logr.Logger, selectorMatchLabelsUpdateValue string, templateLabelsUpdateValue string) *appsv1.StatefulSet {
+	d kvstorev1.HbaseClusterDeployment, log logr.Logger, statefulSetLabelsUpdateValue string) *appsv1.StatefulSet {
 
 	ls := labelsForHbaseCluster(name, nil)
 
 	selectorMatchLabelsMap := make(map[string]string)
-	if selectorMatchLabelsUpdateValue == "yes" || selectorMatchLabelsUpdateValue == "true" {
+	if statefulSetLabelsUpdateValue == "matchLabels" {
 		selectorMatchLabelsMap = updateMatchLabelsForHbaseCluster(name, d.Name)
+		log.Info("Deploying StatefulSet with updated selector  match Labels for", "StatefulSet:", d.Name)
 	} else {
 		selectorMatchLabelsMap = ls
 	}
@@ -498,8 +494,9 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	}
 
 	templateLabelsMap := make(map[string]string)
-	if templateLabelsUpdateValue == "yes" || templateLabelsUpdateValue == "true" {
+	if statefulSetLabelsUpdateValue == "templateLabels" || statefulSetLabelsUpdateValue == "matchLabels" {
 		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
+		log.Info("Deploying StatefulSet with updated template labels for", "StatefulSet:", d.Name)
 	} else {
 		templateLabelsMap = d.Labels
 	}

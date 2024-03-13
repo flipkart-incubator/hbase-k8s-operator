@@ -143,12 +143,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 	if !statefulSetLabelsUpdateExists {
 		statefulSetLabelsUpdateValue = "false"
 	}
-
-	templateLabelsUpdateValue, templateLabelsUpdateExists := hbasecluster.Spec.ServiceLabels[TEMPLATE_LABELS_UPDATE]
-	if !templateLabelsUpdateExists {
-		templateLabelsUpdateValue = "false"
-	}
-
+	
 	for _, d := range deployments {
 		//TODO: Error handling
 		if d.IsPodServiceRequired {

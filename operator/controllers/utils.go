@@ -43,6 +43,8 @@ const RECONCILE_CONFIG_LABEL = "hbase-operator.cfg-statefulset-update/enable"
 // STATEFULSET_LABELS_UPDATE annotation is used to update template labels and matchLabels of StatefulSet
 // While Updating TemplateLabels only give this flag as "templateLabels" , while updating matchLabels give this flag as "matchLabels"
 // TODO:: Remove this label in future once all the statefulsets are updated with the new template and match labels
+const STATEFULSET_LABELS_UPDATE = "hbase-operator.cfg-statefulset-labels-update"
+
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
 	"hbase-site.xml":                   XML,

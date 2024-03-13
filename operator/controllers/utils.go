@@ -885,7 +885,6 @@ func labelsForStatefulSet(name string, configVersionWithStatefulSet string) map[
 func updateTemplateLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
 	statefulSetTemplateLabels := labelsForHbaseCluster(name, nil)
 	statefulSetTemplateLabels["statefulset.kubernetes.io/statefulset-name"] = statefulSetName
-
 	return statefulSetTemplateLabels
 }
 

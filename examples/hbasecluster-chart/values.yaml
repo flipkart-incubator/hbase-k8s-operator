@@ -32,6 +32,11 @@ serviceLabels:
  - key: value
 commands:
   faultDomainCommand: "cat /etc/nodeinfo | grep 'smd' | sed 's/smd=//' | sed 's/\"//g'"
+secrets:
+  configs:
+    - name: mySecret
+      token:
+        secretFile: "Uk1ek42cE1CK0dyaFBGZ2h1NnA1WldHTnBFMjRDeER4Tl"
 configMaps:
   envName: hbase-cluster
   configs:
@@ -157,6 +162,9 @@ deployments:
     - name: nodeinfo
       volumeSource: HostPath
       path: /etc/nodeinfo
+    - name: secret-volume
+      secretName: mySecret
+      volumeSource: Secret
     containers:
     - name: datanode
       cpuLimit: 0.5
@@ -180,7 +188,10 @@ deployments:
         mountPath: /lifecycle
       - name: nodeinfo
         mountPath: /etc/nodeinfo
-        readOnly: true 
+        readOnly: true
+      - name: secret-volume
+        readOnly: true
+        mountPath: /usr/secret
   namenode:
     name: hbase-cluster-nn
     replicas: 2

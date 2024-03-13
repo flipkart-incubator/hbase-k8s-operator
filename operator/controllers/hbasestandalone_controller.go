@@ -81,6 +81,16 @@ func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return result, err
 	}
 
+	selectorMatchLabelsUpdateValue, selectorMatchLabelsUpdateExists := hbasestandalone.Spec.ServiceLabels[SELECTOR_MATCH_LABELS_UPDATE]
+	if !selectorMatchLabelsUpdateExists {
+		selectorMatchLabelsUpdateValue = "false"
+	}
+
+	templateLabelsUpdateValue, templateLabelsUpdateExists := hbasestandalone.Spec.ServiceLabels[TEMPLATE_LABELS_UPDATE]
+	if !templateLabelsUpdateExists {
+		templateLabelsUpdateValue = "false"
+	}
+
 	cfg := buildConfigMap(hbasestandalone.Spec.Configuration.HbaseConfigName, hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.Configuration.HbaseConfig, hbasestandalone.Spec.Configuration.HbaseTenantConfig, log)
 	ctrl.SetControllerReference(hbasestandalone, cfg, r.Scheme)
 	result, err = reconcileConfigMap(ctx, log, hbasestandalone.Namespace, cfg, r.Client)
@@ -97,7 +107,7 @@ func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 
 	newSS := buildStatefulSet(hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.BaseImage,
 		false, hbasestandalone.Spec.Configuration, cfg.ResourceVersion, hbasestandalone.Spec.FSGroup,
-		hbasestandalone.Spec.Standalone, log)
+		hbasestandalone.Spec.Standalone, log, selectorMatchLabelsUpdateValue, templateLabelsUpdateValue)
 	ctrl.SetControllerReference(hbasestandalone, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasestandalone.Namespace, newSS, hbasestandalone.Spec.Standalone, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

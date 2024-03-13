@@ -471,7 +471,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	selectorMatchLabelsMap := make(map[string]string)
 	if statefulSetLabelsUpdateValue == "matchLabels" {
 		selectorMatchLabelsMap = updateMatchLabelsForHbaseCluster(name, d.Name)
-		log.Info("Deploying StatefulSet with updated selector  match Labels for", "StatefulSet:", d.Name)
+		log.Info("Deploying StatefulSet with new selector match Labels for", "StatefulSet:", d.Name)
 	} else {
 		selectorMatchLabelsMap = ls
 	}
@@ -498,7 +498,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	templateLabelsMap := make(map[string]string)
 	if statefulSetLabelsUpdateValue == "templateLabels" || statefulSetLabelsUpdateValue == "matchLabels" {
 		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
-		log.Info("Deploying StatefulSet with updated template labels for", "StatefulSet:", d.Name)
+		log.Info("Deploying StatefulSet with new template labels for", "StatefulSet:", d.Name)
 	} else {
 		templateLabelsMap = d.Labels
 	}

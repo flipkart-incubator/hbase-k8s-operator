@@ -43,7 +43,7 @@ const RECONCILE_CONFIG_LABEL = "hbase-operator.cfg-statefulset-update/enable"
 // STATEFULSET_LABELS_UPDATE annotation is used to update template labels and matchLabels of StatefulSet
 // While Updating TemplateLabels only give this flag as "templateLabels" , while updating matchLabels give this flag as "matchLabels"
 // TODO:: Remove this label in future once all the statefulsets are updated with the new template and match labels
-const STATEFULSET_LABELS_UPDATE = "hbase-operator.cfg-statefulset-labels-update"
+const STATEFULSET_LABELS_UPDATE = "hbase-operator.statefulset-labels-update"
 
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
@@ -468,14 +468,6 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 
 	ls := labelsForHbaseCluster(name, nil)
 
-	selectorMatchLabelsMap := make(map[string]string)
-	if statefulSetLabelsUpdateValue == "matchLabels" {
-		selectorMatchLabelsMap = updateMatchLabelsForStatefulSet(name, d.Name)
-		log.Info("Deploying StatefulSet with new selector match Labels for", "StatefulSet:", d.Name)
-	} else {
-		selectorMatchLabelsMap = ls
-	}
-
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
 	}
@@ -495,12 +487,19 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		log.Info("Updating StatefulSet Template Spec With ConfigVersion", STATEFULSET_V2_ANNOTATION, configVersion)
 	}
 
-	templateLabelsMap := make(map[string]string)
-	if statefulSetLabelsUpdateValue == "templateLabels" || statefulSetLabelsUpdateValue == "matchLabels" {
+	// Assign templateLabelsMap existing labels . If statefulSetLabelsUpdateValue set to templateLabels then update the templateLabelsMap
+	templateLabelsMap := d.Labels
+	if statefulSetLabelsUpdateValue == "templateLabels" {
 		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
 		log.Info("Deploying StatefulSet with new template labels for", "StatefulSet:", d.Name)
-	} else {
-		templateLabelsMap = d.Labels
+	}
+
+	//Assign selectorMatchLabelsMap existing labels . If statefulSetLabelsUpdateValue set to matchLabels then update the selectorMatchLabelsMap
+	selectorMatchLabelsMap := ls
+	if statefulSetLabelsUpdateValue == "matchLabels" {
+		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
+		selectorMatchLabelsMap = updateMatchLabelsForStatefulSet(name, d.Name)
+		log.Info("Deploying StatefulSet with new selector match Labels for", "StatefulSet:", d.Name)
 	}
 
 	dep := &appsv1.StatefulSet{

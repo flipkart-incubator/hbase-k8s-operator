@@ -40,6 +40,11 @@ const STATEFULSET_V2_ANNOTATION = "hbase-operator/hbase-config-version"
 // RECONCILE_CONFIG_LABEL annotation is used to control if configMap changes needs to be bound with StatefulSet
 const RECONCILE_CONFIG_LABEL = "hbase-operator.cfg-statefulset-update/enable"
 
+// STATEFULSET_LABELS_UPDATE annotation is used to update template labels and matchLabels of StatefulSet
+// While Updating TemplateLabels only give this flag as "templateLabels" , while updating matchLabels give this flag as "matchLabels"
+// TODO:: Remove this label in future once all the statefulsets are updated with the new template and match labels
+const STATEFULSET_LABELS_UPDATE = "hbase-operator.statefulset-labels-update"
+
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
 	"hbase-site.xml":                   XML,
@@ -459,7 +464,7 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
-	d kvstorev1.HbaseClusterDeployment, log logr.Logger) *appsv1.StatefulSet {
+	d kvstorev1.HbaseClusterDeployment, log logr.Logger, statefulSetLabelsUpdateValue string) *appsv1.StatefulSet {
 
 	ls := labelsForHbaseCluster(name, nil)
 
@@ -482,23 +487,37 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		log.Info("Updating StatefulSet Template Spec With ConfigVersion", STATEFULSET_V2_ANNOTATION, configVersion)
 	}
 
+	// Assign templateLabelsMap existing labels . If statefulSetLabelsUpdateValue set to templateLabels then update the templateLabelsMap
+	templateLabelsMap := d.Labels
+	if statefulSetLabelsUpdateValue == "templateLabels" {
+		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
+		log.Info("Deploying StatefulSet with new template labels for", "StatefulSet:", d.Name)
+	}
+
+	//Assign selectorMatchLabelsMap existing labels . If statefulSetLabelsUpdateValue set to matchLabels then update the selectorMatchLabelsMap
+	selectorMatchLabelsMap := ls
+	if statefulSetLabelsUpdateValue == "matchLabels" {
+		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
+		selectorMatchLabelsMap = updateMatchLabelsForStatefulSet(name, d.Name)
+		log.Info("Deploying StatefulSet with new selector match Labels for", "StatefulSet:", d.Name)
+	}
+
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.Name,
 			Namespace: namespace,
-			Labels:    labelsForStatefulSet(d.Name, configVersion),
 		},
 		Spec: appsv1.StatefulSetSpec{
 			Replicas:            &d.Size,
 			ServiceName:         name,
 			PodManagementPolicy: d.PodManagementPolicy,
 			Selector: &metav1.LabelSelector{
-				MatchLabels: ls,
+				MatchLabels: selectorMatchLabelsMap,
 			},
 			VolumeClaimTemplates: buildVolumeClaims(namespace, d.VolumeClaims),
 			Template: corev1.PodTemplateSpec{
 				ObjectMeta: metav1.ObjectMeta{
-					Labels:      d.Labels,
+					Labels:      templateLabelsMap,
 					Annotations: d.Annotations,
 				},
 
@@ -838,17 +857,24 @@ func labelsForHbaseCluster(name string, labels map[string]string) map[string]str
 	}
 }
 
-// Add statefulSet label if configVersion is mentioned
+func labelsForStatefulSet(name string, statefulSetName string) map[string]string {
+	statefulSetMatchLabel := labelsForHbaseCluster(name, nil)
+	statefulSetMatchLabel["statefulset.kubernetes.io/statefulset-name"] = statefulSetName
+	return statefulSetMatchLabel
+}
+
+// Modify match labels if updateSelectorMatchLabels is set as true
+// Kubernetes does not allow you to make changes to selector match labels , this will be called when statefulset is deleted with pods in orphaned state
+func updateMatchLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
+	statefulSetMatchLabel := labelsForStatefulSet(name, statefulSetName)
+	return statefulSetMatchLabel
+}
+
+// Modify template labels if updateTemplateLabels is set as true
 // This is to prevent cluster restart at once for all namespaces when Operator change is deployed
-// The change will start to take effect with STATEFULSET_V2_ANNOTATION change
-func labelsForStatefulSet(name string, configVersionWithStatefulSet string) map[string]string {
-	statefulSetLabel := make(map[string]string)
-	// TODO: Remove this check once the migration is completed
-	if len(configVersionWithStatefulSet) > 0 {
-		statefulSetLabel["statefulset.kubernetes.io/statefulset-name"] = name
-		return statefulSetLabel
-	}
-	return nil
+func updateTemplateLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
+	statefulSetTemplateLabels := labelsForStatefulSet(name, statefulSetName)
+	return statefulSetTemplateLabels
 }
 
 // getPodNames returns the pod names of the array of pods passed in

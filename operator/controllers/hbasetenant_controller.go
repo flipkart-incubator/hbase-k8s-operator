@@ -118,6 +118,11 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		resourceVersionOfHbaseConfigMap = getExistingAnnotationOfStatefulSet(log, r.Client, ctx, hbasetenant)
 	}
 
+	statefulSetLabelsUpdateValue, statefulSetLabelsUpdateExists := hbasetenant.Spec.ServiceLabels[STATEFULSET_LABELS_UPDATE]
+	if !statefulSetLabelsUpdateExists {
+		statefulSetLabelsUpdateValue = "false"
+	}
+
 	svc := buildService(hbasetenant.Name, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.ServiceLabels, hbasetenant.Spec.ServiceSelectorLabels, []kvstorev1.HbaseClusterDeployment{hbasetenant.Spec.Datanode}, true)
 	ctrl.SetControllerReference(hbasetenant, svc, r.Scheme)
 	result, err := reconcileService(ctx, log, hbasetenant.Namespace, svc, r.Client)
@@ -126,7 +131,7 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	}
 
 	newSS := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
-		hbasetenant.Spec.Configuration, resourceVersionOfHbaseConfigMap, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, log)
+		hbasetenant.Spec.Configuration, resourceVersionOfHbaseConfigMap, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, log, statefulSetLabelsUpdateValue)
 	ctrl.SetControllerReference(hbasetenant, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasetenant.Namespace, newSS, hbasetenant.Spec.Datanode, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

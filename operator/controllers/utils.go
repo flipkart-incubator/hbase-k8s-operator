@@ -857,7 +857,7 @@ func labelsForHbaseCluster(name string, labels map[string]string) map[string]str
 	}
 }
 
-func updateCommonLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
+func labelsForStatefulSet(name string, statefulSetName string) map[string]string {
 	statefulSetMatchLabel := labelsForHbaseCluster(name, nil)
 	statefulSetMatchLabel["statefulset.kubernetes.io/statefulset-name"] = statefulSetName
 	return statefulSetMatchLabel
@@ -866,14 +866,14 @@ func updateCommonLabelsForStatefulSet(name string, statefulSetName string) map[s
 // Modify match labels if updateSelectorMatchLabels is set as true
 // Kubernetes does not allow you to make changes to selector match labels , this will be called when statefulset is deleted with pods in orphaned state
 func updateMatchLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
-	statefulSetMatchLabel := updateCommonLabelsForStatefulSet(name, statefulSetName)
+	statefulSetMatchLabel := labelsForStatefulSet(name, statefulSetName)
 	return statefulSetMatchLabel
 }
 
 // Modify template labels if updateTemplateLabels is set as true
 // This is to prevent cluster restart at once for all namespaces when Operator change is deployed
 func updateTemplateLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
-	statefulSetTemplateLabels := updateCommonLabelsForStatefulSet(name, statefulSetName)
+	statefulSetTemplateLabels := labelsForStatefulSet(name, statefulSetName)
 	return statefulSetTemplateLabels
 }
 

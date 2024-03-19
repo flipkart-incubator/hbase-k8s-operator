@@ -490,14 +490,14 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	// Assign templateLabelsMap existing labels . If statefulSetLabelsUpdateValue set to templateLabels then update the templateLabelsMap
 	templateLabelsMap := d.Labels
 	if statefulSetLabelsUpdateValue == "templateLabels" {
-		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
+		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name, templateLabelsMap)
 		log.Info("Deploying StatefulSet with new template labels for", "StatefulSet:", d.Name)
 	}
 
 	//Assign selectorMatchLabelsMap existing labels . If statefulSetLabelsUpdateValue set to matchLabels then update the selectorMatchLabelsMap
 	selectorMatchLabelsMap := ls
 	if statefulSetLabelsUpdateValue == "matchLabels" {
-		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name)
+		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name, templateLabelsMap)
 		selectorMatchLabelsMap = updateMatchLabelsForStatefulSet(name, d.Name)
 		log.Info("Deploying StatefulSet with new selector match Labels for", "StatefulSet:", d.Name)
 	}
@@ -872,8 +872,15 @@ func updateMatchLabelsForStatefulSet(name string, statefulSetName string) map[st
 
 // Modify template labels if updateTemplateLabels is set as true
 // This is to prevent cluster restart at once for all namespaces when Operator change is deployed
-func updateTemplateLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
-	statefulSetTemplateLabels := labelsForStatefulSet(name, statefulSetName)
+func updateTemplateLabelsForStatefulSet(name string, statefulSetName string, existingLabels map[string]string) map[string]string {
+	statefulSetTemplateLabels := existingLabels
+	statefulSetNewTemplateLabels := labelsForStatefulSet(name, statefulSetName)
+
+	// Merge additional labels
+	for key, value := range statefulSetNewTemplateLabels {
+		statefulSetTemplateLabels[key] = value
+	}
+
 	return statefulSetTemplateLabels
 }
 

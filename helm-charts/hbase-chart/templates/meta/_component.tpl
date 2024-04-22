@@ -91,6 +91,7 @@
   {{- range $index, $elem := .root.initContainers }}
   - name: {{ .name }}
     isBootstrap: {{ default false .isBootstrap }}
+    spawnState: {{ default "default" .spawnState }}
     command:
     - /bin/bash
     - -c

@@ -1,6 +1,7 @@
 {{- define "hbasecluster.initnnbootstrapscript" }}
 - name: init-namenode-bootstrap
   isBootstrap: false
+  spawnState: "afterBootstrap"
   command:
   - /bin/bash
   - -c
@@ -12,15 +13,15 @@
     export HADOOP_CONF_DIR={{ .Values.configuration.hadoopConfigMountPath }}
     export HADOOP_HOME={{ .Values.configuration.hadoopHomePath }}
 
-    metadataVersionOutput=$($HADOOP_HOME/bin/hdfs namenode -metadataVersion 2>&1)
-    if echo "$metadataVersionOutput" | grep -q "java.io.FileNotFoundException: /grid/1/dfs/nn/current/VERSION"
+    $HADOOP_HOME/bin/hdfs namenode -metadataVersion 2>&1; exit_code=$?
+    if [ $exit_code -eq 1 ]
     then
-      echo "Namenode Directory does not exist ,checking for fsck health"
-      fsckOutput=$($HADOOP_HOME/bin/hdfs fsck /hbase 2>&1)
-      if echo "$fsckOutput" | grep -q "Status: HEALTHY"
+      echo "namenode metadata not accessible ,checking for fsck health"
+      $HADOOP_HOME/bin/hdfs fsck /hbase 2>&1; exit_code=$?
+      if [ $exit_code -eq 0 ]
       then
         echo "Namenode Directory does not exist but fsck is healthy, so copying fsimage and edits from active namenode"
-        echo "Y" | $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby
+        $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby -nonInteractive
       else
         echo "Namenode Directory does not exist and fsck is not healthy, so exiting"
         exit 1

@@ -110,6 +110,8 @@ type HbaseClusterInitContainer struct {
 	SecurityContext HbaseClusterSecurity      `json:"securityContext"`
 	//+optional
 	IsBootstrap bool `json:"isBootstrap"`
+	//+optional
+	SpawnState string `json:"spawnState"`
 }
 
 type HbaseClusterVolumeClaim struct {

@@ -255,7 +255,7 @@ func buildInitContainers(baseImage string, config kvstorev1.HbaseClusterConfigur
 
 	for _, c := range cs {
 		//Ignore init containers whose IsBootstrap value is true if not bootstrap
-		if !c.IsBootstrap || isBootstrap {
+		if !c.IsBootstrap || (isBootstrap && c.SpawnState == "default") || (!isBootstrap && c.SpawnState == "afterBootstrap") {
 			containers = append(containers, corev1.Container{
 				Image:   baseImage,
 				Name:    c.Name,

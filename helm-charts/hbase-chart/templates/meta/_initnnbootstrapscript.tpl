@@ -26,7 +26,7 @@
         exit 1
       fi
     else
-      echo "Namenode metadata is accessible"
+      echo "Namenode metadata is accessible , so skipping bootstrap"
     fi
   cpuLimit: "0.5"
   memoryLimit: "512Mi"

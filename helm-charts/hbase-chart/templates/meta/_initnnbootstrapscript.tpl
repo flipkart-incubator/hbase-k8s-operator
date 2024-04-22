@@ -1,7 +1,6 @@
 {{- define "hbasecluster.initnnbootstrapscript" }}
 - name: init-namenode-bootstrap
   isBootstrap: false
-  spawnState: "afterBootstrap"
   command:
   - /bin/bash
   - -c

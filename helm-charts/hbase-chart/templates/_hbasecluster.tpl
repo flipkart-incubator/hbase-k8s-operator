@@ -120,7 +120,7 @@ spec:
       {{- include "hbasecluster.component" $data | indent 4 }}
     namenode:
       {{- $podManagementPolicy := "OrderedReady" }}
-      {{- $initContainers := list $dnsContainer $initnnContainer $initnnbootstrapContainer $initzkfcContainer }}
+      {{- $initContainers := list $dnsContainer $initnnContainer $initzkfcContainer $initnnbootstrapContainer }}
       {{- $nnscript := include "hbasecluster.nnscript" . | indent 6 }}
       {{- $zkfcscript := include "hbasecluster.zkfcscript" . | indent 6 }}
       {{- $nnprobescript := include "hbasecluster.nnprobescript" . | indent 8 }}

@@ -59,8 +59,8 @@ spec:
     {{- $refreshNamenodeContainer := include "hbasecluster.refreshnn" . | indent 2 }}
     {{- $dnsContainer := include "hbasecluster.dnslookup" . | indent 2 }}
     {{- $initnnContainer := include "hbasecluster.initnnscript" . | indent 2 }}
-    {{- $initnnbootstrapContainer := include "hbasecluster.initnnbootstrapscript" . | indent 2 }}
     {{- $initzkfcContainer := include "hbasecluster.initzkfcscript" . | indent 2 }}
+    {{- $initnnbootstrapContainer := include "hbasecluster.initnnbootstrapscript" . | indent 2 }}
     {{- if .Values.deployments.zookeeper }}
     zookeeper: 
       {{- $podManagementPolicy := "Parallel" }}

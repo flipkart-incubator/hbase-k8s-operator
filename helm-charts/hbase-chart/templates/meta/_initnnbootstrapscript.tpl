@@ -1,5 +1,5 @@
 {{- define "hbasecluster.initnnbootstrapscript" }}
-- name: init-namenode-bootstrap
+- name: init-nn-bootstrap-standby
   isBootstrap: false
   command:
   - /bin/bash
@@ -15,16 +15,18 @@
     $HADOOP_HOME/bin/hdfs namenode -metadataVersion 2>&1; exit_code=$?
     if [ $exit_code -eq 1 ]
     then
-      echo "namenode metadata not accessible ,checking for fsck health"
+      echo "Namenode metadata is not accessible , checking for fsck health"
       $HADOOP_HOME/bin/hdfs fsck /hbase 2>&1; exit_code=$?
       if [ $exit_code -eq 0 ]
       then
-        echo "Namenode Directory does not exist but fsck is healthy, so copying fsimage and edits from active namenode"
+        echo "Fsck is healthy, so bootstrapping standby namenode"
         $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby -nonInteractive
       else
-        echo "Namenode Directory does not exist and fsck is not healthy, so exiting"
+        echo "Namenode metadata is not accessible and fsck is not healthy, exiting !"
         exit 1
       fi
+    else
+      echo "Namenode metadata is accessible"
     fi
   cpuLimit: "0.5"
   memoryLimit: "512Mi"

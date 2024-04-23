@@ -60,6 +60,7 @@ spec:
     {{- $dnsContainer := include "hbasecluster.dnslookup" . | indent 2 }}
     {{- $initnnContainer := include "hbasecluster.initnnscript" . | indent 2 }}
     {{- $initzkfcContainer := include "hbasecluster.initzkfcscript" . | indent 2 }}
+    {{- $initnnbootstrapContainer := include "hbasecluster.initnnbootstrapscript" . | indent 2 }}
     {{- if .Values.deployments.zookeeper }}
     zookeeper: 
       {{- $podManagementPolicy := "Parallel" }}
@@ -119,7 +120,7 @@ spec:
       {{- include "hbasecluster.component" $data | indent 4 }}
     namenode:
       {{- $podManagementPolicy := "OrderedReady" }}
-      {{- $initContainers := list $dnsContainer $initnnContainer $initzkfcContainer }}
+      {{- $initContainers := list $dnsContainer $initnnContainer $initzkfcContainer $initnnbootstrapContainer }}
       {{- $nnscript := include "hbasecluster.nnscript" . | indent 6 }}
       {{- $zkfcscript := include "hbasecluster.zkfcscript" . | indent 6 }}
       {{- $nnprobescript := include "hbasecluster.nnprobescript" . | indent 8 }}

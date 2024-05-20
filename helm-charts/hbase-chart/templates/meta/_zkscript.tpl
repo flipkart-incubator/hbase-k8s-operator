@@ -17,8 +17,8 @@ function shutdown() {
   echo "Stopping Zookeeper"
   $HBASE_HOME/bin/hbase-daemon.sh stop zookeeper
   if [ $exit_status != 0 ]; then
-	  echo "Leader stopped, sleeping for 120 seconds"
-	  sleep 120
+	  echo "Leader stopped, sleeping for 60 seconds"
+	  sleep 60
   fi
 }
 

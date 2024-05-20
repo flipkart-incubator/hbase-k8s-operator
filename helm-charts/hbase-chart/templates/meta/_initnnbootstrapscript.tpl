@@ -1,6 +1,14 @@
 {{- define "hbasecluster.initnnbootstrapscript" }}
 - name: init-nn-bootstrap-standby
   isBootstrap: false
+  {{- $namenodeCpu := "0.5" }}
+  {{- $namenodeMemory := "512Mi" }}
+  {{- range $key, $value := .Values.deployments.namenode.containers }}
+    {{- if eq $value.name "namenode" }}
+      {{- $namenodeMemory = $value.memoryLimit }}
+      {{- $namenodeCpu = $value.cpuLimit }}
+    {{- end }}
+  {{- end }}
   command:
   - /bin/bash
   - -c
@@ -20,10 +28,10 @@
     else
       echo "Namenode metadata is accessible , so skipping bootstrap"
     fi
-  cpuLimit: "0.5"
-  memoryLimit: "512Mi"
-  cpuRequest: "0.5"
-  memoryRequest: "512Mi"
+  cpuLimit: {{ $namenodeCpu | quote }}
+  memoryLimit: {{ $namenodeMemory | quote }}
+  cpuRequest: {{ $namenodeCpu | quote }}
+  memoryRequest: {{ $namenodeMemory | quote }}
   securityContext:
     runAsUser: {{ .Values.service.runAsUser }}
     runAsGroup: {{ .Values.service.runAsGroup }}

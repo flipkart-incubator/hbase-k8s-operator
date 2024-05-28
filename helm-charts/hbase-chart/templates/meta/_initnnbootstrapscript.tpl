@@ -1,6 +1,14 @@
 {{- define "hbasecluster.initnnbootstrapscript" }}
 - name: init-nn-bootstrap-standby
   isBootstrap: false
+  {{- $namenodeCpu := "0.5" }}
+  {{- $namenodeMemory := "512Mi" }}
+  {{- range $key, $value := .Values.deployments.namenode.containers }}
+    {{- if eq $value.name "namenode" }}
+      {{- $namenodeMemory = $value.memoryLimit }}
+      {{- $namenodeCpu = $value.cpuLimit }}
+    {{- end }}
+  {{- end }}
   command:
   - /bin/bash
   - -c
@@ -15,23 +23,15 @@
     $HADOOP_HOME/bin/hdfs namenode -metadataVersion 2>&1; exit_code=$?
     if [ $exit_code -eq 1 ]
     then
-      echo "Namenode metadata is not accessible , checking for fsck health"
-      $HADOOP_HOME/bin/hdfs fsck /hbase 2>&1; exit_code=$?
-      if [ $exit_code -eq 0 ]
-      then
-        echo "Fsck is healthy, so bootstrapping standby namenode"
-        $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby -nonInteractive
-      else
-        echo "Namenode metadata is not accessible and fsck is not healthy, exiting !"
-        exit 1
-      fi
+      echo "Namenode metadata is not accessible , running bootstrap standby"
+      $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby -nonInteractive
     else
       echo "Namenode metadata is accessible , so skipping bootstrap"
     fi
-  cpuLimit: "0.5"
-  memoryLimit: "512Mi"
-  cpuRequest: "0.5"
-  memoryRequest: "512Mi"
+  cpuLimit: {{ $namenodeCpu | quote }}
+  memoryLimit: {{ $namenodeMemory | quote }}
+  cpuRequest: {{ $namenodeCpu | quote }}
+  memoryRequest: {{ $namenodeMemory | quote }}
   securityContext:
     runAsUser: {{ .Values.service.runAsUser }}
     runAsGroup: {{ .Values.service.runAsGroup }}

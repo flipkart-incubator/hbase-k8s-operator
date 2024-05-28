@@ -12,8 +12,14 @@ touch $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).log &&  tail -F $HBASE_LO
 touch $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).out &&  tail -F $HBASE_LOG_DIR/hbase-$USER-zookeeper-$(hostname).out &
 
 function shutdown() {
+  echo stat | nc localhost 2181 | grep "Mode: follower"
+  exit_status=$?
   echo "Stopping Zookeeper"
   $HBASE_HOME/bin/hbase-daemon.sh stop zookeeper
+  if [ $exit_status != 0 ]; then
+	  echo "Leader stopped, sleeping for 60 seconds"
+	  sleep 60
+  fi
 }
 
 trap shutdown SIGTERM

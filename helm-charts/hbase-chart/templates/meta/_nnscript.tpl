@@ -57,7 +57,6 @@ done
 echo "My Service: $MY_SERVICE"
 
 trap shutdown SIGTERM
-echo "N" | $HADOOP_HOME/bin/hdfs namenode -bootstrapStandby || true
 exec $HADOOP_HOME/bin/hdfs namenode 2>&1 | tee -a $HADOOP_LOG_FILE &
 wait
 {{- end }}

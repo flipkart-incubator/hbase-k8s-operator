@@ -555,8 +555,8 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		dep.Spec.Template.Spec.HostAliases = d.HostAliases
 	}
 
-	if len(d.TopologySpreadConstraints) > 0 {
-		dep.Spec.Template.Spec.TopologySpreadConstraints = d.TopologySpreadConstraints
+	if len(d.TopologySpreadConstraint) > 0 {
+		dep.Spec.Template.Spec.TopologySpreadConstraint = d.TopologySpreadConstraint
 	}
 
 	return dep

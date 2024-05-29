@@ -169,6 +169,8 @@ type HbaseClusterDeployment struct {
 	DNSConfig *corev1.PodDNSConfig `json:"dnsConfig,omitempty"`
 	// +optional
 	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty" patchStrategy:"merge" patchMergeKey:"ip"`
+	// +optional
+	TopologySpreadConstraint []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" patchStrategy:"merge" patchMergeKey:"topologyKey" protobuf:"bytes,33,opt,name=topologySpreadConstraints"`
 }
 
 type HbaseClusterConfiguration struct {

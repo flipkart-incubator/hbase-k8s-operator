@@ -459,9 +459,9 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
-	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isHbaseCluster bool) *appsv1.StatefulSet {
+	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isMultiStatefulSet bool) *appsv1.StatefulSet {
 
-	ls := generateCommonLabels(name, nil)
+	ls := createSharedLabelMap(name, nil)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -487,7 +487,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	selectorMatchLabelsMap := ls
 
 	// If its hbase core cluster , assign templateLabels and matchLabels different labels on top of existing labels
-	if isHbaseCluster {
+	if isMultiStatefulSet {
 		templateLabelsMap = templateLabelsForHbaseCluster(name, d.Name, templateLabelsMap)
 		selectorMatchLabelsMap = matchLabelsForHbaseCluster(name, d.Name)
 	}
@@ -575,7 +575,7 @@ func buildService(svcName string, crName string, namespace string, labels map[st
 			Type:                     corev1.ServiceTypeClusterIP,
 			ClusterIP:                "None",
 			PublishNotReadyAddresses: true,
-			Selector:                 generateCommonLabels(svcName, selectorLabels),
+			Selector:                 createSharedLabelMap(svcName, selectorLabels),
 			Ports:                    ports,
 		}
 	} else {
@@ -840,7 +840,7 @@ func labelsForPodService(crName string, name string, labels map[string]string) m
 }
 
 // common template and match labels for cluster
-func generateCommonLabels(name string, labels map[string]string) map[string]string {
+func createSharedLabelMap(name string, labels map[string]string) map[string]string {
 	if labels == nil {
 		return map[string]string{"app": "hbasecluster", "hbasecluster_cr": name}
 	} else {
@@ -851,7 +851,7 @@ func generateCommonLabels(name string, labels map[string]string) map[string]stri
 }
 
 func labelsForStatefulSet(name string, statefulSetName string) map[string]string {
-	statefulSetMatchLabel := generateCommonLabels(name, nil)
+	statefulSetMatchLabel := createSharedLabelMap(name, nil)
 	statefulSetMatchLabel["statefulset.kubernetes.io/statefulset-name"] = statefulSetName
 	return statefulSetMatchLabel
 }

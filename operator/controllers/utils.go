@@ -461,7 +461,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isMultiStatefulSet bool) *appsv1.StatefulSet {
 
-	ls := createSharedLabelsMap(name, nil)
+	ls := getSharedLabelsMap(name, nil)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -578,7 +578,7 @@ func buildService(svcName string, crName string, namespace string, labels map[st
 			Type:                     corev1.ServiceTypeClusterIP,
 			ClusterIP:                "None",
 			PublishNotReadyAddresses: true,
-			Selector:                 createSharedLabelsMap(svcName, selectorLabels),
+			Selector:                 getSharedLabelsMap(svcName, selectorLabels),
 			Ports:                    ports,
 		}
 	} else {
@@ -844,7 +844,7 @@ func labelsForPodService(crName string, name string, labels map[string]string) m
 
 // This function is responsible for creating a map of shared labels for StatefulSets.
 // These labels are used to identify the StatefulSets that belong to the HBase cluster.
-func createSharedLabelsMap(name string, labels map[string]string) map[string]string {
+func getSharedLabelsMap(name string, labels map[string]string) map[string]string {
 	if labels == nil {
 		return map[string]string{"app": "hbasecluster", "hbasecluster_cr": name}
 	} else {
@@ -855,7 +855,7 @@ func createSharedLabelsMap(name string, labels map[string]string) map[string]str
 }
 
 func labelsForStatefulSet(name string, statefulSetName string) map[string]string {
-	statefulSetMatchLabel := createSharedLabelsMap(name, nil)
+	statefulSetMatchLabel := getSharedLabelsMap(name, nil)
 	statefulSetMatchLabel["statefulset.kubernetes.io/statefulset-name"] = statefulSetName
 	return statefulSetMatchLabel
 }

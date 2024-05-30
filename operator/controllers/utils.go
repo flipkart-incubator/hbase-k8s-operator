@@ -461,7 +461,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isMultiStatefulSet bool) *appsv1.StatefulSet {
 
-	ls := createSharedLabelMap(name, nil)
+	ls := createSharedLabelsMap(name, nil)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -482,14 +482,17 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		log.Info("Updating StatefulSet Template Spec With ConfigVersion", STATEFULSET_V2_ANNOTATION, configVersion)
 	}
 
-	// Assign templateLabels and matchLabels common labels for both tenant and cluster
+	// Assign values to templateLabels and matchLabels maps. These maps are used to set the labels for the Kubernetes objects.
+	// templateLabels are used to set the labels of the Pod template within the StatefulSet.
+	// matchLabels are used to set the labels that the StatefulSet's selector should match to find Pods to manage.
 	templateLabelsMap := d.Labels
 	selectorMatchLabelsMap := ls
 
-	// If its hbase core cluster , assign templateLabels and matchLabels different labels on top of existing labels
+	// For multiStatefulSet, we assign additional labels to the templateLabels and matchLabels maps.
+	// These labels are added on top of any existing labels. This is done to differentiate the core Hbase cluster from other clusters.
 	if isMultiStatefulSet {
-		templateLabelsMap = templateLabelsForHbaseCluster(name, d.Name, templateLabelsMap)
-		selectorMatchLabelsMap = matchLabelsForHbaseCluster(name, d.Name)
+		templateLabelsMap = templateLabelsForMultiStatefulSet(name, d.Name, templateLabelsMap)
+		selectorMatchLabelsMap = matchLabelsForMultiStatefulSet(name, d.Name)
 	}
 
 	dep := &appsv1.StatefulSet{
@@ -575,7 +578,7 @@ func buildService(svcName string, crName string, namespace string, labels map[st
 			Type:                     corev1.ServiceTypeClusterIP,
 			ClusterIP:                "None",
 			PublishNotReadyAddresses: true,
-			Selector:                 createSharedLabelMap(svcName, selectorLabels),
+			Selector:                 createSharedLabelsMap(svcName, selectorLabels),
 			Ports:                    ports,
 		}
 	} else {
@@ -839,8 +842,9 @@ func labelsForPodService(crName string, name string, labels map[string]string) m
 	}
 }
 
-// common template and match labels for cluster
-func createSharedLabelMap(name string, labels map[string]string) map[string]string {
+// This function is responsible for creating a map of shared labels for StatefulSets.
+// These labels are used to identify the StatefulSets that belong to the HBase cluster.
+func createSharedLabelsMap(name string, labels map[string]string) map[string]string {
 	if labels == nil {
 		return map[string]string{"app": "hbasecluster", "hbasecluster_cr": name}
 	} else {
@@ -851,19 +855,19 @@ func createSharedLabelMap(name string, labels map[string]string) map[string]stri
 }
 
 func labelsForStatefulSet(name string, statefulSetName string) map[string]string {
-	statefulSetMatchLabel := createSharedLabelMap(name, nil)
+	statefulSetMatchLabel := createSharedLabelsMap(name, nil)
 	statefulSetMatchLabel["statefulset.kubernetes.io/statefulset-name"] = statefulSetName
 	return statefulSetMatchLabel
 }
 
-// generating match Labels for core hbase cluster
-func matchLabelsForHbaseCluster(name string, statefulSetName string) map[string]string {
+// This function is responsible for creating a map of labels that are used to match multiple StatefulSets in a Kubernetes cluster.
+func matchLabelsForMultiStatefulSet(name string, statefulSetName string) map[string]string {
 	statefulSetMatchLabel := labelsForStatefulSet(name, statefulSetName)
 	return statefulSetMatchLabel
 }
 
-// generating template Labels for core hbase cluster
-func templateLabelsForHbaseCluster(name string, statefulSetName string, existingLabels map[string]string) map[string]string {
+// This function is responsible for creating a map of labels for StatefulSets in a multi-StatefulSet scenario.
+func templateLabelsForMultiStatefulSet(name string, statefulSetName string, existingLabels map[string]string) map[string]string {
 	statefulSetTemplateLabels := existingLabels
 	statefulSetNewTemplateLabels := labelsForStatefulSet(name, statefulSetName)
 

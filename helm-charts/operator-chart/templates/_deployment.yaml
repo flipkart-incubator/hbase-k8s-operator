@@ -73,7 +73,7 @@ spec:
         resources:
           limits:
             cpu: {{ $resource.cpuLimit }}
-            memory: {{ $resource.memorLimit }}
+            memory: {{ $resource.memoryLimit }}
           requests:
             cpu: {{ $resource.cpuRequest }}
             memory: {{ $resource.memoryRequest }}

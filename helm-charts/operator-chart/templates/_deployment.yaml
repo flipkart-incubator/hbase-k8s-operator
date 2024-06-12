@@ -69,11 +69,11 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: {{ default 150m .Values.resource.cpuLimit }}
-            memory: {{ default 250Mi .Values.resource.memoryLimit }}
+            cpu: {{ default "150m" .Values.resource.cpuLimit }}
+            memory: {{ default "250Mi" .Values.resource.memoryLimit }}
           requests:
-            cpu: {{ default 150m  .Values.resource.cpuRequest }}
-            memory: {{ default 250Mi  .Values.resource.memoryRequest }}
+            cpu: {{ default "150m"  .Values.resource.cpuRequest }}
+            memory: {{ default "250Mi"  .Values.resource.memoryRequest }}
         securityContext:
           allowPrivilegeEscalation: false
       securityContext:

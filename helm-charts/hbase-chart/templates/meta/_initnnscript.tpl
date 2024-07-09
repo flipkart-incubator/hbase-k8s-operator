@@ -28,7 +28,7 @@
         echo "Command succeeded with exit status $exit_status, breaking the loop."
         break
       else
-        # If the format command was not successful, check if there is any active namenode
+        # If the format command was not successful, check if there is any active namenode that has come up
         output=$($HADOOP_HOME/bin/hdfs haadmin -getAllServiceState)
         # If there is an active namenode, break the loop
         if echo "$output" | grep -q "active"; then
@@ -37,8 +37,8 @@
         else
           # If there is no active namenode, retry the format command
           echo "Command failed with exit status $exit_status and no active namenode found, retrying..."
-          # Sleep for a random time between 0 and 5 seconds . This is done to avoid the racing condition between different namenodes
-          sleep_time=$((RANDOM % 6))
+          # Sleep for a random time between 0 and 15 seconds . This is done to avoid the racing condition between different namenodes
+          sleep_time=$((RANDOM % 16))
           echo "Sleeping for $sleep_time seconds"
           sleep $sleep_time
         fi

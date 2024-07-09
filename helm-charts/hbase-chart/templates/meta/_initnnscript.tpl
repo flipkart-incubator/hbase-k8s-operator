@@ -23,7 +23,6 @@
 
     while true; do
       echo "N" | $HADOOP_HOME/bin/hdfs namenode -format $($HADOOP_HOME/bin/hdfs getconf -confKey dfs.nameservices) ; exit_code=$?
-
       # If the format command was successful, break the loop
       if [ $exit_code -eq 0 ]; then
         echo "Command succeeded with exit status $exit_status, breaking the loop."
@@ -31,7 +30,6 @@
       else
         # If the format command was not successful, check if there is any active namenode
         output=$($HADOOP_HOME/bin/hdfs haadmin -getAllServiceState)
-
         # If there is an active namenode, break the loop
         if echo "$output" | grep -q "active"; then
           echo "Active namenode found, breaking the loop."

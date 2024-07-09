@@ -21,7 +21,32 @@
     export HADOOP_CONF_DIR={{ .Values.configuration.hadoopConfigMountPath }}
     export HADOOP_HOME={{ .Values.configuration.hadoopHomePath }}
 
-    echo "N" | $HADOOP_HOME/bin/hdfs namenode -format $($HADOOP_HOME/bin/hdfs getconf -confKey dfs.nameservices) || true
+    while true; do
+      echo "N" | $HADOOP_HOME/bin/hdfs namenode -format $($HADOOP_HOME/bin/hdfs getconf -confKey dfs.nameservices) ; exit_code=$?
+
+      # If the format command was successful, break the loop
+      if [ $exit_code -eq 0 ]; then
+        echo "Command succeeded with exit status $exit_status, breaking the loop."
+        break
+      else
+        # If the format command was not successful, check if there is any active namenode
+        output=$($HADOOP_HOME/bin/hdfs haadmin -getAllServiceState)
+
+        # If there is an active namenode, break the loop
+        if echo "$output" | grep -q "active"; then
+          echo "Active namenode found, breaking the loop."
+          break
+        else
+          # If there is no active namenode, retry the format command
+          echo "Command failed with exit status $exit_status and no active namenode found, retrying..."
+          # Sleep for a random time between 0 and 5 seconds . This is done to avoid the racing condition between different namenodes
+          sleep_time=$((RANDOM % 6))
+          echo "Sleeping for $sleep_time seconds"
+          sleep $sleep_time
+        fi
+      fi
+    done
+
   cpuLimit: {{ $namenodeCpu | quote }}
   memoryLimit: {{ $namenodeMemory | quote }}
   cpuRequest: {{ $namenodeCpu | quote }}

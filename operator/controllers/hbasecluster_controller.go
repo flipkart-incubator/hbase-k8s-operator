@@ -139,11 +139,6 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		resourceVersionOfHbaseConfigMap = getExistingAnnotationOfClusterStatefulSet(log, r.Client, ctx, hbasecluster)
 	}
 
-	statefulSetLabelsUpdateValue, statefulSetLabelsUpdateExists := hbasecluster.Spec.ServiceLabels[STATEFULSET_LABELS_UPDATE]
-	if !statefulSetLabelsUpdateExists {
-		statefulSetLabelsUpdateValue = "false"
-	}
-	
 	for _, d := range deployments {
 		//TODO: Error handling
 		if d.IsPodServiceRequired {
@@ -163,7 +158,7 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 
 		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, resourceVersionOfHbaseConfigMap,
-			hbasecluster.Spec.FSGroup, d, log, statefulSetLabelsUpdateValue)
+			hbasecluster.Spec.FSGroup, d, log, true)
 		ctrl.SetControllerReference(hbasecluster, newSS, r.Scheme)
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)
 		if (ctrl.Result{}) != result || err != nil {

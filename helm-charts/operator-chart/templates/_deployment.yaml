@@ -1,4 +1,7 @@
 {{ define "com.flipkart.hbaseoperator.deployment" }}
+{{- $defaultResources := dict "cpuRequest" "150m" "memoryRequest" "250Mi" "cpuLimit" "150m" "memoryLimit" "250Mi" -}}
+{{- $overrideResources := .Values.resource -}}
+{{- $resource := merge $overrideResources $defaultResources  -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -69,11 +72,11 @@ spec:
           periodSeconds: 10
         resources:
           limits:
-            cpu: 150m
-            memory: 250Mi
+            cpu: {{ $resource.cpuLimit }}
+            memory: {{ $resource.memoryLimit }}
           requests:
-            cpu: 150m
-            memory: 250Mi
+            cpu: {{ $resource.cpuRequest }}
+            memory: {{ $resource.memoryRequest }}
         securityContext:
           allowPrivilegeEscalation: false
       securityContext:

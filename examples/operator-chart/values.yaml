@@ -16,3 +16,8 @@ image:
   kube_rbac_proxy:
     image_name: gcr.io/kubebuilder/kube-rbac-proxy
     tag: v0.8.0
+resource:
+  cpuLimit: 150m
+  memoryLimit: 250Mi
+  cpuRequest: 150m
+  memoryRequest: 250Mi

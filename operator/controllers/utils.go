@@ -40,11 +40,6 @@ const STATEFULSET_V2_ANNOTATION = "hbase-operator/hbase-config-version"
 // RECONCILE_CONFIG_LABEL annotation is used to control if configMap changes needs to be bound with StatefulSet
 const RECONCILE_CONFIG_LABEL = "hbase-operator.cfg-statefulset-update/enable"
 
-// STATEFULSET_LABELS_UPDATE annotation is used to update template labels and matchLabels of StatefulSet
-// While Updating TemplateLabels only give this flag as "templateLabels" , while updating matchLabels give this flag as "matchLabels"
-// TODO:: Remove this label in future once all the statefulsets are updated with the new template and match labels
-const STATEFULSET_LABELS_UPDATE = "hbase-operator.statefulset-labels-update"
-
 var allowedConfigs = map[string]ConfigType{
 	"hbase-policy.xml":                 XML,
 	"hbase-site.xml":                   XML,
@@ -464,9 +459,9 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
-	d kvstorev1.HbaseClusterDeployment, log logr.Logger, statefulSetLabelsUpdateValue string) *appsv1.StatefulSet {
+	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isMultiStatefulSet bool) *appsv1.StatefulSet {
 
-	ls := labelsForHbaseCluster(name, nil)
+	ls := getSharedLabelsMap(name, nil)
 
 	if d.Labels == nil {
 		d.Labels = make(map[string]string)
@@ -487,19 +482,17 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		log.Info("Updating StatefulSet Template Spec With ConfigVersion", STATEFULSET_V2_ANNOTATION, configVersion)
 	}
 
-	// Assign templateLabelsMap existing labels . If statefulSetLabelsUpdateValue set to templateLabels then update the templateLabelsMap
+	// Assign values to templateLabels and matchLabels maps. These maps are used to set the labels for the Kubernetes objects.
+	// templateLabels are used to set the labels of the Pod template within the StatefulSet.
+	// matchLabels are used to set the labels that the StatefulSet's selector should match to find Pods to manage.
 	templateLabelsMap := d.Labels
-	if statefulSetLabelsUpdateValue == "templateLabels" {
-		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name, templateLabelsMap)
-		log.Info("Deploying StatefulSet with new template labels for", "StatefulSet:", d.Name)
-	}
-
-	//Assign selectorMatchLabelsMap existing labels . If statefulSetLabelsUpdateValue set to matchLabels then update the selectorMatchLabelsMap
 	selectorMatchLabelsMap := ls
-	if statefulSetLabelsUpdateValue == "matchLabels" {
-		templateLabelsMap = updateTemplateLabelsForStatefulSet(name, d.Name, templateLabelsMap)
-		selectorMatchLabelsMap = updateMatchLabelsForStatefulSet(name, d.Name)
-		log.Info("Deploying StatefulSet with new selector match Labels for", "StatefulSet:", d.Name)
+
+	// For multiStatefulSet, we assign additional labels to the templateLabels and matchLabels maps.
+	// These labels are added on top of any existing labels. This is done to differentiate the core Hbase cluster from other clusters.
+	if isMultiStatefulSet {
+		templateLabelsMap = templateLabelsForMultiStatefulSet(name, d.Name, templateLabelsMap)
+		selectorMatchLabelsMap = matchLabelsForMultiStatefulSet(name, d.Name)
 	}
 
 	dep := &appsv1.StatefulSet{
@@ -585,7 +578,7 @@ func buildService(svcName string, crName string, namespace string, labels map[st
 			Type:                     corev1.ServiceTypeClusterIP,
 			ClusterIP:                "None",
 			PublishNotReadyAddresses: true,
-			Selector:                 labelsForHbaseCluster(svcName, selectorLabels),
+			Selector:                 getSharedLabelsMap(svcName, selectorLabels),
 			Ports:                    ports,
 		}
 	} else {
@@ -849,9 +842,9 @@ func labelsForPodService(crName string, name string, labels map[string]string) m
 	}
 }
 
-// labelsForHbaseCluster returns the labels for selecting the resources
-// belonging to the given hbasecluster CR name.
-func labelsForHbaseCluster(name string, labels map[string]string) map[string]string {
+// This function is responsible for creating a map of shared labels for StatefulSets.
+// These labels are used to identify the StatefulSets that belong to the HBase cluster.
+func getSharedLabelsMap(name string, labels map[string]string) map[string]string {
 	if labels == nil {
 		return map[string]string{"app": "hbasecluster", "hbasecluster_cr": name}
 	} else {
@@ -862,21 +855,19 @@ func labelsForHbaseCluster(name string, labels map[string]string) map[string]str
 }
 
 func labelsForStatefulSet(name string, statefulSetName string) map[string]string {
-	statefulSetMatchLabel := labelsForHbaseCluster(name, nil)
+	statefulSetMatchLabel := getSharedLabelsMap(name, nil)
 	statefulSetMatchLabel["statefulset.kubernetes.io/statefulset-name"] = statefulSetName
 	return statefulSetMatchLabel
 }
 
-// Modify match labels if updateSelectorMatchLabels is set as true
-// Kubernetes does not allow you to make changes to selector match labels , this will be called when statefulset is deleted with pods in orphaned state
-func updateMatchLabelsForStatefulSet(name string, statefulSetName string) map[string]string {
+// This function is responsible for creating a map of labels that are used to match multiple StatefulSets in a Kubernetes cluster.
+func matchLabelsForMultiStatefulSet(name string, statefulSetName string) map[string]string {
 	statefulSetMatchLabel := labelsForStatefulSet(name, statefulSetName)
 	return statefulSetMatchLabel
 }
 
-// Modify template labels if updateTemplateLabels is set as true
-// This is to prevent cluster restart at once for all namespaces when Operator change is deployed
-func updateTemplateLabelsForStatefulSet(name string, statefulSetName string, existingLabels map[string]string) map[string]string {
+// This function is responsible for creating a map of labels for StatefulSets in a multi-StatefulSet scenario.
+func templateLabelsForMultiStatefulSet(name string, statefulSetName string, existingLabels map[string]string) map[string]string {
 	statefulSetTemplateLabels := existingLabels
 	statefulSetNewTemplateLabels := labelsForStatefulSet(name, statefulSetName)
 

@@ -83,6 +83,14 @@
     hostnames: {{ $elem.hostnames }}
   {{- end }}
   {{- end }}
+  {{- if .root.topologySpreadConstraints }}
+  topologySpreadConstraints:
+  {{- range $index, $elem := .root.topologySpreadConstraints }}
+  - maxSkew: {{ $elem.maxSkew }}
+    topologyKey: {{ $elem.topologyKey }}
+    whenUnsatisfiable: {{ default "DoNotSchedule" $elem.whenUnsatisfiable }}
+  {{- end }}
+  {{- end }}
   {{- if or .root.initContainers $.initContainers }}
   initContainers:
   {{- range $index, $elem := $.initContainers }}

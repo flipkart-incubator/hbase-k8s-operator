@@ -17,8 +17,25 @@ function shutdown() {
   echo "Stopping Zookeeper"
   $HBASE_HOME/bin/hbase-daemon.sh stop zookeeper
   if [ $exit_status != 0 ]; then
-	  echo "Leader stopped, sleeping for 60 seconds"
-	  sleep 60
+    IFS=$'\n' read -d '' -ra ZKs <<< $(/opt/hbase/bin/hbase zkcli config 2> /dev/null  | grep participant | grep -o '=.*:2888' | cut -d : -f 1 | cut -c 2-)
+    function leaderElection() {
+       for zk in "${ZKs[@]}"; do
+           myhost=$(echo $zk 2181)
+           if [[ $zk != $(hostname -f) && $(echo "stat" | nc $myhost | grep "Mode: leader") ]]; then
+             echo "$zk is leader"
+             echo "Leader election completed"
+             exit 0
+           fi
+       done
+       }
+
+    pod_timeout=120
+    endTime=$(( $(date +%s) + $pod_timeout ))
+    while [ $(date +%s) -lt $endTime ]; do
+      leaderElection
+      sleep 1
+    done
+    echo "Leader election did not complete but this zookeeper pod is shutting down as pod timeout is breached"
   fi
 }
 

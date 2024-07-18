@@ -17,7 +17,7 @@ function shutdown() {
   echo "Stopping Zookeeper"
   $HBASE_HOME/bin/hbase-daemon.sh stop zookeeper
   if [ $exit_status != 0 ]; then
-    IFS=$'\n' read -d '' -ra ZKs <<< $(/opt/hbase/bin/hbase zkcli config 2> /dev/null  | grep participant | grep -o '=.*:2888' | cut -d : -f 1 | cut -c 2-)
+    IFS=$'\n' read -d '' -ra ZKs <<< $($HBASE_HOME/bin/hbase zkcli config 2> /dev/null  | grep participant | grep -o '=.*:2888' | cut -d : -f 1 | cut -c 2-)
     function leaderElection() {
        for zk in "${ZKs[@]}"; do
            myhost=$(echo $zk 2181)

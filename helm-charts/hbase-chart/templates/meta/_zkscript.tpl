@@ -29,7 +29,7 @@ function shutdown() {
        done
        }
 
-    pod_timeout=20
+    pod_timeout=120
     endTime=$(( $(date +%s) + $pod_timeout ))
     while [ $(date +%s) -lt $endTime ]; do
       leaderElection

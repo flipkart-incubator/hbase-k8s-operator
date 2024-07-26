@@ -20,15 +20,17 @@ function shutdown() {
     IFS=$'\n' read -d '' -ra ZKs <<< $($HBASE_HOME/bin/hbase zkcli config 2> /dev/null  | grep ^server. | grep -o '=.*:' | cut -d : -f 1 | cut -c 2-)
     function leaderElection() {
        for zk in "${ZKs[@]}"; do
-           host=$(echo $zk 2181)
-           zk_mode=$(echo "stat" | nc $host | grep "Mode: leader")
-           if [[ $zk != $(hostname -f) && $zk_mode ]]; then
-             echo "$zk is a leader"
-             echo "Leader election completed"
-             exit 0
-           else
-             echo "$zk is a follower"
-           fi
+          if [[ $zk != $(hostname -f) ]]; then
+             host=$(echo $zk 2181)
+             mode=$(echo "stat" | nc $host | grep "Mode: " | sed 's/Mode: //' | sed -e 's/[[:space:]]*$//')
+             if [[ $mode == leader ]]; then
+               echo "$zk is a $mode"
+               echo "Leader election completed"
+               exit 0
+             else
+               echo "$zk is a $mode"
+             fi
+          fi
        done
        }
 

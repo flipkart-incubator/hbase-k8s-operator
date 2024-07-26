@@ -104,6 +104,12 @@ func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return result, err
 	}
 
+	depPdb := buildPodDisruptionBudget(hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.Standalone, log)
+	ctrl.SetControllerReference(hbasestandalone, depPdb, r.Scheme)
+	pdbReconcileResult, pdbReconcileErr := reconcilePodDisruptionBudget(ctx, log, depPdb, hbasestandalone.Spec.Standalone, r.Client)
+	if (ctrl.Result{}) != pdbReconcileResult || pdbReconcileErr != nil {
+		return pdbReconcileResult, pdbReconcileErr
+	}
 	return ctrl.Result{}, nil
 }
 

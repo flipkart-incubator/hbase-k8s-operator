@@ -20,6 +20,7 @@ import (
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 type HbaseClusterContainerPort struct {
@@ -131,6 +132,14 @@ type HbaseClusterVolume struct {
 	Path string `json:"path"`
 }
 
+type HBasePodDisruptionBudget struct {
+	// +optional
+	// +kubebuilder:default:=false
+	Disabled       bool                `json:"disabled"`
+	MinAvailable   *intstr.IntOrString `json:"minAvailable"`
+	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable"`
+}
+
 type HbaseClusterDeployment struct {
 	Name string `json:"name"`
 	// +kubebuilder:validation:Minimum:=1
@@ -171,6 +180,8 @@ type HbaseClusterDeployment struct {
 	HostAliases []corev1.HostAlias `json:"hostAliases,omitempty" patchStrategy:"merge" patchMergeKey:"ip"`
 	// +optional
 	TopologySpreadConstraint []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" patchStrategy:"merge" patchMergeKey:"topologyKey" protobuf:"bytes,33,opt,name=topologySpreadConstraints"`
+	// +optional
+	PodDisruptionBudget HBasePodDisruptionBudget `json:"podDisruptionBudget"`
 }
 
 type HbaseClusterConfiguration struct {

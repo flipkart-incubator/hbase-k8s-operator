@@ -1,1 +1,0 @@
-{{- include "createPDB" (dict "deployment" .Values.deployments.datanode "pdbConfig" .Values.deployments.datanode.pdbConfig "component" "dn" "namespace" .Values.namespace "instance" .Values.service.name) }}

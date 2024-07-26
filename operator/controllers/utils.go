@@ -5,11 +5,11 @@ import (
 	json "encoding/json"
 	xml "encoding/xml"
 	errs "errors"
+	policyv1beta1 "k8s.io/api/policy/v1beta1"
 	time "time"
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-
 	errors "k8s.io/apimachinery/pkg/api/errors"
 	resource "k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -457,6 +457,37 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 	return ctrl.Result{}, nil
 }
 
+func buildPodDisruptionBudget(name string, namespace string, d kvstorev1.HbaseClusterDeployment, log logr.Logger) *policyv1beta1.PodDisruptionBudget {
+	if d.PodDisruptionBudget.Disabled {
+		log.Info("skip pdb for %s", d.Name)
+		return nil
+	}
+
+	pdbLabels := make(map[string]string)
+	pdbLabels["app.kubernetes.io/name"] = name
+	pdbLabels["app.kubernetes.io/instance"] = "pdb-" + d.Name
+
+	spec := policyv1beta1.PodDisruptionBudgetSpec{
+		Selector: &metav1.LabelSelector{
+			MatchLabels: d.Labels,
+		},
+	}
+	if d.PodDisruptionBudget.MinAvailable != nil {
+		spec.MinAvailable = d.PodDisruptionBudget.MinAvailable
+	} else {
+		spec.MaxUnavailable = d.PodDisruptionBudget.MaxUnavailable
+	}
+
+	return &policyv1beta1.PodDisruptionBudget{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      d.Name + "-pdb",
+			Namespace: namespace,
+			Labels:    pdbLabels,
+		},
+		Spec: spec,
+	}
+}
+
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
 	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isMultiStatefulSet bool) *appsv1.StatefulSet {
@@ -823,6 +854,44 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	} else if existingSS.Status.ReadyReplicas != d.Size || existingSS.Status.CurrentRevision != existingSS.Status.UpdateRevision {
 		log.Info("Sleeping for 20 seconds. Cluster", "NotReady", existingSS.Status, "Expected Replicas", d.Size)
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+	} else {
+		log.Info("Reconciled for cluster", "StatefulSet", d.Name)
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func reconcilePodDisruptionBudget(ctx context.Context, log logr.Logger, pdb *policyv1beta1.PodDisruptionBudget, d kvstorev1.HbaseClusterDeployment, cl client.Client) (ctrl.Result, error) {
+	pdbMarshal, _ := json.Marshal(pdb)
+
+	existingPDB := &policyv1beta1.PodDisruptionBudget{}
+	err := cl.Get(ctx, types.NamespacedName{Name: pdb.Name, Namespace: pdb.Namespace}, existingPDB)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Define podDisruptionBudget
+			log.Info("Creating a new PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+			err = cl.Create(ctx, pdb)
+			if err != nil {
+				log.Error(err, "Failed to create new PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+				return ctrl.Result{RequeueAfter: time.Second * 5}, err
+			}
+			log.Info("Created a new PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
+		}
+
+		log.Error(err, "Failed to get PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace)
+		return ctrl.Result{RequeueAfter: time.Second * 5}, err
+	} else if asSha256(pdbMarshal) != hashStore["pdb-"+pdb.Name] {
+		log.Info("Updating PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+		err = cl.Update(ctx, pdb)
+		if err != nil {
+			log.Error(err, "Failed to update PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+			return ctrl.Result{RequeueAfter: time.Second * 5}, err
+		}
+		hashStore["pdb-"+pdb.Name] = asSha256(pdbMarshal)
+		log.Info("Updated PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	} else {
 		log.Info("Reconciled for cluster", "StatefulSet", d.Name)

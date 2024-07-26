@@ -607,6 +607,22 @@ spec:
                           - volumeSource
                           type: object
                         type: array
+                      podDisruptionBudget:
+                        items:
+                          properties:
+                            disabled:
+                              type: boolean
+                            minAvailable:
+                              oneOf:
+                                - type: integer
+                                - type: string
+                              maxUnavailable:
+                                oneOf:
+                                  - type: integer
+                                  - type: string
+                          anyOf:
+                            - required: [ "minAvailable" ]
+                            - required: [ "maxUnavailable" ]
                     required:
                     - containers
                     - isPodServiceRequired
@@ -1143,6 +1159,22 @@ spec:
                           - volumeSource
                           type: object
                         type: array
+                      podDisruptionBudget:
+                        items:
+                          properties:
+                            disabled:
+                              type: boolean
+                            minAvailable:
+                              oneOf:
+                                - type: integer
+                                - type: string
+                              maxUnavailable:
+                                oneOf:
+                                  - type: integer
+                                  - type: string
+                          anyOf:
+                            - required: [ "minAvailable" ]
+                            - required: [ "maxUnavailable" ]
                     required:
                     - containers
                     - isPodServiceRequired
@@ -1679,6 +1711,22 @@ spec:
                           - volumeSource
                           type: object
                         type: array
+                      podDisruptionBudget:
+                        items:
+                          properties:
+                            disabled:
+                              type: boolean
+                            minAvailable:
+                              oneOf:
+                                - type: integer
+                                - type: string
+                              maxUnavailable:
+                                oneOf:
+                                  - type: integer
+                                  - type: string
+                          anyOf:
+                            - required: [ "minAvailable" ]
+                            - required: [ "maxUnavailable" ]
                     required:
                     - containers
                     - isPodServiceRequired
@@ -2215,6 +2263,22 @@ spec:
                           - volumeSource
                           type: object
                         type: array
+                      podDisruptionBudget:
+                        items:
+                          properties:
+                            disabled:
+                              type: boolean
+                            minAvailable:
+                              oneOf:
+                                - type: integer
+                                - type: string
+                              maxUnavailable:
+                                oneOf:
+                                  - type: integer
+                                  - type: string
+                          anyOf:
+                            - required: [ "minAvailable" ]
+                            - required: [ "maxUnavailable" ]
                     required:
                     - containers
                     - isPodServiceRequired
@@ -2751,6 +2815,22 @@ spec:
                           - volumeSource
                           type: object
                         type: array
+                      podDisruptionBudget:
+                        items:
+                          properties:
+                            disabled:
+                              type: boolean
+                            minAvailable:
+                              oneOf:
+                                - type: integer
+                                - type: string
+                              maxUnavailable:
+                                oneOf:
+                                  - type: integer
+                                  - type: string
+                          anyOf:
+                            - required: [ "minAvailable" ]
+                            - required: [ "maxUnavailable" ]
                     required:
                     - containers
                     - isPodServiceRequired

@@ -32,13 +32,13 @@ function shutdown() {
 
      quorum=$(grep -A1 "<name>hbase.zookeeper.quorum</name>" "$HBASE_CONF_DIR/hbase-site.xml" |  grep "<value>" | sed -e 's/<value>\(.*\)<\/value>/\1/' | xargs)
      if [ -z "$quorum" ]; then
-        echo "Error: <value> for <name>hbase.zookeeper.quorum</name> is empty or not properly formatted."
+        echo "Error: <value> for <name>hbase.zookeeper.quorum</name> in $HBASE_CONF_DIR/hbase-site.xml is empty or not properly formatted."
         sleep 120
         exit 1
      fi
 
      if ! echo "$quorum" | grep -q ","; then
-        echo "Error: <value> does not appear to be a comma-separated list of zookeepers"
+        echo "Error: <value> for <name>hbase.zookeeper.quorum</name> in $HBASE_CONF_DIR/hbase-site.xml does not appear to be a comma-separated list of zookeepers"
         sleep 120
         exit 1
      fi

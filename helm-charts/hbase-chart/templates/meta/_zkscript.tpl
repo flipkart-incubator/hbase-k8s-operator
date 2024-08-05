@@ -49,7 +49,7 @@ function shutdown() {
             for zk in "${ZKs[@]}"; do
                if [[ $zk != $(hostname -f) ]]; then
                   host=$(echo $zk 2181)
-                  mode=$(echo "stat" | timeout 5s nc $host | grep "Mode: " | sed 's/Mode: //' | sed -e 's/[[:space:]]*$//')
+                  mode=$(echo "stat" | timeout 1s nc $host | grep "Mode: " | sed 's/Mode: //' | sed -e 's/[[:space:]]*$//')
                   if [[ $? -eq 0 && -n "$mode" ]]; then
                      if [[ $mode == leader ]]; then
                        echo "$zk is a $mode"

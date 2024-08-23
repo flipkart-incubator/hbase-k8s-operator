@@ -133,11 +133,12 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return result, err
 	}
 
-	depPdb := buildPodDisruptionBudget(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Datanode, log)
-	ctrl.SetControllerReference(hbasetenant, depPdb, r.Scheme)
-	pdbReconcileResult, pdbReconcileErr := reconcilePodDisruptionBudget(ctx, log, depPdb, hbasetenant.Spec.Datanode, r.Client)
-	if (ctrl.Result{}) != pdbReconcileResult || pdbReconcileErr != nil {
-		return pdbReconcileResult, pdbReconcileErr
+	log.Info("starting pdb reconciliation")
+	pdb := buildPodDisruptionBudget(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Datanode, log)
+	ctrl.SetControllerReference(hbasetenant, pdb, r.Scheme)
+	result, err = reconcilePodDisruptionBudget(ctx, log, pdb, hbasetenant.Spec.Datanode, r.Client)
+	if (ctrl.Result{}) != result || err != nil {
+		return result, err
 	}
 	return ctrl.Result{}, nil
 }

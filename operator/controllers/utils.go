@@ -458,11 +458,12 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 }
 
 func buildPodDisruptionBudget(name string, namespace string, d kvstorev1.HbaseClusterDeployment, log logr.Logger) *policyv1beta1.PodDisruptionBudget {
-	if d.PodDisruptionBudget.Disabled {
-		log.Info("skip pdb for %s", d.Name)
+	if d.PodDisruptionBudget == nil {
+		log.Info("pdb creation skipped for %s", d.Name)
 		return nil
 	}
 
+	log.Info("pdb building for %s", d.Name)
 	pdbLabels := make(map[string]string)
 	pdbLabels["app.kubernetes.io/name"] = name
 	pdbLabels["app.kubernetes.io/instance"] = "pdb-" + d.Name
@@ -474,7 +475,7 @@ func buildPodDisruptionBudget(name string, namespace string, d kvstorev1.HbaseCl
 	}
 	if d.PodDisruptionBudget.MinAvailable != nil {
 		spec.MinAvailable = d.PodDisruptionBudget.MinAvailable
-	} else {
+	} else if d.PodDisruptionBudget.MaxUnavailable != nil {
 		spec.MaxUnavailable = d.PodDisruptionBudget.MaxUnavailable
 	}
 
@@ -894,7 +895,7 @@ func reconcilePodDisruptionBudget(ctx context.Context, log logr.Logger, pdb *pol
 		log.Info("Updated PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
 		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
 	} else {
-		log.Info("Reconciled for cluster", "StatefulSet", d.Name)
+		log.Info("Reconciled for cluster", "PodDisruptionBudget", pdb.Name, "component", d.Name)
 	}
 
 	return ctrl.Result{}, nil

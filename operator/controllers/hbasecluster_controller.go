@@ -165,11 +165,12 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			return result, err
 		}
 
-		depPdb := buildPodDisruptionBudget(hbasecluster.Name, hbasecluster.Namespace, d, log)
-		ctrl.SetControllerReference(hbasecluster, depPdb, r.Scheme)
-		pdbReconcileResult, pdbReconcileErr := reconcilePodDisruptionBudget(ctx, log, depPdb, d, r.Client)
-		if (ctrl.Result{}) != pdbReconcileResult || pdbReconcileErr != nil {
-			return pdbReconcileResult, pdbReconcileErr
+		log.Info("starting pdb reconciliation")
+		pdb := buildPodDisruptionBudget(hbasecluster.Name, hbasecluster.Namespace, d, log)
+		ctrl.SetControllerReference(hbasecluster, pdb, r.Scheme)
+		result, err = reconcilePodDisruptionBudget(ctx, log, pdb, d, r.Client)
+		if (ctrl.Result{}) != result || err != nil {
+			return result, err
 		}
 	}
 

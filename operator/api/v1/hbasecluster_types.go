@@ -133,10 +133,9 @@ type HbaseClusterVolume struct {
 }
 
 type HBasePodDisruptionBudget struct {
-	// +optional
-	// +kubebuilder:default:=false
-	Disabled       bool                `json:"disabled"`
-	MinAvailable   *intstr.IntOrString `json:"minAvailable"`
+	//+optional
+	MinAvailable *intstr.IntOrString `json:"minAvailable"`
+	//+optional
 	MaxUnavailable *intstr.IntOrString `json:"maxUnavailable"`
 }
 
@@ -181,7 +180,7 @@ type HbaseClusterDeployment struct {
 	// +optional
 	TopologySpreadConstraint []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty" patchStrategy:"merge" patchMergeKey:"topologyKey" protobuf:"bytes,33,opt,name=topologySpreadConstraints"`
 	// +optional
-	PodDisruptionBudget HBasePodDisruptionBudget `json:"podDisruptionBudget"`
+	PodDisruptionBudget *HBasePodDisruptionBudget `json:"podDisruptionBudget"`
 }
 
 type HbaseClusterConfiguration struct {

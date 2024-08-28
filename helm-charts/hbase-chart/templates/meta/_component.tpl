@@ -134,7 +134,10 @@
     command: {{ .command }}
     {{- end }}
     {{- if .args }}
-    args: {{ .args }}
+    args:
+    {{- range .args }}
+    - {{ . | quote }}
+    {{- end }}
     {{- end }}
     cpuLimit: {{ default "100m" .cpuLimit | quote }}
     memoryLimit: {{ default "128Mi" .memoryLimit | quote }}

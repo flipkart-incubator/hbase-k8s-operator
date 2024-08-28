@@ -9,6 +9,7 @@ import (
 
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	policyv1 "k8s.io/api/policy/v1"
 
 	errors "k8s.io/apimachinery/pkg/api/errors"
 	resource "k8s.io/apimachinery/pkg/api/resource"
@@ -886,4 +887,74 @@ func getPodNames(pods []corev1.Pod) []string {
 		podNames = append(podNames, pod.Name)
 	}
 	return podNames
+}
+
+func buildPodDisruptionBudget(name string, namespace string, d kvstorev1.HbaseClusterDeployment, log logr.Logger) *policyv1.PodDisruptionBudget {
+	if d.PodDisruptionBudget == nil {
+		log.Info("pdb creation skipped for ", "component", d.Name)
+		return nil
+	}
+
+	pdbLabels := make(map[string]string)
+	pdbLabels["app.kubernetes.io/name"] = name
+	pdbLabels["app.kubernetes.io/instance"] = "pdb-" + d.Name
+
+	spec := policyv1.PodDisruptionBudgetSpec{
+		Selector: &metav1.LabelSelector{
+			MatchLabels: d.Labels,
+		},
+	}
+	if d.PodDisruptionBudget.MinAvailable != nil {
+		spec.MinAvailable = d.PodDisruptionBudget.MinAvailable
+	} else if d.PodDisruptionBudget.MaxUnavailable != nil {
+		spec.MaxUnavailable = d.PodDisruptionBudget.MaxUnavailable
+	}
+
+	return &policyv1.PodDisruptionBudget{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      d.Name + "-pdb",
+			Namespace: namespace,
+			Labels:    pdbLabels,
+		},
+		Spec: spec,
+	}
+}
+
+func reconcilePodDisruptionBudget(ctx context.Context, log logr.Logger, pdb *policyv1.PodDisruptionBudget, d kvstorev1.HbaseClusterDeployment, cl client.Client) (ctrl.Result, error) {
+	pdbMarshal, _ := json.Marshal(pdb)
+
+	existingPDB := &policyv1.PodDisruptionBudget{}
+	err := cl.Get(ctx, types.NamespacedName{Name: pdb.Name, Namespace: pdb.Namespace}, existingPDB)
+
+	if err != nil {
+		if errors.IsNotFound(err) {
+			// Define podDisruptionBudget
+			log.Info("Creating a new PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+			err = cl.Create(ctx, pdb)
+			if err != nil {
+				log.Error(err, "Failed to create new PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+				return ctrl.Result{RequeueAfter: time.Second * 5}, err
+			}
+			log.Info("Created a new PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+			return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, nil
+		}
+		log.Error(err, "Failed to get PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace)
+		return ctrl.Result{RequeueAfter: time.Second * 5}, err
+	} else if asSha256(pdbMarshal) != hashStore["pdb-"+pdb.Name] {
+		log.Info("Updating PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+		// Set the resourceVersion of the new PDB to the resourceVersion of the existing PDB
+		pdb.ObjectMeta.ResourceVersion = existingPDB.ObjectMeta.ResourceVersion
+		err = cl.Update(ctx, pdb)
+		if err != nil {
+			log.Error(err, "Failed to update PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+			return ctrl.Result{RequeueAfter: time.Second * 5}, err
+		}
+		hashStore["pdb-"+pdb.Name] = asSha256(pdbMarshal)
+		log.Info("Updated PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+	} else {
+		log.Info("Reconciled for cluster", "PodDisruptionBudget", pdb.Name, "component", d.Name)
+	}
+
+	return ctrl.Result{}, nil
 }

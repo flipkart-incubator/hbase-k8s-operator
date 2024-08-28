@@ -157,6 +157,14 @@
     {{- end }}
   {{- end }}
   {{- end }}
+  {{- if .root.podDisruptionBudget }}
+  podDisruptionBudget:
+    {{- if .root.podDisruptionBudget.minAvailable }}
+    minAvailable: {{ .root.podDisruptionBudget.minAvailable }}
+    {{- else if .root.podDisruptionBudget.maxUnavailable }}
+    maxUnavailable: {{ .root.podDisruptionBudget.maxUnavailable }}
+    {{- end }}
+  {{- end }}
   containers:
   {{- range $index, $elem := .root.containers }}
   {{- $parent := . }}

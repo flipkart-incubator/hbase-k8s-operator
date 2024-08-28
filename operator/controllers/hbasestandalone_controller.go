@@ -44,6 +44,7 @@ type HbaseStandaloneReconciler struct {
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;
 //+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to move the current state of the cluster closer to the desired state.
 // For more details, check Reconcile and its Result here:
@@ -102,6 +103,16 @@ func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 	result, err = reconcileStatefulSet(ctx, log, hbasestandalone.Namespace, newSS, hbasestandalone.Spec.Standalone, r.Client)
 	if (ctrl.Result{}) != result || err != nil {
 		return result, err
+	}
+
+	log.Info("starting pdb reconciliation")
+	pdb := buildPodDisruptionBudget(hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.Standalone, log)
+	if pdb != nil {
+		ctrl.SetControllerReference(hbasestandalone, pdb, r.Scheme)
+		result, err = reconcilePodDisruptionBudget(ctx, log, pdb, hbasestandalone.Spec.Standalone, r.Client)
+		if (ctrl.Result{}) != result || err != nil {
+			return result, err
+		}
 	}
 
 	return ctrl.Result{}, nil

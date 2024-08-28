@@ -46,6 +46,7 @@ type HbaseTenantReconciler struct {
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;
 //+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -131,6 +132,16 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 	result, err = reconcileStatefulSet(ctx, log, hbasetenant.Namespace, newSS, hbasetenant.Spec.Datanode, r.Client)
 	if (ctrl.Result{}) != result || err != nil {
 		return result, err
+	}
+
+	log.Info("starting pdb reconciliation")
+	pdb := buildPodDisruptionBudget(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Datanode, log)
+	if pdb != nil {
+		ctrl.SetControllerReference(hbasetenant, pdb, r.Scheme)
+		result, err = reconcilePodDisruptionBudget(ctx, log, pdb, hbasetenant.Spec.Datanode, r.Client)
+		if (ctrl.Result{}) != result || err != nil {
+			return result, err
+		}
 	}
 
 	return ctrl.Result{}, nil

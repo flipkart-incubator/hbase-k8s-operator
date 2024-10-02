@@ -25,5 +25,5 @@ appVersion: "1.16.0"
 
 dependencies:
 - name: hbase-chart
-  version: 1.0.37
+  version: 1.0.38
   repository: https://github.com/flipkart-incubator/hbase-k8s-operator/helm-charts

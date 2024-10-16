@@ -18,6 +18,8 @@ package controllers
 
 import (
 	context "context"
+	"github.com/prometheus/common/log"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 	time "time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -148,8 +150,10 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 }
 
 // SetupWithManager sets up the controller with the Manager.
-func (r *HbaseTenantReconciler) SetupWithManager(mgr ctrl.Manager) error {
+func (r *HbaseTenantReconciler) SetupWithManager(mgr ctrl.Manager, opts Options) error {
+	log.Info("HBaseTenant Controller setup with options", "MaxConcurrentReconciles", opts.MaxConcurrentReconciles)
 	return ctrl.NewControllerManagedBy(mgr).
+		WithOptions(controller.Options{MaxConcurrentReconciles: opts.MaxConcurrentReconciles}). // multiple CRs processing in parallel, while one CR handled by single go routine
 		For(&kvstorev1.HbaseTenant{}).
 		Owns(&appsv1.StatefulSet{}).
 		Complete(r)

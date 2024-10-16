@@ -81,11 +81,15 @@ func main() {
 	var metricsAddr string
 	var enableLeaderElection bool
 	var probeAddr string
+	var maxReconcilersTenant int
+
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.IntVar(&maxReconcilersTenant, "max-reconcilers-tenant", 3, "Max concurrent reconcilers for hbase tenant controller. Default is 3.")
+
 	opts := zap.Options{
 		Development: true,
 	}
@@ -128,7 +132,7 @@ func main() {
 		Client: mgr.GetClient(),
 		Log:    ctrl.Log.WithName("controllers").WithName("HbaseTenant"),
 		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
+	}).SetupWithManager(mgr, controllers.Options{MaxConcurrentReconciles: maxReconcilersTenant}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HbaseTenant")
 		os.Exit(1)
 	}

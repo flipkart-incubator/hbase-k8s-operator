@@ -88,7 +88,7 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	flag.IntVar(&maxReconcilersTenant, "max-reconcilers-tenant", 1, "Max concurrent reconcilers for hbase tenant controller. Default is 1.")
+	flag.IntVar(&maxReconcilersTenant, "max-reconcilers-tenant", 3, "Max concurrent reconcilers for hbase tenant controller. Default is 1.")
 	opts := zap.Options{
 		Development: true,
 	}

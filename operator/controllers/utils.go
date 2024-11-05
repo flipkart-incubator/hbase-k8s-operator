@@ -734,7 +734,7 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 		}
 		hashStore["cfg-"+cfg.Name+cfg.Namespace] = asSha256(cfgMarshal)
 		log.Info("Updated ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
-		//time.Sleep(10 * time.Second)
+		time.Sleep(10 * time.Second)
 		return ctrl.Result{}, nil
 	}
 	return ctrl.Result{}, nil
@@ -781,7 +781,7 @@ func reconcileService(ctx context.Context, log logr.Logger, namespace string, sv
 		}
 		hashStore["svc-"+svc.Name] = asSha256(svcMarshal)
 		log.Info("Updated Service", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
-		//time.Sleep(10 * time.Second)
+		time.Sleep(10 * time.Second)
 		return ctrl.Result{}, nil
 	}
 	return ctrl.Result{}, nil
@@ -791,7 +791,6 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 	newSSMarshal, _ := json.Marshal(newSS)
 
 	existingSS := &appsv1.StatefulSet{}
-	//fmt.Println("actual GET STS call with parameters: ", d.Name, namespace)
 	err := cl.Get(ctx, types.NamespacedName{Name: d.Name, Namespace: namespace}, existingSS)
 
 	//s, _ := json.MarshalIndent(newSS.Spec.Template.Spec, "", "\t")
@@ -802,7 +801,6 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 		if errors.IsNotFound(err) {
 			// Define statefulset
 			log.Info("Creating a new StatefulSet", "StatefulSet.Namespace", newSS.Namespace, "StatefulSet.Name", newSS.Name)
-			//fmt.Println("actual CREATE STS call with parameters: ", newSS)
 			err = cl.Create(ctx, newSS)
 			if err != nil {
 				log.Error(err, "Failed to create new StatefulSet", "StatefulSet.Namespace", newSS.Namespace, "StatefulSet.Name", newSS.Name)

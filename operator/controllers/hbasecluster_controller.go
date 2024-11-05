@@ -149,8 +149,6 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 				name = d.Name + "-" + strconv.Itoa(int(index))
 				svc = buildService(name, hbasecluster.Name, hbasecluster.Namespace, nil, nil, []kvstorev1.HbaseClusterDeployment{d}, false)
 				ctrl.SetControllerReference(hbasecluster, svc, r.Scheme)
-				fmt.Println("actual GET SVC call with parameters: ", svc.Name, hbasecluster.Namespace)
-				fmt.Println("actual CREATE SVC call with parameters: ", svc)
 				result, err = reconcileService(ctx, log, hbasecluster.Namespace, svc, r.Client)
 				if (ctrl.Result{}) != result || err != nil {
 					return result, err

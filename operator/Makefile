@@ -142,3 +142,14 @@ bundle: manifests kustomize
 .PHONY: bundle-build ## Build the bundle image.
 bundle-build:
 	docker build -f bundle.Dockerfile -t $(BUNDLE_IMG) .
+
+.PHONY: gotest
+PWD := $(shell pwd)
+clean-mocks: # Clean all generated mock files and directories
+	find . -type d -name mocks -prune -exec rm -rf {} \;
+	find . -name '*_mock.go' -type f -delete
+# Generate mocks using mockgen
+mockgen: clean-mocks
+	go generate -x ./...
+gotest: # Run tests
+	go test -coverprofile=coverage.out ./...

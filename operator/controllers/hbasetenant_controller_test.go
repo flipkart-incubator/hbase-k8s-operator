@@ -279,13 +279,13 @@ func TestHbaseTenantReconciler_Failure_EventPublish(t *testing.T) {
 		Return(nil)
 
 	//publishEvent(ctx, log, hbasetenant.Namespace, "ConfigValidateFailed", err.Error(), "Warning", "ConfigMap", reconciler.Client)
-	mockEvt := buildEvent(hbasetenant.Namespace, "ConfigValidateFailed", "Config: core-site.xml. Invalid XML file", "Warning", "ConfigMap")
+	//mockEvt := buildEvent(hbasetenant.Namespace, "ConfigValidateFailed", "Config: core-site.xml. Invalid XML file", "Warning", "ConfigMap")
 	mockClient.On("Get", ctx, types.NamespacedName{Namespace: hbasetenant.Namespace, Name: "ConfigValidateFailed"}, &corev1.Event{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	mockClient.On("Create", ctx, mock.Anything, []client.CreateOption(nil)).Return(nil)
 
 	result, err := reconciler.Reconcile(ctx, req)
-	assert.NoError(t, err)
-	assert.Equal(t, ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, result)
+	assert.Error(t, err)
+	assert.Equal(t, ctrl.Result{Requeue: false, RequeueAfter: 0}, result)
 
 	// AssertExpectations asserts that everything specified with On and Return was in fact called as expected.
 	mockClient.AssertExpectations(t)

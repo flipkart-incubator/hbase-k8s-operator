@@ -25,6 +25,7 @@ const (
 	tenantName1 = "yak-tenant-test-1"
 )
 
+// TestHbaseTenantReconciler_ResNotFound tests the Reconcile method for a HbaseTenant object that is not found
 func TestHbaseTenantReconciler_ResNotFound(t *testing.T) {
 	k8sMockClient, reconciler, ctx, req := doTenantTestSetup()
 
@@ -37,6 +38,7 @@ func TestHbaseTenantReconciler_ResNotFound(t *testing.T) {
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseTenantReconciler_ErrorGettingRes tests the Reconcile method when error is returned while getting the HbaseTenant object
 func TestHbaseTenantReconciler_ErrorGettingRes(t *testing.T) {
 	k8sMockClient, reconciler, ctx, req := doTenantTestSetup()
 	k8sMockClient.On("Get", ctx, req.NamespacedName, mock.Anything).Return(assert.AnError)
@@ -48,6 +50,8 @@ func TestHbaseTenantReconciler_ErrorGettingRes(t *testing.T) {
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseTenantReconciler_SuccessfulReconciliation_ObjectsNotFound tests the Reconcile method
+// when all objects are not found and created successfully
 func TestHbaseTenantReconciler_SuccessfulReconciliation_ObjectsNotFound(t *testing.T) {
 	//mock hbase tenant object
 	hbasetenant := getMockHbaseTenant()
@@ -92,6 +96,8 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_ObjectsNotFound(t *testi
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound tests the Reconcile method
+// when all objects are found and updated successfully
 func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound(t *testing.T) {
 	//mock hbase tenant object
 	hbasetenant := getMockHbaseTenant()
@@ -144,8 +150,6 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound(t *testi
 			*arg = *mockSts
 		}).Return(nil).Times(2)
 
-	//k8sMockClient.On("Update", ctx, mockSts, []client.UpdateOption(nil)).Return(nil)
-
 	result, err := reconciler.Reconcile(ctx, req)
 	assert.NoError(t, err)
 	assert.Equal(t, ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, result)
@@ -154,6 +158,7 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound(t *testi
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow tests the Reconcile method happy flow
 // This test will fail if ran as individual as it depends on hashstore impl.
 // when ran along with other tests it will pass as hashstore will have values filled and update method will not be called.
 func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(t *testing.T) {
@@ -177,7 +182,6 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(
 			*arg = *mockCfgHb
 		}).
 		Return(nil)
-	//k8sMockClient.On("Update", ctx, mockCfgHb, []client.UpdateOption(nil)).Return(nil)
 
 	mockCfgHd := buildConfigMap(hbasetenant.Spec.Configuration.HadoopConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HadoopConfig, hbasetenant.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
 	ctrl.SetControllerReference(hbasetenant, mockCfgHd, reconciler.Scheme)
@@ -187,7 +191,6 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(
 			*arg = *mockCfgHd
 		}).
 		Return(nil)
-	//k8sMockClient.On("Update", ctx, mockCfgHd, []client.UpdateOption(nil)).Return(nil)
 
 	mockStsSvc := buildService(hbasetenant.Name, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.ServiceLabels, hbasetenant.Spec.ServiceSelectorLabels, []kvstorev1.HbaseClusterDeployment{hbasetenant.Spec.Datanode}, true)
 	ctrl.SetControllerReference(hbasetenant, mockStsSvc, reconciler.Scheme)
@@ -197,7 +200,6 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(
 			*arg = *mockStsSvc
 		}).
 		Return(nil)
-	//k8sMockClient.On("Update", ctx, mockStsSvc, []client.UpdateOption(nil)).Return(nil)
 
 	mockSts := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
 		hbasetenant.Spec.Configuration, "", hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, reconciler.Log, false)
@@ -208,8 +210,6 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(
 			arg := args.Get(2).(*appsv1.StatefulSet)
 			*arg = *mockSts
 		}).Return(nil)
-
-	//k8sMockClient.On("Update", ctx, mockSts, []client.UpdateOption(nil)).Return(nil)
 
 	mockPdb := buildPodDisruptionBudget(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Datanode, reconciler.Log)
 	ctrl.SetControllerReference(hbasetenant, mockPdb, reconciler.Scheme)
@@ -224,6 +224,7 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseTenantReconciler_Failure_EventPublish tests the Reconcile method when error is returned while publishing event
 func TestHbaseTenantReconciler_Failure_EventPublish(t *testing.T) {
 	//mock hbase tenant object
 	hbasetenant := getInvalidConfigHbasetenant()
@@ -237,8 +238,6 @@ func TestHbaseTenantReconciler_Failure_EventPublish(t *testing.T) {
 		}).
 		Return(nil)
 
-	//publishEvent(ctx, log, hbasetenant.Namespace, "ConfigValidateFailed", err.Error(), "Warning", "ConfigMap", reconciler.Client)
-	//mockEvt := buildEvent(hbasetenant.Namespace, "ConfigValidateFailed", "Config: core-site.xml. Invalid XML file", "Warning", "ConfigMap")
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Namespace: hbasetenant.Namespace, Name: "ConfigValidateFailed"}, &corev1.Event{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mock.Anything, []client.CreateOption(nil)).Return(nil)
 
@@ -287,7 +286,7 @@ func doTenantTestSetup() (*K8sMockClient, *HbaseTenantReconciler, context.Contex
 }
 
 func getInvalidConfigHbasetenant() *kvstorev1.HbaseTenant {
-	out, err := os.ReadFile("../testdata/testhbasetenant.json")
+	out, err := os.ReadFile("../testdata/test_invalid_hbase_tenant.json")
 	if err != nil {
 		fmt.Println(err)
 	}

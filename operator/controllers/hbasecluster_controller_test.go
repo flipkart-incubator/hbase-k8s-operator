@@ -30,6 +30,7 @@ const (
 	tenantNamespace2 = "yak-tenant-test-2-ns"
 )
 
+// K8sMockClient represents the mock client for k8s
 type K8sMockClient struct {
 	mock.Mock
 	client.Client
@@ -50,6 +51,7 @@ func (m *K8sMockClient) Create(ctx context.Context, obj client.Object, opts ...c
 	return args.Error(0)
 }
 
+// TestHbaseClusterReconciler_ResNotFound reconciliation logic test case when nont of the resources not found
 func TestHbaseClusterReconciler_ResNotFound(t *testing.T) {
 	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
 	k8sMockClient.On("Get", ctx, req.NamespacedName, mock.Anything).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
@@ -61,6 +63,7 @@ func TestHbaseClusterReconciler_ResNotFound(t *testing.T) {
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseClusterReconciler_ErrorGettingRes reconciliation logic test case when there is error getting resources
 func TestHbaseClusterReconciler_ErrorGettingRes(t *testing.T) {
 	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
 	k8sMockClient.On("Get", ctx, req.NamespacedName, mock.Anything).Return(assert.AnError)
@@ -73,6 +76,8 @@ func TestHbaseClusterReconciler_ErrorGettingRes(t *testing.T) {
 
 }
 
+// TestHbaseClusterReconciler_SuccessfulReconciliation_ObjectsNotFound successful reconciliation logic test case
+// if objects not found and create is called
 func TestHbaseClusterReconciler_SuccessfulReconciliation_ObjectsNotFound(t *testing.T) {
 	//mock hbase cluster object
 	hbasecluster := getMockHbaseCluster()
@@ -143,6 +148,8 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_ObjectsNotFound(t *test
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound successful reconciliation logic test case
+// if objects found and update is called
 func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound(t *testing.T) {
 	//mock hbase cluster object
 	hbasecluster := getMockHbaseCluster()
@@ -238,6 +245,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound(t *test
 	k8sMockClient.AssertExpectations(t)
 }
 
+// TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow successful reconciliation logic test case
 // This test will fail if ran as individual as it depends on hashstore impl.
 // when run along with other tests it will pass as hashstore will have values filled and update method will not be called.
 func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(t *testing.T) {
@@ -363,7 +371,7 @@ func doClusterTestSetup() (*K8sMockClient, *HbaseClusterReconciler, context.Cont
 }
 
 func getMockHbaseCluster() *kvstorev1.HbaseCluster {
-	out, err := os.ReadFile("../testdata/testhbasecluster.json")
+	out, err := os.ReadFile("../testdata/test_hbase_cluster.json")
 	if err != nil {
 		fmt.Println(err)
 	}

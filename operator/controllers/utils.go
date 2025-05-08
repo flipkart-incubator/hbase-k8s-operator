@@ -519,6 +519,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 					SecurityContext: &corev1.PodSecurityContext{
 						FSGroup: &fsgroup,
 					},
+					ServiceAccountName:            d.ServiceAccountName,
 					ShareProcessNamespace:         &d.ShareProcessNamespace,
 					TerminationGracePeriodSeconds: &d.TerminationGracePeriodSeconds,
 					Volumes:                       buildVolumes(configuration, d.Volumes),

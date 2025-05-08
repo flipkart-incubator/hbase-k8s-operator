@@ -1,9 +1,16 @@
 namespace: hbase-cluster-ns
-serviceAccountName: hbase-operator-controller-manager
+serviceAccounts:
+  operatorServiceAccount: hbase-operator-controller-manager
+  fencingServiceAccount: namenode-fencing
+roles:
+  operatorRoleKind: Role
+  operatorRoleName: hbase-operator-manager-role
+  fencingRoleKind: Role
+  fencingRoleName: namenode-fencing-role
+roleBindings:
+  fencingRoleBindingName: namenode-fencing-rolebinding
+  operatorRoleBindingName: hbase-operator-manager-rolebinding
 sharedWithOperatorNamespace: false
-managerRoleKind: Role
-managerRoleName: hbase-operator-manager-role
-managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
 service:
   name: hbase-cluster

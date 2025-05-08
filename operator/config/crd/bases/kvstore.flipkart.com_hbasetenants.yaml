@@ -387,6 +387,8 @@ spec:
                     - Parallel
                     - OrderedReady
                     type: string
+                  serviceAccountName:
+                    type: string
                   shareProcessNamespace:
                     default: false
                     type: boolean

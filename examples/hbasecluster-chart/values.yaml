@@ -1,17 +1,17 @@
 namespace: hbase-cluster-ns
+managerServiceAccountName: hbase-operator-controller-manager
+managerRoleKind: Role
+managerRoleName: hbase-operator-manager-role
+managerRoleBindingName: hbase-operator-manager-rolebinding
+sharedWithOperatorNamespace: false
+operatorNamespace: hbase-operator-ns
 serviceAccounts:
-  operatorServiceAccount: hbase-operator-controller-manager
   fencingServiceAccount: namenode-fencing
 roles:
-  operatorRoleKind: Role
-  operatorRoleName: hbase-operator-manager-role
   fencingRoleKind: Role
   fencingRoleName: namenode-fencing-role
 roleBindings:
   fencingRoleBindingName: namenode-fencing-rolebinding
-  operatorRoleBindingName: hbase-operator-manager-rolebinding
-sharedWithOperatorNamespace: false
-operatorNamespace: hbase-operator-ns
 service:
   name: hbase-cluster
   image: hbase:2.4.12

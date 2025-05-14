@@ -2,15 +2,15 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Values.roleBindings.operatorRoleBindingName }}
+  name: {{ .Values.managerRoleBindingName }}
   namespace: {{ .Values.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
-  kind: {{ default "Role" .Values.roles.operatorRoleKind }}
-  name: {{ .Values.roles.operatorRoleName }}
+  kind: {{ default "Role" .Values.managerRoleKind }}
+  name: {{ .Values.managerRoleName }}
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.serviceAccounts.operatorServiceAccount }}
+  name: {{ .Values.managerServiceAccountName }}
   namespace: {{ .Values.operatorNamespace }}
 {{ end }}
 

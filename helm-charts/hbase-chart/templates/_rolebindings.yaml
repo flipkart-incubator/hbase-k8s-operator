@@ -13,3 +13,21 @@ subjects:
   name: {{ .Values.serviceAccountName }}
   namespace: {{ .Values.operatorNamespace }}
 {{ end }}
+
+---
+
+{{ define "com.flipkart.hbasecluster.rolebindings" }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ .Values.roleBindings.observerRoleBindingName }}
+  namespace: {{ .Values.namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: {{ default "Role" .Values.roles.observerRoleKind }}
+  name: {{ .Values.roles.observerRoleName }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ .Values.serviceAccounts.observerServiceAccount }}
+    namespace: {{ .Values.namespace }}
+{{ end }}

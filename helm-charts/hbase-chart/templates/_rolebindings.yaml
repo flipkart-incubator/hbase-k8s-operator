@@ -47,5 +47,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ .Values.additionalServiceAccounts.observerServiceAccount }}
-    namespace: {{ .Values.namespace }}
+    namespace: {{ .Values.observerNamespace }}
 {{ end }}

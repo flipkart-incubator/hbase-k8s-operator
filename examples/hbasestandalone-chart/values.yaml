@@ -1,11 +1,11 @@
 namespace: hbase-standalone-ns
-managerServiceAccountName: hbase-operator-controller-manager
+serviceAccountName: hbase-operator-controller-manager
+sharedWithOperatorNamespace: false
 managerRoleKind: Role
 managerRoleName: hbase-operator-manager-role
 managerRoleBindingName: hbase-operator-manager-rolebinding
-sharedWithOperatorNamespace: false
 operatorNamespace: hbase-operator-ns
-serviceAccounts: {}
+additionalServiceAccounts: {}
 roles: {}
 roleBindings: {}
 service:

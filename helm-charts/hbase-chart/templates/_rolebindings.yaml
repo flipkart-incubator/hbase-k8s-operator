@@ -10,7 +10,7 @@ roleRef:
   name: {{ .Values.managerRoleName }}
 subjects:
 - kind: ServiceAccount
-  name: {{ .Values.managerServiceAccountName }}
+  name: {{ .Values.serviceAccountName }}
   namespace: {{ .Values.operatorNamespace }}
 {{ end }}
 

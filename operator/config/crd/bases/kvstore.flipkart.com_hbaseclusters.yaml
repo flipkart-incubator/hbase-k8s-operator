@@ -390,6 +390,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -925,6 +927,8 @@ spec:
                         enum:
                         - Parallel
                         - OrderedReady
+                        type: string
+                      serviceAccountName:
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -1462,6 +1466,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -1998,6 +2004,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -2533,6 +2541,8 @@ spec:
                         enum:
                         - Parallel
                         - OrderedReady
+                        type: string
+                      serviceAccountName:
                         type: string
                       shareProcessNamespace:
                         default: false

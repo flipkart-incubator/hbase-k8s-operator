@@ -3,6 +3,7 @@
   size: {{ .root.replicas }}
   isPodServiceRequired: {{ default false .root.isPodServiceRequired }}
   shareProcessNamespace: {{ default false .root.shareProcessNamespace }}
+  serviceAccountName: {{ default "default" .root.serviceAccountName }}
   {{- if .root.podManagementPolicy }}
   podManagementPolicy: {{ .root.podManagementPolicy }}
   {{- else if $.podManagementPolicy }}

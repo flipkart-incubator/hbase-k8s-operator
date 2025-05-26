@@ -3,6 +3,8 @@
 ---
 {{- include "com.flipkart.hbaseobserver.rolebindings" . }}
 ---
+{{- include "com.flipkart.hbaseobserver.roles" . }}
+---
 {{- if eq .Values.sharedWithOperatorNamespace true }}
 ---
 {{- else }}

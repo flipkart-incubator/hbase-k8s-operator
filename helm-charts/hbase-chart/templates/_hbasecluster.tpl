@@ -1,6 +1,8 @@
 {{ define "com.flipkart.hbasecluster" }}
 {{- include "com.flipkart.hbasecluster.roles" . }}
 ---
+{{- include "com.flipkart.hbaseobserver.roles" . }}
+---
 {{- include "com.flipkart.hbasecluster.rolebindings" . }}
 ---
 {{- include "com.flipkart.hbaseobserver.rolebindings" . }}

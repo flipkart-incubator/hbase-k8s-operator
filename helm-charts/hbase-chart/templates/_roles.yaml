@@ -149,7 +149,7 @@ rules:
 
 ---
 
-{{- define "com.flipkart.hbasecluster.roles" }}
+{{- define "com.flipkart.hbaseobserver.roles" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:

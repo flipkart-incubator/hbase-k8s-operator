@@ -34,7 +34,7 @@ subjects:
 
 ---
 
-{{ define "com.flipkart.hbasecluster.rolebindings" }}
+{{ define "com.flipkart.hbaseobserver.rolebindings" }}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:

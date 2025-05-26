@@ -1,4 +1,8 @@
 {{ define "com.flipkart.hbasetenant" }}
+{{- include "com.flipkart.hbasecluster.roles" . }}
+---
+{{- include "com.flipkart.hbaseobserver.rolebindings" . }}
+---
 {{- if eq .Values.sharedWithOperatorNamespace true }}
 ---
 {{- else }}

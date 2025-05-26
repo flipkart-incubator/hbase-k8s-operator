@@ -5,6 +5,9 @@ managerRoleKind: Role
 managerRoleName: hbase-operator-manager-role
 managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
+additionalServiceAccounts: {}
+roles: {}
+roleBindings: {}
 service:
   name: hbase-tenant
   image: hbase:2.4.12

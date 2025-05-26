@@ -58,6 +58,7 @@ var hashStore = make(map[string]string)
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;
 //+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to move the current state of the cluster closer to the desired state.
 // For more details, check Reconcile and its Result here:
@@ -163,6 +164,16 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)
 		if (ctrl.Result{}) != result || err != nil {
 			return result, err
+		}
+
+		log.Info("starting pdb reconciliation")
+		pdb := buildPodDisruptionBudget(hbasecluster.Name, hbasecluster.Namespace, d, log)
+		if pdb != nil {
+			ctrl.SetControllerReference(hbasecluster, pdb, r.Scheme)
+			result, err = reconcilePodDisruptionBudget(ctx, log, pdb, d, r.Client)
+			if (ctrl.Result{}) != result || err != nil {
+				return result, err
+			}
 		}
 	}
 

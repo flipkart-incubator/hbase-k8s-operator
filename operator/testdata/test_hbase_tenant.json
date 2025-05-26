@@ -1,0 +1,294 @@
+{
+  "apiVersion": "kvstore.abc.com/v1",
+  "kind": "HbaseTenant",
+  "metadata": {
+    "labels": {
+      "app.kubernetes.io/managed-by": "Helm"
+    },
+    "name": "yak-tenant-test-1",
+    "namespace": "yak-tenant-test-1-ns"
+  },
+  "spec": {
+    "baseImage": "test-image",
+    "configuration": {
+      "hadoopConfig": {
+        "core-site.xml": "<?xmlversion=\"1.0\"?>\n<?xml-stylesheettype=\"text/xsl\"href=\"configuration.xsl\"?>\n<!--Generatedbyconfdon2021-03-0911:46:01.973761409+0530ISTm=+0.012850605-->\n<configuration>\n<property>\n<name>fs.trash.interval</name>\n<value>1440</value>\n</property>\n</configuration>\n",
+        "hadoop-env.sh": "exportHADOOP_CONF_DIR=\n",
+        "hdfs-site.xml": "<?xmlversion=\"1.0\"?>\n<?xml-stylesheettype=\"text/xsl\"href=\"configuration.xsl\"?>\n<!--Generatedbyconfdon2021-03-0911:46:01.976938018+0530ISTm=+0.016027218-->\n<configuration>\n<property>\n<name>dfs.replication</name>\n<value>3</value>\n</property>\n</configuration>\n"
+      },
+      "hadoopConfigMountPath": "/etc/hadoop",
+      "hadoopConfigName": "hadoop-config",
+      "hbaseConfig": {
+        "hbase-env.sh": "exportHBASE_OPTS=",
+        "hbase-site.xml": "<?xmlversion=\"1.0\"?>\n<?xml-stylesheettype=\"text/xsl\"href=\"configuration.xsl\"?>\n<!--Generatedbyconfdon2021-03-0911:46:01.975303151+0530ISTm=+0.014392356-->\n<configuration>\n<property>\n<name>cluster.replication.sink.manager</name>\n<value>org.apache.hadoop.hbase.rsgroup.replication.RSGroupAwareReplicationSinkManager</value>\n</property>\n</configuration>\n"
+      },
+      "hbaseConfigMountPath": "/etc/hbase",
+      "hbaseConfigName": "hbase-config"
+    },
+    "datanode": {
+      "podDisruptionBudget": {
+        "maxUnavailable": 1
+      },
+      "containers": [
+        {
+          "args": [
+            "/var/log/abc/yak/hadoop",
+            "/etc/hadoop",
+            "/opt/hadoop",
+            "hadoop-config"
+          ],
+          "command": [
+            "/bin/bash",
+            "-c",
+            "#!/bin/bash"
+          ],
+          "cpuLimit": "1",
+          "cpuRequest": "1",
+          "livenessProbe": {
+            "initialDelay": 60,
+            "tcpPort": 9866
+          },
+          "memoryLimit": "4Gi",
+          "memoryRequest": "4Gi",
+          "name": "datanode",
+          "ports": [
+            {
+              "name": "datanode-0",
+              "port": 9866
+            }
+          ],
+          "readinessProbe": {
+            "initialDelay": 60,
+            "tcpPort": 9866
+          },
+          "securityContext": {
+            "addSysPtrace": true,
+            "runAsGroup": 1011,
+            "runAsUser": 1011
+          },
+          "startupProbe": {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash",
+              "/var/log/abc/yak/hadoop",
+              "/etc/hadoop",
+              "/opt/hadoop",
+              "hadoop-config"
+            ],
+            "failureThreshold": 10,
+            "initialDelay": 30,
+            "timeout": 60
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/grid/1",
+              "name": "data",
+              "readOnly": false
+            },
+            {
+              "mountPath": "/lifecycle",
+              "name": "lifecycle",
+              "readOnly": false
+            },
+            {
+              "mountPath": "/var/run/hadoop",
+              "name": "hadooprun",
+              "readOnly": false
+            },
+            {
+              "mountPath": "/etc/nodeinfo",
+              "name": "nodeinfo",
+              "readOnly": true
+            }
+          ]
+        },
+        {
+          "args": [
+            "/var/log/abc/yak/hbase",
+            "/etc/hbase",
+            "/opt/hbase",
+            "hbase-config"
+          ],
+          "command": [
+            "/bin/bash",
+            "-c",
+            "#!/bin/bash"
+          ],
+          "cpuLimit": "9",
+          "cpuRequest": "9",
+          "livenessProbe": {
+            "initialDelay": 60,
+            "tcpPort": 16030
+          },
+          "memoryLimit": "26Gi",
+          "memoryRequest": "26Gi",
+          "name": "regionserver",
+          "ports": [
+            {
+              "name": "regionserver-0",
+              "port": 16030
+            },
+            {
+              "name": "regionserver-1",
+              "port": 16020
+            }
+          ],
+          "readinessProbe": {
+            "initialDelay": 60,
+            "tcpPort": 16030
+          },
+          "securityContext": {
+            "addSysPtrace": true,
+            "runAsGroup": 1011,
+            "runAsUser": 1011
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/grid/1",
+              "name": "data",
+              "readOnly": false
+            },
+            {
+              "mountPath": "/lifecycle",
+              "name": "lifecycle",
+              "readOnly": false
+            },
+            {
+              "mountPath": "/var/run/hadoop",
+              "name": "hadooprun",
+              "readOnly": false
+            },
+            {
+              "mountPath": "/etc/nodeinfo",
+              "name": "nodeinfo",
+              "readOnly": true
+            },
+            {
+              "mountPath": "/etc/secrets",
+              "name": "secret-volume",
+              "readOnly": true
+            }
+          ]
+        }
+      ],
+      "dnsConfig": {
+        "options": [
+          {
+            "name": "use-vc",
+            "value": ""
+          }
+        ]
+      },
+      "initContainers": [
+        {
+          "command": [
+            "/bin/bash",
+            "-c",
+            "#!/bin/bash"
+          ],
+          "cpuLimit": "0.2",
+          "cpuRequest": "0.2",
+          "isBootstrap": false,
+          "memoryLimit": "128Mi",
+          "memoryRequest": "128Mi",
+          "name": "init-dnslookup",
+          "securityContext": {
+            "runAsGroup": 1011,
+            "runAsUser": 1011
+          }
+        },
+        {
+          "command": [
+            "/bin/bash",
+            "-c",
+            "#!/bin/bash"
+          ],
+          "cpuLimit": "0.1",
+          "cpuRequest": "0.1",
+          "isBootstrap": false,
+          "memoryLimit": "386Mi",
+          "memoryRequest": "386Mi",
+          "name": "init-faultdomain",
+          "securityContext": {
+            "runAsGroup": 1011,
+            "runAsUser": 1011
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/etc/nodeinfo",
+              "name": "nodeinfo",
+              "readOnly": true
+            }
+          ]
+        },
+        {
+          "command": [
+            "/bin/bash",
+            "-c",
+            "#!/bin/bash"
+          ],
+          "cpuLimit": "0.2",
+          "cpuRequest": "0.2",
+          "isBootstrap": false,
+          "memoryLimit": "256Mi",
+          "memoryRequest": "256Mi",
+          "name": "init-refreshnn",
+          "securityContext": {
+            "runAsGroup": 1011,
+            "runAsUser": 1011
+          }
+        },
+        {
+          "command": [
+            "/bin/bash",
+            "-c",
+            "#!/bin/bash"
+          ],
+          "cpuLimit": "0.2",
+          "cpuRequest": "0.2",
+          "isBootstrap": false,
+          "memoryLimit": "256Mi",
+          "memoryRequest": "256Mi",
+          "name": "publish-myip",
+          "securityContext": {
+            "runAsGroup": 1011,
+            "runAsUser": 1011
+          }
+        }
+      ],
+      "isPodServiceRequired": false,
+      "name": "yak-tenant-test-1-dn",
+      "podManagementPolicy": "Parallel",
+      "shareProcessNamespace": true,
+      "size": 5,
+      "terminateGracePeriod": 120,
+      "volumeClaims": [
+        {
+          "name": "data",
+          "storageClassName": "test-strg",
+          "storageSize": "184Gi"
+        }
+      ],
+      "volumes": [
+        {
+          "name": "lifecycle",
+          "volumeSource": "EmptyDir"
+        },
+        {
+          "name": "hadooprun",
+          "volumeSource": "EmptyDir"
+        },
+        {
+          "name": "nodeinfo",
+          "path": "/etc/nodeinfo",
+          "volumeSource": "HostPath"
+        }
+      ]
+    },
+    "serviceLabels": {
+      "hbase-operator.cfg-statefulset-update/enable": "config-only"
+    },
+    "fsgroup": 1011
+  }
+}

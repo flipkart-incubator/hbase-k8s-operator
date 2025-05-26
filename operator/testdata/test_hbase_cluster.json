@@ -1,0 +1,1280 @@
+{
+  "apiVersion": "kvstore.flipkart.com/v1",
+  "kind": "HbaseCluster",
+  "metadata": {
+    "name": "test-cluster",
+    "namespace": "test-namespace",
+    "resourceVersion": "18282894059",
+    "uid": "0c7eec61-be8a-4c90-819d-d4568e3fca65"
+  },
+  "spec": {
+    "baseImage": "edge.fkinternal.com/indradhanush/yak-base:2.5.3-08-rc7",
+    "configuration": {
+      "hadoopConfig": {
+        "core-site.xml": "<?xmlversion=\"1.0\"?>\n<?xml-stylesheettype=\"text/xsl\"href=\"configuration.xsl\"?>\n<!--Generatedbyconfdon2021-03-0911:46:01.973761409+0530ISTm=+0.012850605-->\n<configuration>\n</configuration>\n",
+        "dfs.exclude": "",
+        "dfs.include": "",
+        "hadoop-env.sh": "exportHADOOP_CONF_DIR=\n",
+        "hdfs-site.xml": "<?xmlversion=\"1.0\"?>\n<?xml-stylesheettype=\"text/xsl\"href=\"configuration.xsl\"?>\n<!--Generatedbyconfdon2021-03-0911:46:01.976938018+0530ISTm=+0.016027218-->\n<configuration>\n<property>\n<name>dfs.replication</name>\n<value>3</value>\n</property>\n\n<property>\n<name>dfs.replication.max</name>\n<value>3</value>\n</property>\n</configuration>\n"
+      },
+      "hadoopConfigMountPath": "/etc/hadoop",
+      "hadoopConfigName": "hadoop-config",
+      "hadoopTenantConfig": [
+        {
+          "hadoop-env.sh": "exportHADOOP_CONF_DIR=\n",
+          "namespace": "test-ns"
+        }
+      ],
+      "hbaseConfig": {
+        "hbase-site.xml": "<?xmlversion=\"1.0\"?>\n<?xml-stylesheettype=\"text/xsl\"href=\"configuration.xsl\"?>\n<!--Generatedbyconfdon2021-03-0911:46:01.975303151+0530ISTm=+0.014392356-->\n<configuration>\n<property>\n<name>cluster.replication.sink.manager</name>\n<value>org.apache.hadoop.hbase.rsgroup.replication.RSGroupAwareReplicationSinkManager</value>\n</property>\n</configuration>\n"
+      },
+      "hbaseConfigMountPath": "/etc/hbase",
+      "hbaseConfigName": "hbase-config",
+      "hbaseTenantConfig": [
+        {
+          "hbase-env.sh": "exportHBASE_OPTS=\n",
+          "namespace": "2c10gConfig"
+        }
+      ]
+    },
+    "deployments": {
+      "datanode": {
+        "annotations": {
+          "fcp.k8s.mtl/cosmos-jmx": "enabled",
+          "fcp.k8s.mtl/cosmos-statsd": "disabled",
+          "fcp.k8s.mtl/cosmos-tail": "disabled",
+          "fcp.k8s.mtl/mtl-config": "mtl-config-2",
+          "fcp.k8s.mtl/mtl-config-map": "mtl-dn",
+          "fcp.k8s/webhook-inject-fcp-dns": "No"
+        },
+        "containers": [
+          {
+            "args": [
+              "/var/log/flipkart/yak/hadoop",
+              "/etc/hadoop",
+              "/opt/hadoop"
+            ],
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "3",
+            "cpuRequest": "3",
+            "livenessProbe": {
+              "initialDelay": 60,
+              "tcpPort": 9866
+            },
+            "memoryLimit": "10Gi",
+            "memoryRequest": "10Gi",
+            "name": "datanode",
+            "ports": [
+              {
+                "name": "datanode-0",
+                "port": 9866
+              }
+            ],
+            "readinessProbe": {
+              "initialDelay": 60,
+              "tcpPort": 9866
+            },
+            "securityContext": {
+              "addSysPtrace": true,
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "startupProbe": {
+              "command": [
+                "/bin/bash",
+                "-c",
+                "#!/bin/bash",
+                "/var/log/flipkart/yak/hadoop",
+                "/etc/hadoop",
+                "/opt/hadoop"
+              ],
+              "failureThreshold": 10,
+              "initialDelay": 30,
+              "timeout": 60
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/lifecycle",
+                "name": "lifecycle",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/var/run/hadoop",
+                "name": "hadooprun",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              }
+            ]
+          },
+          {
+            "args": [
+              "/var/log/flipkart/yak/hbase",
+              "/etc/hbase",
+              "/opt/hbase"
+            ],
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "10",
+            "cpuRequest": "10",
+            "livenessProbe": {
+              "initialDelay": 60,
+              "tcpPort": 16020
+            },
+            "memoryLimit": "35Gi",
+            "memoryRequest": "35Gi",
+            "name": "regionserver",
+            "ports": [
+              {
+                "name": "regionserver-0",
+                "port": 16020
+              },
+              {
+                "name": "regionserver-1",
+                "port": 16030
+              }
+            ],
+            "readinessProbe": {
+              "initialDelay": 60,
+              "tcpPort": 16020
+            },
+            "securityContext": {
+              "addSysPtrace": true,
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/lifecycle",
+                "name": "lifecycle",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/var/run/hadoop",
+                "name": "hadooprun",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              }
+            ]
+          }
+        ],
+        "initContainers": [
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "init-dnslookup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.1",
+            "cpuRequest": "0.1",
+            "isBootstrap": false,
+            "memoryLimit": "386Mi",
+            "memoryRequest": "386Mi",
+            "name": "init-faultdomain",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "init-refreshnn",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "publish-myip",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          }
+        ],
+        "isPodServiceRequired": false,
+        "labels": {
+          "mcs.discovery.fcp.io/enable": "true"
+        },
+        "name": "test-cluster-dn",
+        "podManagementPolicy": "Parallel",
+        "shareProcessNamespace": true,
+        "sidecarContainers": [
+          {
+            "cpuLimit": "100m",
+            "cpuRequest": "100m",
+            "image": "edge.fkinternal.com/indradhanush/fk-yak-filebeat:8.11.3-fk1",
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "filebeat",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/filebeat",
+                "name": "filebeat",
+                "readOnly": false
+              }
+            ]
+          }
+        ],
+        "size": 5,
+        "terminateGracePeriod": 120,
+        "volumeClaims": [
+          {
+            "name": "data",
+            "storageClassName": "local-extreme-1a-ext4",
+            "storageSize": "256Gi"
+          }
+        ],
+        "volumes": [
+          {
+            "name": "lifecycle",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "name": "hadooprun",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "name": "nodeinfo",
+            "path": "/etc/nodeinfo",
+            "volumeSource": "HostPath"
+          },
+          {
+            "name": "app-log",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "configName": "filebeat",
+            "name": "filebeat",
+            "volumeSource": "ConfigMap"
+          }
+        ]
+      },
+      "hmaster": {
+        "annotations": {
+          "fcp.k8s.mtl/cosmos-jmx": "enabled",
+          "fcp.k8s.mtl/cosmos-statsd": "disabled",
+          "fcp.k8s.mtl/cosmos-tail": "disabled",
+          "fcp.k8s.mtl/mtl-config": "mtl-config-2",
+          "fcp.k8s.mtl/mtl-config-map": "mtl-hmaster",
+          "fcp.k8s/webhook-inject-fcp-dns": "No"
+        },
+        "containers": [
+          {
+            "args": [
+              "/var/log/flipkart/yak/hbase",
+              "/etc/hbase",
+              "/opt/hbase"
+            ],
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "6",
+            "cpuRequest": "6",
+            "livenessProbe": {
+              "initialDelay": 10,
+              "tcpPort": 16000
+            },
+            "memoryLimit": "40Gi",
+            "memoryRequest": "40Gi",
+            "name": "hmaster",
+            "ports": [
+              {
+                "name": "hmaster-0",
+                "port": 16000
+              },
+              {
+                "name": "hmaster-1",
+                "port": 16010
+              }
+            ],
+            "readinessProbe": {
+              "initialDelay": 10,
+              "tcpPort": 16000
+            },
+            "securityContext": {
+              "addSysPtrace": false,
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/opt/share",
+                "name": "data",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "initContainers": [
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "init-dnslookup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "publish-myip",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          }
+        ],
+        "isPodServiceRequired": false,
+        "labels": {
+          "mcs.discovery.fcp.io/enable": "true"
+        },
+        "name": "test-cluster-hmaster",
+        "podManagementPolicy": "Parallel",
+        "shareProcessNamespace": false,
+        "sidecarContainers": [
+          {
+            "args": [
+              "com.flipkart.hbase.HbaseRackUtils",
+              "/etc/hbase",
+              "/hbase-operator",
+              "/opt/share/rack_topology.data"
+            ],
+            "command": [
+              "./entrypoint"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "image": "edge.fkinternal.com/operator-hbase/hbase-rack-utils:1.0.3",
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "rackutils",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/opt/share",
+                "name": "data",
+                "readOnly": false
+              }
+            ]
+          },
+          {
+            "cpuLimit": "100m",
+            "cpuRequest": "100m",
+            "image": "edge.fkinternal.com/indradhanush/fk-yak-filebeat:8.11.3-fk1",
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "filebeat",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/filebeat",
+                "name": "filebeat",
+                "readOnly": false
+              }
+            ]
+          }
+        ],
+        "size": 2,
+        "terminateGracePeriod": 120,
+        "volumes": [
+          {
+            "name": "data",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "name": "app-log",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "configName": "filebeat",
+            "name": "filebeat",
+            "volumeSource": "ConfigMap"
+          },
+          {
+            "name": "nodeinfo",
+            "path": "/etc/nodeinfo",
+            "volumeSource": "HostPath"
+          }
+        ]
+      },
+      "journalnode": {
+        "annotations": {
+          "fcp.k8s.mtl/cosmos-jmx": "enabled",
+          "fcp.k8s.mtl/cosmos-statsd": "disabled",
+          "fcp.k8s.mtl/cosmos-tail": "disabled",
+          "fcp.k8s.mtl/mtl-config": "mtl-config-2",
+          "fcp.k8s.mtl/mtl-config-map": "mtl-jn",
+          "fcp.k8s/webhook-inject-fcp-dns": "No"
+        },
+        "containers": [
+          {
+            "args": [
+              "/var/log/flipkart/yak/hadoop",
+              "/etc/hadoop",
+              "/opt/hadoop"
+            ],
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "2",
+            "cpuRequest": "2",
+            "livenessProbe": {
+              "initialDelay": 40,
+              "tcpPort": 8485
+            },
+            "memoryLimit": "5Gi",
+            "memoryRequest": "5Gi",
+            "name": "journalnode",
+            "ports": [
+              {
+                "name": "journalnode-0",
+                "port": 8485
+              },
+              {
+                "name": "journalnode-1",
+                "port": 8480
+              }
+            ],
+            "readinessProbe": {
+              "initialDelay": 40,
+              "tcpPort": 8485
+            },
+            "securityContext": {
+              "addSysPtrace": false,
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "initContainers": [
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "init-dnslookup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "publish-myip",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          }
+        ],
+        "isPodServiceRequired": true,
+        "labels": {
+          "mcs.discovery.fcp.io/enable": "true"
+        },
+        "name": "test-cluster-jn",
+        "podManagementPolicy": "Parallel",
+        "shareProcessNamespace": false,
+        "sidecarContainers": [
+          {
+            "cpuLimit": "100m",
+            "cpuRequest": "100m",
+            "image": "edge.fkinternal.com/indradhanush/fk-yak-filebeat:8.11.3-fk1",
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "filebeat",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/filebeat",
+                "name": "filebeat",
+                "readOnly": false
+              }
+            ]
+          },
+          {
+            "args": [
+              "/tmp",
+              "/grid/1/dfs",
+              "test-cluster-bkp-0.test-cluster-bkp.test-namespace.svc.cluster.local"
+            ],
+            "command": [
+              "/opt/scripts/copy_backup"
+            ],
+            "cpuLimit": "0.5",
+            "cpuRequest": "0.5",
+            "image": "edge.fkinternal.com/indradhanush/yak-base:2.5.3-08-rc7",
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "backup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "size": 5,
+        "terminateGracePeriod": 120,
+        "volumeClaims": [
+          {
+            "name": "data",
+            "storageClassName": "local-extreme-1a-ext4",
+            "storageSize": "16Gi"
+          }
+        ],
+        "volumes": [
+          {
+            "name": "nodeinfo",
+            "path": "/etc/nodeinfo",
+            "volumeSource": "HostPath"
+          },
+          {
+            "name": "app-log",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "configName": "filebeat",
+            "name": "filebeat",
+            "volumeSource": "ConfigMap"
+          }
+        ]
+      },
+      "namenode": {
+        "annotations": {
+          "fcp.k8s.mtl/cosmos-jmx": "enabled",
+          "fcp.k8s.mtl/cosmos-statsd": "disabled",
+          "fcp.k8s.mtl/cosmos-tail": "disabled",
+          "fcp.k8s.mtl/mtl-config": "mtl-config-2",
+          "fcp.k8s.mtl/mtl-config-map": "mtl-nn",
+          "fcp.k8s/webhook-inject-fcp-dns": "No"
+        },
+        "containers": [
+          {
+            "args": [
+              "/var/log/flipkart/yak/hadoop",
+              "/etc/hadoop",
+              "/opt/hadoop"
+            ],
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "3",
+            "cpuRequest": "3",
+            "livenessProbe": {
+              "initialDelay": 180,
+              "tcpPort": 8020
+            },
+            "memoryLimit": "12Gi",
+            "memoryRequest": "12Gi",
+            "name": "namenode",
+            "ports": [
+              {
+                "name": "namenode-0",
+                "port": 8020
+              },
+              {
+                "name": "namenode-1",
+                "port": 9870
+              },
+              {
+                "name": "namenode-2",
+                "port": 50070
+              },
+              {
+                "name": "namenode-3",
+                "port": 9000
+              }
+            ],
+            "readinessProbe": {
+              "initialDelay": 180,
+              "tcpPort": 8020
+            },
+            "securityContext": {
+              "addSysPtrace": false,
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "startupProbe": {
+              "command": [
+                "/bin/bash",
+                "-c",
+                "#!/bin/bash",
+                "/var/log/flipkart/yak/hadoop",
+                "/etc/hadoop",
+                "/opt/hadoop"
+              ],
+              "failureThreshold": 10,
+              "initialDelay": 30,
+              "timeout": 60
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/lifecycle",
+                "name": "lifecycle",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              }
+            ]
+          },
+          {
+            "args": [
+              "/var/log/flipkart/yak/hadoop",
+              "/etc/hadoop",
+              "/opt/hadoop"
+            ],
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "1",
+            "cpuRequest": "1",
+            "livenessProbe": {
+              "initialDelay": 60,
+              "tcpPort": 8019
+            },
+            "memoryLimit": "3Gi",
+            "memoryRequest": "3Gi",
+            "name": "zkfc",
+            "ports": [
+              {
+                "name": "zkfc-0",
+                "port": 8019
+              }
+            ],
+            "readinessProbe": {
+              "initialDelay": 60,
+              "tcpPort": 8019
+            },
+            "securityContext": {
+              "addSysPtrace": false,
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/lifecycle",
+                "name": "lifecycle",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              },
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              }
+            ]
+          }
+        ],
+        "initContainers": [
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "init-dnslookup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "3",
+            "cpuRequest": "3",
+            "isBootstrap": true,
+            "memoryLimit": "12Gi",
+            "memoryRequest": "12Gi",
+            "name": "init-namenode",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data"
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "1",
+            "cpuRequest": "1",
+            "isBootstrap": true,
+            "memoryLimit": "3Gi",
+            "memoryRequest": "3Gi",
+            "name": "init-zkfc",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "3",
+            "cpuRequest": "3",
+            "isBootstrap": false,
+            "memoryLimit": "12Gi",
+            "memoryRequest": "12Gi",
+            "name": "init-nn-bootstrap-standby",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data"
+              }
+            ]
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "publish-myip",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          }
+        ],
+        "isPodServiceRequired": false,
+        "labels": {
+          "mcs.discovery.fcp.io/enable": "true"
+        },
+        "name": "test-cluster-nn",
+        "podManagementPolicy": "OrderedReady",
+        "shareProcessNamespace": false,
+        "sidecarContainers": [
+          {
+            "cpuLimit": "100m",
+            "cpuRequest": "100m",
+            "image": "edge.fkinternal.com/indradhanush/fk-yak-filebeat:8.11.3-fk1",
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "filebeat",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/filebeat",
+                "name": "filebeat",
+                "readOnly": false
+              }
+            ]
+          },
+          {
+            "args": [
+              "/tmp",
+              "/grid/1/dfs",
+              "test-cluster-bkp-0.test-cluster-bkp.test-namespace.svc.cluster.local"
+            ],
+            "command": [
+              "/opt/scripts/copy_backup"
+            ],
+            "cpuLimit": "0.5",
+            "cpuRequest": "0.5",
+            "image": "edge.fkinternal.com/indradhanush/yak-base:2.5.3-08-rc7",
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "backup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "size": 3,
+        "terminateGracePeriod": 120,
+        "volumeClaims": [
+          {
+            "name": "data",
+            "storageClassName": "local-extreme-1a-ext4",
+            "storageSize": "32Gi"
+          }
+        ],
+        "volumes": [
+          {
+            "name": "lifecycle",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "name": "nodeinfo",
+            "path": "/etc/nodeinfo",
+            "volumeSource": "HostPath"
+          },
+          {
+            "name": "app-log",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "configName": "filebeat",
+            "name": "filebeat",
+            "volumeSource": "ConfigMap"
+          }
+        ]
+      },
+      "zookeeper": {
+        "podDisruptionBudget": {
+          "maxUnavailable": 1
+        },
+        "annotations": {
+          "fcp.k8s.mtl/cosmos-jmx": "enabled",
+          "fcp.k8s.mtl/cosmos-statsd": "disabled",
+          "fcp.k8s.mtl/cosmos-tail": "disabled",
+          "fcp.k8s.mtl/mtl-config": "mtl-config-2",
+          "fcp.k8s.mtl/mtl-config-map": "mtl-zk",
+          "fcp.k8s/webhook-inject-fcp-dns": "No"
+        },
+        "containers": [
+          {
+            "args": [
+              "/var/log/flipkart/yak/hbase",
+              "/etc/hbase",
+              "/opt/hbase"
+            ],
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "5",
+            "cpuRequest": "5",
+            "livenessProbe": {
+              "initialDelay": 20,
+              "tcpPort": 2181
+            },
+            "memoryLimit": "5Gi",
+            "memoryRequest": "5Gi",
+            "name": "zookeeper",
+            "ports": [
+              {
+                "name": "zookeeper-0",
+                "port": 2181
+              },
+              {
+                "name": "zookeeper-1",
+                "port": 2888
+              },
+              {
+                "name": "zookeeper-2",
+                "port": 3888
+              }
+            ],
+            "readinessProbe": {
+              "initialDelay": 20,
+              "tcpPort": 2181
+            },
+            "securityContext": {
+              "addSysPtrace": false,
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "startupProbe": {
+              "command": [
+                "/bin/bash",
+                "-c",
+                "#!/bin/bash",
+                "/var/log/flipkart/yak/hbase",
+                "/etc/hbase",
+                "/opt/hbase"
+              ],
+              "failureThreshold": 10,
+              "initialDelay": 30,
+              "timeout": 60
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/nodeinfo",
+                "name": "nodeinfo",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "initContainers": [
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "init-dnslookup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          },
+          {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!"
+            ],
+            "cpuLimit": "0.2",
+            "cpuRequest": "0.2",
+            "isBootstrap": false,
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "publish-myip",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            }
+          }
+        ],
+        "isPodServiceRequired": true,
+        "labels": {
+          "mcs.discovery.fcp.io/enable": "true"
+        },
+        "name": "test-cluster-zk",
+        "podManagementPolicy": "Parallel",
+        "shareProcessNamespace": false,
+        "sidecarContainers": [
+          {
+            "cpuLimit": "100m",
+            "cpuRequest": "100m",
+            "image": "edge.fkinternal.com/indradhanush/fk-yak-filebeat:8.11.3-fk1",
+            "memoryLimit": "128Mi",
+            "memoryRequest": "128Mi",
+            "name": "filebeat",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/var/log/flipkart/yak",
+                "name": "app-log",
+                "readOnly": false
+              },
+              {
+                "mountPath": "/etc/filebeat",
+                "name": "filebeat",
+                "readOnly": false
+              }
+            ]
+          },
+          {
+            "args": [
+              "/tmp",
+              "/grid/1/dfs",
+              "test-cluster-bkp-0.test-cluster-bkp.test-namespace.svc.cluster.local"
+            ],
+            "command": [
+              "/opt/scripts/copy_backup"
+            ],
+            "cpuLimit": "0.5",
+            "cpuRequest": "0.5",
+            "image": "edge.fkinternal.com/indradhanush/yak-base:2.5.3-08-rc7",
+            "memoryLimit": "256Mi",
+            "memoryRequest": "256Mi",
+            "name": "backup",
+            "securityContext": {
+              "runAsGroup": 1011,
+              "runAsUser": 1011
+            },
+            "volumeMounts": [
+              {
+                "mountPath": "/grid/1",
+                "name": "data",
+                "readOnly": true
+              }
+            ]
+          }
+        ],
+        "size": 5,
+        "terminateGracePeriod": 120,
+        "volumeClaims": [
+          {
+            "name": "data",
+            "storageClassName": "local-extreme-1a-ext4",
+            "storageSize": "16Gi"
+          }
+        ],
+        "volumes": [
+          {
+            "name": "nodeinfo",
+            "path": "/etc/nodeinfo",
+            "volumeSource": "HostPath"
+          },
+          {
+            "name": "app-log",
+            "volumeSource": "EmptyDir"
+          },
+          {
+            "configName": "filebeat",
+            "name": "filebeat",
+            "volumeSource": "ConfigMap"
+          }
+        ]
+      }
+    },
+    "fsgroup": 1011,
+    "isBootstrap": false,
+    "serviceLabels": {
+      "hbase-operator.cfg-statefulset-update/enable": "config-only",
+      "mcs.discovery.fcp.io/enable": "true"
+    },
+    "tenantNamespaces": [
+      "yak-tenant-test-1-ns",
+      "yak-tenant-test-2-ns"
+    ]
+  }
+}

@@ -369,6 +369,19 @@ spec:
                         type: object
                       name:
                         type: string
+                      podDisruptionBudget:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          minAvailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                        type: object
                       podManagementPolicy:
                         default: Parallel
                         description: PodManagementPolicyType defines the policy for
@@ -376,6 +389,8 @@ spec:
                         enum:
                         - Parallel
                         - OrderedReady
+                        type: string
+                      serviceAccountName:
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -892,6 +907,19 @@ spec:
                         type: object
                       name:
                         type: string
+                      podDisruptionBudget:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          minAvailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                        type: object
                       podManagementPolicy:
                         default: Parallel
                         description: PodManagementPolicyType defines the policy for
@@ -899,6 +927,8 @@ spec:
                         enum:
                         - Parallel
                         - OrderedReady
+                        type: string
+                      serviceAccountName:
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -1415,6 +1445,19 @@ spec:
                         type: object
                       name:
                         type: string
+                      podDisruptionBudget:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          minAvailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                        type: object
                       podManagementPolicy:
                         default: Parallel
                         description: PodManagementPolicyType defines the policy for
@@ -1422,6 +1465,8 @@ spec:
                         enum:
                         - Parallel
                         - OrderedReady
+                        type: string
+                      serviceAccountName:
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -1938,6 +1983,19 @@ spec:
                         type: object
                       name:
                         type: string
+                      podDisruptionBudget:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          minAvailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                        type: object
                       podManagementPolicy:
                         default: Parallel
                         description: PodManagementPolicyType defines the policy for
@@ -1945,6 +2003,8 @@ spec:
                         enum:
                         - Parallel
                         - OrderedReady
+                        type: string
+                      serviceAccountName:
                         type: string
                       shareProcessNamespace:
                         default: false
@@ -2461,6 +2521,19 @@ spec:
                         type: object
                       name:
                         type: string
+                      podDisruptionBudget:
+                        properties:
+                          maxUnavailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                          minAvailable:
+                            anyOf:
+                            - type: integer
+                            - type: string
+                            x-kubernetes-int-or-string: true
+                        type: object
                       podManagementPolicy:
                         default: Parallel
                         description: PodManagementPolicyType defines the policy for
@@ -2468,6 +2541,8 @@ spec:
                         enum:
                         - Parallel
                         - OrderedReady
+                        type: string
+                      serviceAccountName:
                         type: string
                       shareProcessNamespace:
                         default: false

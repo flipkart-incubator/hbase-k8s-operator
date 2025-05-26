@@ -1,0 +1,22 @@
+{
+  "apiVersion": "kvstore.abc.com/v1",
+  "kind": "HbaseTenant",
+  "metadata": {
+    "labels": {
+      "app.kubernetes.io/managed-by": "Helm"
+    },
+    "name": "yak-tenant-test-1",
+    "namespace": "yak-tenant-test-1-ns"
+  },
+  "spec": {
+    "baseImage": "test-image",
+    "configuration": {
+      "hadoopConfig": {
+        "core-site.xml": "<?xmlversion=\"1.0\"?>\n<?xml-stylesheettype=\"text/xsl\"href=\"configuration.xsl\"?>\n<!--Generatedbyconfdon2021-03-0911:46:01.973761409+0530ISTm=+0.012850605-->\n<configuration>\n<property>\n<name>fs.trash.interval</name>\n<value>1440</value>\n</property>\n"
+      }
+    },
+    "serviceLabels": {
+      "hbase-operator.cfg-statefulset-update/enable": "config-only"
+    }
+  }
+}

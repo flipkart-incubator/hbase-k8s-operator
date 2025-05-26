@@ -3,6 +3,7 @@
   size: {{ .root.replicas }}
   isPodServiceRequired: {{ default false .root.isPodServiceRequired }}
   shareProcessNamespace: {{ default false .root.shareProcessNamespace }}
+  serviceAccountName: {{ default "default" .root.serviceAccountName }}
   {{- if .root.podManagementPolicy }}
   podManagementPolicy: {{ .root.podManagementPolicy }}
   {{- else if $.podManagementPolicy }}
@@ -134,7 +135,10 @@
     command: {{ .command }}
     {{- end }}
     {{- if .args }}
-    args: {{ .args }}
+    args:
+    {{- range .args }}
+    - {{ . | quote }}
+    {{- end }}
     {{- end }}
     cpuLimit: {{ default "100m" .cpuLimit | quote }}
     memoryLimit: {{ default "128Mi" .memoryLimit | quote }}
@@ -156,6 +160,14 @@
     {{- end }}
     {{- end }}
   {{- end }}
+  {{- end }}
+  {{- if .root.podDisruptionBudget }}
+  podDisruptionBudget:
+    {{- if .root.podDisruptionBudget.minAvailable }}
+    minAvailable: {{ .root.podDisruptionBudget.minAvailable }}
+    {{- else if .root.podDisruptionBudget.maxUnavailable }}
+    maxUnavailable: {{ .root.podDisruptionBudget.maxUnavailable }}
+    {{- end }}
   {{- end }}
   containers:
   {{- range $index, $elem := .root.containers }}

@@ -28,6 +28,6 @@ roleRef:
   name: {{ .Values.roles.fencingRoleName }}
 subjects:
   - kind: ServiceAccount
-    name: {{ .Values.serviceAccounts.fencingServiceAccount }}
+    name: {{ .Values.additionalServiceAccounts.fencingServiceAccount }}
     namespace: {{ .Values.namespace }}
 {{ end }}

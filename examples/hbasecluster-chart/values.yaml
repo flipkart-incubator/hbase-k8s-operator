@@ -5,12 +5,16 @@ managerRoleKind: Role
 managerRoleName: hbase-operator-manager-role
 managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
-serviceAccounts:
+additionalServiceAccounts:
+  fencingServiceAccount: namenode-fencing
   observerServiceAccount: hbase-cluster-observer
 roles:
+  fencingRoleKind: Role
+  fencingRoleName: namenode-fencing-role
   observerRoleKind: Role
   observerRoleName: hbase-cluster-observer-role
 roleBindings:
+  fencingRoleBindingName: namenode-fencing-rolebinding
   observerRoleBindingName: observer-rolebinding
 service:
   name: hbase-cluster

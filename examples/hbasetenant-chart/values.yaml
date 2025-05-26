@@ -5,7 +5,7 @@ managerRoleKind: Role
 managerRoleName: hbase-operator-manager-role
 managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
-serviceAccounts:
+additionalServiceAccounts:
   observerServiceAccount: hbase-cluster-observer
 roles:
   observerRoleKind: Role

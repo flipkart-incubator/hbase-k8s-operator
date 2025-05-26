@@ -125,7 +125,7 @@ spec:
       {{- $data := dict "Values" .Values "root" .Values.deployments.datanode "scripts" $scripts "probescripts" $probescripts "initContainers" $initContainers "args" $args "portsArr" $portsArr "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
     namenode:
-      {{- $podManagementPolicy := "OrderedReady" }}
+      {{- $podManagementPolicy := "parallel" }}
       {{- $initContainers := list $dnsContainer $initnnContainer $initzkfcContainer $initnnbootstrapContainer }}
       {{- $nnscript := include "hbasecluster.nnscript" . | indent 6 }}
       {{- $zkfcscript := include "hbasecluster.zkfcscript" . | indent 6 }}

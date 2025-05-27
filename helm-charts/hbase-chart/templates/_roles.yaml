@@ -154,7 +154,6 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: {{ .Values.roles.observerRoleName }}
-  namespace: {{ .Values.namespace }}
 rules:
   - apiGroups: [""]
     resources: ["pods", "services", "configmaps", "events"]
@@ -171,3 +170,4 @@ rules:
   - apiGroups: ["kvstore.flipkart.com"]
     resources: ["hbaseclusters", "hbasestandalones", "hbasetenants"]
     verbs: ["get", "list", "watch"]
+{{ end }}

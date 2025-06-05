@@ -1,9 +1,9 @@
 {{ define "com.flipkart.hbasecluster" }}
-{{- include "com.flipkart.hbasecluster.roles" . }}
+{{- include "com.flipkart.hbaseresources.roles" . }}
 ---
-{{- include "com.flipkart.hbasecluster.rolebindings" . }}
+{{- include "com.flipkart.hbaseresources.rolebindings" . }}
 ---
-{{- include "com.flipkart.hbasecluster.serviceaccounts" . }}
+{{- include "com.flipkart.hbaseresources.serviceaccounts" . }}
 ---
 {{- if eq .Values.sharedWithOperatorNamespace true }}
 ---

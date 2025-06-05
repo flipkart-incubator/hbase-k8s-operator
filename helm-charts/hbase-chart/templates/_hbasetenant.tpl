@@ -1,4 +1,5 @@
 {{ define "com.flipkart.hbasetenant" }}
+{{- include "com.flipkart.hbaseresources.rolebindings" . }}
 {{- if eq .Values.sharedWithOperatorNamespace true }}
 ---
 {{- else }}

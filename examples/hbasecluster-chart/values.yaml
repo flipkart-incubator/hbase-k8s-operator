@@ -19,14 +19,14 @@ roleBindings:
     roleKind: Role
     roleName: namenode-fencing-role
     subjects:
-      - kind: serviceAccount
+      - kind: ServiceAccount
         name: namenode-fencing
         namespace: hbase-cluster-ns
   - name: hbase-cluster-observer-rolebinding
     roleKind: Role
     roleName: hbase-cluster-observer-role
     subjects:
-      - kind: serviceAccount
+      - kind: ServiceAccount
         name: hbase-cluster-observer
         namespace: hbase-ui-ns
 service:

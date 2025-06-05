@@ -22,7 +22,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ .name }}
-  namespace: {{ .namespace | default $.namespace }}
+  namespace: {{ .namespace | default $.Values.namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: {{ default "Role" .roleKind }}
@@ -31,7 +31,7 @@ subjects:
   {{- range .subjects }}
   - kind: {{ .kind }}
     name: {{ .name }}
-    namespace: {{ .namespace | default $.namespace }}
+    namespace: {{ default $.Values.namespace .namespace }}
   {{- end }}
 ---
 {{- end }}

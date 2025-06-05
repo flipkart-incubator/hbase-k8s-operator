@@ -10,7 +10,7 @@ roleBindings:
     roleKind: Role
     roleName: hbase-cluster-observer-role
     subjects:
-      - kind: serviceAccount
+      - kind: ServiceAccount
         name: hbase-cluster-observer
         namespace: hbase-ui-ns
 service:

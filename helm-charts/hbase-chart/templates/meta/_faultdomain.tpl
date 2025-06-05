@@ -22,7 +22,11 @@
 
     if [[ -n "$FAULT_DOMAIN_COMMAND" ]]; then
       echo "create /hbase-operator $SMD" | $HBASE_HOME/bin/hbase zkcli 2> /dev/null || true
-      echo "create /hbase-operator/$HOSTNAME $SMD" | $HBASE_HOME/bin/hbase zkcli 2> /dev/null
+      (echo "create /hbase-operator/$HOSTNAME $SMD" | $HBASE_HOME/bin/hbase zkcli 2>/dev/null || \
+       echo "set /hbase-operator/$HOSTNAME $SMD" | $HBASE_HOME/bin/hbase zkcli) || {
+        echo "ERROR: Failed to register fault domain in ZooKeeper for $HOSTNAME"
+        exit 1
+      }
       echo ""
       echo "Completed"
     fi

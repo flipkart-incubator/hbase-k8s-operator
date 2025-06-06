@@ -22,13 +22,6 @@ roleBindings:
       - kind: ServiceAccount
         name: namenode-fencing
         namespace: hbase-cluster-ns
-  - name: hbase-cluster-observer-rolebinding
-    roleKind: Role
-    roleName: hbase-cluster-observer-role
-    subjects:
-      - kind: ServiceAccount
-        name: hbase-cluster-observer
-        namespace: hbase-ui-ns
 service:
   name: hbase-cluster
   image: hbase:2.4.12

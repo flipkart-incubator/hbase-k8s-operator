@@ -7,14 +7,7 @@ managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
 additionalServiceAccounts: {}
 roles: {}
-roleBindings:
-  - name: hbase-cluster-observer-rolebinding
-    roleKind: Role
-    roleName: hbase-cluster-observer-role
-    subjects:
-      - kind: ServiceAccount
-        name: hbase-cluster-observer
-        namespace: hbase-ui-ns
+roleBindings: {}
 service:
   name: hbase-tenant
   image: hbase:2.4.12

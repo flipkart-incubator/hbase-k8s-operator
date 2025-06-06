@@ -132,17 +132,18 @@ rules:
 
 ---
 
-{{- define "com.flipkart.hbasecluster.roles" }}
+{{- define "com.flipkart.hbaseresources.roles" }}
+{{- range .Values.roles }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
-kind: Role
+kind: {{ default "Role" .kind }}
 metadata:
-  name: {{ .Values.roles.fencingRoleName }}
-  namespace: {{ .Values.namespace }}
+  name: {{ .name }}
 rules:
-  - apiGroups:
-      - ""
-    resources:
-      - pods
-    verbs:
-      - delete
-{{ end }}
+  {{- range .rules }}
+  - apiGroups: {{ toJson .apiGroups }}
+    resources: {{ toJson .resources }}
+    verbs: {{ toJson .verbs }}
+  {{- end }}
+{{- end }}
+{{- end }}

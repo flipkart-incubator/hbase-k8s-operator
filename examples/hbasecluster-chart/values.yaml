@@ -6,12 +6,22 @@ managerRoleName: hbase-operator-manager-role
 managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
 additionalServiceAccounts:
-  fencingServiceAccount: namenode-fencing
+  - name: namenode-fencing
 roles:
-  fencingRoleKind: Role
-  fencingRoleName: namenode-fencing-role
+  - name: namenode-fencing-role
+    kind: Role
+    rules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["delete"]
 roleBindings:
-  fencingRoleBindingName: namenode-fencing-rolebinding
+  - name: namenode-fencing-rolebinding
+    roleKind: Role
+    roleName: namenode-fencing-role
+    subjects:
+      - kind: ServiceAccount
+        name: namenode-fencing
+        namespace: hbase-cluster-ns
 service:
   name: hbase-cluster
   image: hbase:2.4.12

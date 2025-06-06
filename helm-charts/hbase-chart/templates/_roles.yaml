@@ -134,6 +134,7 @@ rules:
 
 {{- define "com.flipkart.hbaseresources.roles" }}
 {{- range .Values.roles }}
+---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: {{ default "Role" .kind }}
 metadata:
@@ -144,6 +145,5 @@ rules:
     resources: {{ toJson .resources }}
     verbs: {{ toJson .verbs }}
   {{- end }}
----
 {{- end }}
 {{- end }}

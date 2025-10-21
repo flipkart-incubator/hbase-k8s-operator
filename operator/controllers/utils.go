@@ -204,8 +204,10 @@ func buildVolumeClaims(namespace string, vs []kvstorev1.HbaseClusterVolumeClaim)
 	for _, v := range vs {
 		volumeClaim := corev1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      v.Name,
-				Namespace: namespace,
+				Name:        v.Name,
+				Namespace:   namespace,
+				Annotations: v.Annotations,
+				Labels:      v.Labels,
 			},
 			Spec: corev1.PersistentVolumeClaimSpec{
 				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},

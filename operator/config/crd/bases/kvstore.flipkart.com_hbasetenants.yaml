@@ -568,6 +568,14 @@ spec:
                   volumeClaims:
                     items:
                       properties:
+                        annotations:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        labels:
+                          additionalProperties:
+                            type: string
+                          type: object
                         name:
                           type: string
                         storageClassName:

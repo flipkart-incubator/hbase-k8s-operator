@@ -32,6 +32,10 @@ standalone:
   - name: data
     size: "2Gi"
     storageClass: "standard"
+    annotations:
+      key: value
+    labels:
+      key: value
   containers:
   - name: standalone
     cpuLimit: 0.5

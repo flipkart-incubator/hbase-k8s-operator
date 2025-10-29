@@ -85,6 +85,8 @@ deployments:
     - name: data
       size: "2Gi"
       storageClass: "standard"
+      annotations:
+        key: value
     volumes:
     - name: nodeinfo
       volumeSource: HostPath
@@ -112,6 +114,10 @@ deployments:
     - name: data
       size: "2Gi"
       storageClass: "standard"
+      annotations:
+        key: value
+      labels:
+        key: value
     volumes:
     - name: nodeinfo
       volumeSource: HostPath
@@ -173,6 +179,8 @@ deployments:
     - name: data
       size: "10Gi"
       storageClass: "standard"
+      labels:
+        key: value
     volumes:
     - name: lifecycle 
       volumeSource: EmptyDir

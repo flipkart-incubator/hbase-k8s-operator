@@ -36,6 +36,18 @@
   - name: {{ .name }}
     storageSize: {{ .size }}
     storageClassName: {{ .storageClass }}
+    {{- if .annotations }}
+    annotations:
+    {{- range $key, $val := .annotations }}
+      {{ $key }}: {{ $val | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .labels }}
+    labels:
+    {{- range $key, $val := .labels }}
+      {{ $key }}: {{ $val | quote }}
+    {{- end }}
+    {{- end }}
   {{- end }}
   {{- end }}
   {{- if .root.volumes }}

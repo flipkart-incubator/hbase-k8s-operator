@@ -51,6 +51,10 @@ datanode:
   - name: data
     size: "10Gi"
     storageClass: "standard"
+    annotations:
+      key: value
+    labels:
+      key: value
   volumes:
   - name: lifecycle 
     volumeSource: EmptyDir

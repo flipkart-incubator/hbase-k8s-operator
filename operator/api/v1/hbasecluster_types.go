@@ -114,8 +114,12 @@ type HbaseClusterInitContainer struct {
 }
 
 type HbaseClusterVolumeClaim struct {
-	Name        string `json:"name"`
-	StorageSize string `json:"storageSize"`
+	Name string `json:"name"`
+	// +optional
+	Labels map[string]string `json:"labels"`
+	// +optional
+	Annotations map[string]string `json:"annotations"`
+	StorageSize string            `json:"storageSize"`
 	//+optional
 	StorageClassName string `json:"storageClassName"`
 }

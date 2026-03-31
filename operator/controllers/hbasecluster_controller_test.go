@@ -8,7 +8,7 @@ import (
 	policyv1 "k8s.io/api/policy/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime/schema"
-	"os"
+	"io/ioutil"
 	"strconv"
 	"testing"
 	"time"
@@ -371,7 +371,7 @@ func doClusterTestSetup() (*K8sMockClient, *HbaseClusterReconciler, context.Cont
 }
 
 func getMockHbaseCluster() *kvstorev1.HbaseCluster {
-	out, err := os.ReadFile("../testdata/test_hbase_cluster.json")
+	out, err := ioutil.ReadFile("../testdata/test_hbase_cluster.json")
 	if err != nil {
 		fmt.Println(err)
 	}

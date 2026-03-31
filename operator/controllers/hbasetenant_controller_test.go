@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
-	"os"
+	"io/ioutil"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"testing"
@@ -264,7 +264,7 @@ func getMockClientAndTenantReconciler() (*K8sMockClient, *HbaseTenantReconciler)
 }
 
 func getMockHbaseTenant() *kvstorev1.HbaseTenant {
-	out, err := os.ReadFile("../testdata/test_hbase_tenant.json")
+	out, err := ioutil.ReadFile("../testdata/test_hbase_tenant.json")
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -289,7 +289,7 @@ func doTenantTestSetup() (*K8sMockClient, *HbaseTenantReconciler, context.Contex
 }
 
 func getInvalidConfigHbasetenant() *kvstorev1.HbaseTenant {
-	out, err := os.ReadFile("../testdata/test_invalid_hbase_tenant.json")
+	out, err := ioutil.ReadFile("../testdata/test_invalid_hbase_tenant.json")
 	if err != nil {
 		fmt.Println(err)
 	}

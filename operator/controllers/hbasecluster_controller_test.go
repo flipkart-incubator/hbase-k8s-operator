@@ -3,12 +3,6 @@ package controllers
 import (
 	"context"
 	"encoding/json"
-	"fmt"
-	corev1 "k8s.io/api/core/v1"
-	policyv1 "k8s.io/api/policy/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/runtime/schema"
-	"io/ioutil"
 	"strconv"
 	"testing"
 	"time"
@@ -17,7 +11,11 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	appsv1 "k8s.io/api/apps/v1"
+	corev1 "k8s.io/api/core/v1"
+	policyv1 "k8s.io/api/policy/v1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -53,6 +51,7 @@ func (m *K8sMockClient) Create(ctx context.Context, obj client.Object, opts ...c
 
 // TestHbaseClusterReconciler_ResNotFound reconciliation logic test case when nont of the resources not found
 func TestHbaseClusterReconciler_ResNotFound(t *testing.T) {
+	resetHashStore()
 	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
 	k8sMockClient.On("Get", ctx, req.NamespacedName, mock.Anything).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 
@@ -65,6 +64,7 @@ func TestHbaseClusterReconciler_ResNotFound(t *testing.T) {
 
 // TestHbaseClusterReconciler_ErrorGettingRes reconciliation logic test case when there is error getting resources
 func TestHbaseClusterReconciler_ErrorGettingRes(t *testing.T) {
+	resetHashStore()
 	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
 	k8sMockClient.On("Get", ctx, req.NamespacedName, mock.Anything).Return(assert.AnError)
 
@@ -344,6 +344,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow
 	k8sMockClient.AssertExpectations(t)
 }
 
+// getMockClientAndReconciler creates a mock K8s client and an HbaseClusterReconciler wired together for unit testing.
 func getMockClientAndReconciler() (*K8sMockClient, *HbaseClusterReconciler) {
 	k8sMockClient := new(K8sMockClient)
 	scheme := runtime.NewScheme()
@@ -358,6 +359,7 @@ func getMockClientAndReconciler() (*K8sMockClient, *HbaseClusterReconciler) {
 	return k8sMockClient, reconciler
 }
 
+// doClusterTestSetup initialises the mock client, reconciler, context, and a standard reconcile request for cluster tests.
 func doClusterTestSetup() (*K8sMockClient, *HbaseClusterReconciler, context.Context, ctrl.Request) {
 	k8sMockClient, reconciler := getMockClientAndReconciler()
 	ctx := context.TODO()
@@ -370,15 +372,153 @@ func doClusterTestSetup() (*K8sMockClient, *HbaseClusterReconciler, context.Cont
 	return k8sMockClient, reconciler, ctx, req
 }
 
+// getMockHbaseCluster loads the HbaseCluster test fixture from testdata via the fail-fast safe loader.
 func getMockHbaseCluster() *kvstorev1.HbaseCluster {
-	out, err := ioutil.ReadFile("../testdata/test_hbase_cluster.json")
-	if err != nil {
-		fmt.Println(err)
+	return getMockHbaseClusterSafe()
+}
+
+// populateClusterHashStore pre-populates the global hashStore with expected hashes for all cluster child resources
+// (Service, ConfigMaps per tenant namespace, pod services, StatefulSet), enabling "rest flow" tests to run without triggering updates.
+func populateClusterHashStore(hbasecluster *kvstorev1.HbaseCluster, reconciler *HbaseClusterReconciler) {
+	deployments := []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Journalnode, hbasecluster.Spec.Deployments.Namenode, hbasecluster.Spec.Deployments.Datanode, hbasecluster.Spec.Deployments.Hmaster}
+	if hbasecluster.Spec.Deployments.Zookeeper.Size != 0 {
+		deployments = append([]kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Zookeeper}, deployments...)
 	}
-	cluster := &kvstorev1.HbaseCluster{}
-	unmarshalErr := json.Unmarshal(out, cluster)
-	if unmarshalErr != nil {
-		fmt.Println(unmarshalErr)
+
+	svc := buildService(hbasecluster.Name, hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.ServiceLabels, hbasecluster.Spec.ServiceSelectorLabels, deployments, true)
+	ctrl.SetControllerReference(hbasecluster, svc, reconciler.Scheme)
+	svcMarshal, _ := json.Marshal(svc.Spec)
+	hashStore["svc-"+svc.Name] = asSha256(svcMarshal)
+
+	namespaces := hbasecluster.Spec.TenantNamespaces
+	namespaces = append(namespaces, hbasecluster.Namespace)
+	for _, namespace := range namespaces {
+		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+		ctrl.SetControllerReference(hbasecluster, cfg, reconciler.Scheme)
+		cfgMarshal, _ := json.Marshal(cfg.Data)
+		hashStore["cfg-"+cfg.Name+cfg.Namespace] = asSha256(cfgMarshal)
+
+		cfg2 := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+		ctrl.SetControllerReference(hbasecluster, cfg2, reconciler.Scheme)
+		cfg2Marshal, _ := json.Marshal(cfg2.Data)
+		hashStore["cfg-"+cfg2.Name+cfg2.Namespace] = asSha256(cfg2Marshal)
 	}
-	return cluster
+
+	if hbasecluster.Spec.Deployments.Zookeeper.IsPodServiceRequired {
+		var index int32 = 0
+		for index < hbasecluster.Spec.Deployments.Zookeeper.Size {
+			name := hbasecluster.Spec.Deployments.Zookeeper.Name + "-" + strconv.Itoa(int(index))
+			podSvc := buildService(name, hbasecluster.Name, hbasecluster.Namespace, nil, nil, []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Zookeeper}, false)
+			ctrl.SetControllerReference(hbasecluster, podSvc, reconciler.Scheme)
+			podSvcMarshal, _ := json.Marshal(podSvc.Spec)
+			hashStore["svc-"+podSvc.Name] = asSha256(podSvcMarshal)
+			index += 1
+		}
+	}
+
+	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
+		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, reconciler.Log, true)
+	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
+	stsMarshal, _ := json.Marshal(mockStsZK)
+	hashStore["ss-"+mockStsZK.Name] = asSha256(stsMarshal)
+}
+
+// TestHbaseClusterReconciler_ZookeeperDisabled verifies behavior when Zookeeper.Size is 0
+func TestHbaseClusterReconciler_ZookeeperDisabled(t *testing.T) {
+	resetHashStore()
+	hbasecluster := getMockHbaseCluster()
+	hbasecluster.Spec.Deployments.Zookeeper.Size = 0
+
+	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
+
+	deployments := []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Journalnode, hbasecluster.Spec.Deployments.Namenode, hbasecluster.Spec.Deployments.Datanode, hbasecluster.Spec.Deployments.Hmaster}
+
+	k8sMockClient.On("Get", ctx, req.NamespacedName, &kvstorev1.HbaseCluster{}).
+		Run(func(args mock.Arguments) {
+			arg := args.Get(2).(*kvstorev1.HbaseCluster)
+			*arg = *hbasecluster
+		}).
+		Return(nil)
+
+	mockSvc := buildService(hbasecluster.Name, hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.ServiceLabels, hbasecluster.Spec.ServiceSelectorLabels, deployments, true)
+	ctrl.SetControllerReference(hbasecluster, mockSvc, reconciler.Scheme)
+	k8sMockClient.On("Get", ctx, req.NamespacedName, &corev1.Service{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+	k8sMockClient.On("Create", ctx, mockSvc, []client.CreateOption(nil)).Return(nil)
+
+	for _, namespace := range []string{tenantNamespace1, tenantNamespace2, testNamespace} {
+		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+		ctrl.SetControllerReference(hbasecluster, mockCfgHb, reconciler.Scheme)
+		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+		k8sMockClient.On("Create", ctx, mockCfgHb, []client.CreateOption(nil)).Return(nil)
+
+		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+		ctrl.SetControllerReference(hbasecluster, mockCfgHd, reconciler.Scheme)
+		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+		k8sMockClient.On("Create", ctx, mockCfgHd, []client.CreateOption(nil)).Return(nil)
+	}
+
+	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Datanode.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+
+	// Journalnode is first when zk is disabled; also has isPodServiceRequired=true
+	if hbasecluster.Spec.Deployments.Journalnode.IsPodServiceRequired {
+		var index int32 = 0
+		for index < hbasecluster.Spec.Deployments.Journalnode.Size {
+			name := hbasecluster.Spec.Deployments.Journalnode.Name + "-" + strconv.Itoa(int(index))
+			mockJNPodSvc := buildService(name, hbasecluster.Name, hbasecluster.Namespace, nil, nil, []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Journalnode}, false)
+			ctrl.SetControllerReference(hbasecluster, mockJNPodSvc, reconciler.Scheme)
+			k8sMockClient.On("Get", ctx, types.NamespacedName{Name: name, Namespace: hbasecluster.Namespace}, &corev1.Service{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+			k8sMockClient.On("Create", ctx, mockJNPodSvc, []client.CreateOption(nil)).Return(nil)
+			index += 1
+		}
+	}
+
+	mockStsJN := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
+		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Journalnode, reconciler.Log, true)
+	ctrl.SetControllerReference(hbasecluster, mockStsJN, reconciler.Scheme)
+	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Journalnode.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+	k8sMockClient.On("Create", ctx, mockStsJN, []client.CreateOption(nil)).Return(nil)
+
+	result, err := reconciler.Reconcile(ctx, req)
+	assert.NoError(t, err)
+	assert.Equal(t, ctrl.Result{Requeue: true, RequeueAfter: time.Second * 5}, result)
+
+	k8sMockClient.AssertExpectations(t)
+}
+
+// TestHbaseClusterReconciler_ConfigValidationFailure verifies that invalid XML config causes error
+func TestHbaseClusterReconciler_ConfigValidationFailure(t *testing.T) {
+	resetHashStore()
+	hbasecluster := getMockHbaseCluster()
+	hbasecluster.Spec.Configuration.HbaseConfig["hbase-site.xml"] = "invalid xml <><>"
+
+	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
+
+	deployments := []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Journalnode, hbasecluster.Spec.Deployments.Namenode, hbasecluster.Spec.Deployments.Datanode, hbasecluster.Spec.Deployments.Hmaster}
+	if hbasecluster.Spec.Deployments.Zookeeper.Size != 0 {
+		deployments = append([]kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Zookeeper}, deployments...)
+	}
+
+	k8sMockClient.On("Get", ctx, req.NamespacedName, &kvstorev1.HbaseCluster{}).
+		Run(func(args mock.Arguments) {
+			arg := args.Get(2).(*kvstorev1.HbaseCluster)
+			*arg = *hbasecluster
+		}).
+		Return(nil)
+
+	mockSvc := buildService(hbasecluster.Name, hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.ServiceLabels, hbasecluster.Spec.ServiceSelectorLabels, deployments, true)
+	ctrl.SetControllerReference(hbasecluster, mockSvc, reconciler.Scheme)
+	k8sMockClient.On("Get", ctx, req.NamespacedName, &corev1.Service{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+	k8sMockClient.On("Create", ctx, mockSvc, []client.CreateOption(nil)).Return(nil)
+
+	k8sMockClient.On("Get", ctx, types.NamespacedName{Namespace: hbasecluster.Namespace, Name: "ConfigValidateFailed"}, &corev1.Event{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+	k8sMockClient.On("Create", ctx, mock.Anything, []client.CreateOption(nil)).Return(nil)
+
+	result, err := reconciler.Reconcile(ctx, req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid XML")
+	assert.Equal(t, ctrl.Result{}, result)
+
+	k8sMockClient.AssertExpectations(t)
 }

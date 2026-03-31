@@ -1,0 +1,108 @@
+{
+  "apiVersion": "kvstore.flipkart.com/v1",
+  "kind": "HbaseStandalone",
+  "metadata": {
+    "name": "test-standalone",
+    "namespace": "test-standalone-ns",
+    "resourceVersion": "12345",
+    "uid": "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+  },
+  "spec": {
+    "baseImage": "test-image:latest",
+    "configuration": {
+      "hbaseConfigName": "hbase-config",
+      "hbaseConfigMountPath": "/etc/hbase",
+      "hbaseConfig": {
+        "hbase-site.xml": "<?xml version=\"1.0\"?>\n<configuration>\n</configuration>\n"
+      },
+      "hadoopConfigName": "hadoop-config",
+      "hadoopConfigMountPath": "/etc/hadoop",
+      "hadoopConfig": {
+        "core-site.xml": "<?xml version=\"1.0\"?>\n<configuration>\n</configuration>\n"
+      }
+    },
+    "standalone": {
+      "name": "test-standalone-sa",
+      "size": 2,
+      "containers": [
+        {
+          "name": "hbase-standalone",
+          "command": ["/bin/bash", "-c", "#!/bin/bash"],
+          "args": ["/var/log/hbase", "/etc/hbase", "/opt/hbase"],
+          "cpuLimit": "2",
+          "cpuRequest": "1",
+          "memoryLimit": "4Gi",
+          "memoryRequest": "2Gi",
+          "ports": [
+            {
+              "name": "hbase-master",
+              "port": 16010
+            },
+            {
+              "name": "hbase-rs",
+              "port": 16020
+            }
+          ],
+          "livenessProbe": {
+            "initialDelay": 30,
+            "tcpPort": 16010,
+            "timeout": 5,
+            "period": 10
+          },
+          "readinessProbe": {
+            "initialDelay": 30,
+            "tcpPort": 16010
+          },
+          "securityContext": {
+            "runAsUser": 1000,
+            "runAsGroup": 1000,
+            "addSysPtrace": false
+          },
+          "volumeMounts": [
+            {
+              "mountPath": "/grid/1",
+              "name": "data",
+              "readOnly": false
+            }
+          ]
+        }
+      ],
+      "initContainers": [
+        {
+          "name": "init-check",
+          "command": ["/bin/bash", "-c", "echo ready"],
+          "cpuLimit": "0.2",
+          "cpuRequest": "0.1",
+          "memoryLimit": "128Mi",
+          "memoryRequest": "64Mi",
+          "isBootstrap": false,
+          "securityContext": {
+            "runAsUser": 1000,
+            "runAsGroup": 1000
+          }
+        }
+      ],
+      "isPodServiceRequired": false,
+      "podManagementPolicy": "Parallel",
+      "terminateGracePeriod": 60,
+      "shareProcessNamespace": false,
+      "volumeClaims": [
+        {
+          "name": "data",
+          "storageClassName": "standard",
+          "storageSize": "10Gi"
+        }
+      ],
+      "volumes": [
+        {
+          "name": "app-log",
+          "volumeSource": "EmptyDir"
+        }
+      ],
+      "podDisruptionBudget": {
+        "maxUnavailable": 1
+      }
+    },
+    "fsgroup": 1000
+  }
+}

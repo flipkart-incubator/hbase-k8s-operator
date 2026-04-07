@@ -33,15 +33,11 @@ import (
 )
 
 // HbaseClusterReconciler reconciles a HbaseCluster object.
-// Uses contextual logging via ctrl.LoggerFrom(ctx) instead of a stored Log field
-// (controller-runtime v0.23.3+ convention).
 type HbaseClusterReconciler struct {
 	Client client.Client
 	Scheme *runtime.Scheme
 }
 
-// asSha256 computes a SHA-256 hash of the string representation of the given object.
-// Used to detect changes in Kubernetes resources between reconciliation loops.
 func asSha256(o interface{}) string {
 	h := sha256.New()
 	h.Write([]byte(fmt.Sprintf("%v", o)))
@@ -49,8 +45,6 @@ func asSha256(o interface{}) string {
 	return fmt.Sprintf("%x", h.Sum(nil))
 }
 
-// hashStore tracks SHA-256 hashes of reconciled resources (keyed by resource name)
-// to avoid unnecessary updates when the desired state has not changed.
 var hashStore = make(map[string]string)
 
 //+kubebuilder:rbac:groups=kvstore.flipkart.com,resources=hbaseclusters,verbs=get;list;watch;create;update;patch;delete
@@ -69,9 +63,6 @@ var hashStore = make(map[string]string)
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.23.3/pkg/reconcile
 func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// ctrl.LoggerFrom(ctx) returns the logger injected by controller-runtime with
-	// controller metadata (name, group, kind, reconcileID). We add the resource
-	// NamespacedName for per-cluster log filtering and a requestid for tracing.
 	log := ctrl.LoggerFrom(ctx).WithValues("hbasecluster", req.NamespacedName, "requestid", time.Now().Unix())
 	log.Info("Received request to reconcile")
 

@@ -29,8 +29,6 @@ import (
 )
 
 // HbaseStandaloneReconciler reconciles a HbaseStandalone object.
-// Uses contextual logging via ctrl.LoggerFrom(ctx) instead of a stored Log field
-// (controller-runtime v0.23.3+ convention).
 type HbaseStandaloneReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
@@ -52,9 +50,6 @@ type HbaseStandaloneReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.23.3/pkg/reconcile
 func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// ctrl.LoggerFrom(ctx) returns the logger injected by controller-runtime with
-	// controller metadata. We add the resource NamespacedName for per-standalone
-	// log filtering and a requestid for tracing.
 	log := ctrl.LoggerFrom(ctx).WithValues("hbasestandalone", req.NamespacedName, "requestid", time.Now().Unix())
 	log.Info("Received request to reconcile")
 

@@ -31,8 +31,6 @@ import (
 )
 
 // HbaseTenantReconciler reconciles a HbaseTenant object.
-// Uses contextual logging via ctrl.LoggerFrom(ctx) instead of a stored Log field
-// (controller-runtime v0.23.3+ convention).
 type HbaseTenantReconciler struct {
 	Client client.Client
 	Scheme *runtime.Scheme
@@ -56,8 +54,6 @@ type HbaseTenantReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.23.3/pkg/reconcile
 func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	// ctrl.LoggerFrom(ctx) returns the logger injected by controller-runtime with
-	// controller metadata. We add the resource NamespacedName for per-tenant log filtering.
 	log := ctrl.LoggerFrom(ctx).WithValues("hbasetenant", req.NamespacedName)
 	log.Info("Received request to reconcile")
 

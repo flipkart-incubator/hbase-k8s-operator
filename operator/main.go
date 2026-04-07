@@ -53,9 +53,6 @@ func init() {
 	//+kubebuilder:scaffold:scheme
 }
 
-// convertToNamespaceMap converts a slice of namespace names into the map format
-// required by cache.Options.DefaultNamespaces in controller-runtime v0.23.3+.
-// This replaces the removed cache.MultiNamespacedCacheBuilder() function.
 func convertToNamespaceMap(namespaces []string) map[string]cache.Config {
 	nsMap := make(map[string]cache.Config)
 	for _, ns := range namespaces {
@@ -118,10 +115,6 @@ func main() {
 		setupLog.Info("Watching for following namespaces: " + strings.Join(ns, ","))
 	}
 
-	// controller-runtime v0.23.3 restructured Manager Options:
-	//   - MetricsBindAddress (string) replaced by Metrics (metricsserver.Options)
-	//   - Port (int) replaced by WebhookServer (webhook.Server)
-	//   - NewCache (func) replaced by Cache.DefaultNamespaces (map[string]cache.Config)
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
 		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
@@ -138,8 +131,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Reconciler structs no longer carry a Log field; controller-runtime v0.23.3+
-	// injects the logger into the context passed to Reconcile() automatically.
 	if err = (&controllers.HbaseClusterReconciler{
 		Client: mgr.GetClient(),
 		Scheme: mgr.GetScheme(),

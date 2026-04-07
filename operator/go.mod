@@ -2,8 +2,6 @@ module github.com/flipkart-incubator/hbase-k8s-operator
 
 go 1.26
 
-toolchain go1.26.1
-
 require (
 	github.com/go-logr/logr v1.4.3
 	github.com/stretchr/testify v1.11.1

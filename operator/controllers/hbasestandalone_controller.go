@@ -20,7 +20,6 @@ import (
 	context "context"
 	time "time"
 
-	logr "github.com/go-logr/logr"
 	errors "k8s.io/apimachinery/pkg/api/errors"
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -29,10 +28,11 @@ import (
 	kvstorev1 "github.com/flipkart-incubator/hbase-k8s-operator/api/v1"
 )
 
-// HbaseStandaloneReconciler reconciles a HbaseStandalone object
+// HbaseStandaloneReconciler reconciles a HbaseStandalone object.
+// Uses contextual logging via ctrl.LoggerFrom(ctx) instead of a stored Log field
+// (controller-runtime v0.23.3+ convention).
 type HbaseStandaloneReconciler struct {
 	client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -43,14 +43,19 @@ type HbaseStandaloneReconciler struct {
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;
 //+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch
+//+kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;delete
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to move the current state of the cluster closer to the desired state.
+// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// move the current state of the cluster closer to the desired state.
 // For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.2/pkg/reconcile
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.23.3/pkg/reconcile
 func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("hbasestandalone", req.NamespacedName).WithValues("requestid", time.Now().Unix())
+	// ctrl.LoggerFrom(ctx) returns the logger injected by controller-runtime with
+	// controller metadata. We add the resource NamespacedName for per-standalone
+	// log filtering and a requestid for tracing.
+	log := ctrl.LoggerFrom(ctx).WithValues("hbasestandalone", req.NamespacedName, "requestid", time.Now().Unix())
 	log.Info("Received request to reconcile")
 
 	hbasestandalone := &kvstorev1.HbaseStandalone{}

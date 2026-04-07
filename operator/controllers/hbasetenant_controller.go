@@ -18,7 +18,6 @@ package controllers
 
 import (
 	context "context"
-	"sigs.k8s.io/controller-runtime/pkg/controller"
 	time "time"
 
 	appsv1 "k8s.io/api/apps/v1"
@@ -26,16 +25,16 @@ import (
 	runtime "k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
-
-	logr "github.com/go-logr/logr"
+	"sigs.k8s.io/controller-runtime/pkg/controller"
 
 	kvstorev1 "github.com/flipkart-incubator/hbase-k8s-operator/api/v1"
 )
 
-// HbaseTenantReconciler reconciles a HbaseTenant object
+// HbaseTenantReconciler reconciles a HbaseTenant object.
+// Uses contextual logging via ctrl.LoggerFrom(ctx) instead of a stored Log field
+// (controller-runtime v0.23.3+ convention).
 type HbaseTenantReconciler struct {
 	Client client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -46,20 +45,20 @@ type HbaseTenantReconciler struct {
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;
 //+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch
+//+kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;delete
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
-// TODO(user): Modify the Reconcile function to compare the state specified by
-// the HbaseTenant object against the actual cluster state, and then
-// perform operations to make the cluster state reflect the state specified by
-// the user.
-//
+// It compares the state specified by the HbaseTenant object against the actual
+// cluster state, and performs operations to make them match.
 // For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.2/pkg/reconcile
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.23.3/pkg/reconcile
 func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("hbasetenant", req.NamespacedName)
+	// ctrl.LoggerFrom(ctx) returns the logger injected by controller-runtime with
+	// controller metadata. We add the resource NamespacedName for per-tenant log filtering.
+	log := ctrl.LoggerFrom(ctx).WithValues("hbasetenant", req.NamespacedName)
 	log.Info("Received request to reconcile")
 
 	// Fetch the HbaseTenant instance

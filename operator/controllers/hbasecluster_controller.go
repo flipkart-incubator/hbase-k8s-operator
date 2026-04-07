@@ -29,15 +29,12 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	client "sigs.k8s.io/controller-runtime/pkg/client"
 
-	logr "github.com/go-logr/logr"
-
 	kvstorev1 "github.com/flipkart-incubator/hbase-k8s-operator/api/v1"
 )
 
-// HbaseClusterReconciler reconciles a HbaseCluster object
+// HbaseClusterReconciler reconciles a HbaseCluster object.
 type HbaseClusterReconciler struct {
 	Client client.Client
-	Log    logr.Logger
 	Scheme *runtime.Scheme
 }
 
@@ -57,14 +54,16 @@ var hashStore = make(map[string]string)
 //+kubebuilder:rbac:groups=core,resources=services,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=core,resources=pods,verbs=get;list;watch;
 //+kubebuilder:rbac:groups=core,resources=events,verbs=get;list;watch;create;update;patch
+//+kubebuilder:rbac:groups=events.k8s.io,resources=events,verbs=create;patch
 //+kubebuilder:rbac:groups=core,resources=configmaps,verbs=get;list;watch;create;update;patch;delete
 //+kubebuilder:rbac:groups=policy,resources=poddisruptionbudgets,verbs=get;list;watch;create;update;delete
 
-// Reconcile is part of the main kubernetes reconciliation loop which aims to move the current state of the cluster closer to the desired state.
+// Reconcile is part of the main kubernetes reconciliation loop which aims to
+// move the current state of the cluster closer to the desired state.
 // For more details, check Reconcile and its Result here:
-// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.7.2/pkg/reconcile
+// - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.23.3/pkg/reconcile
 func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	log := r.Log.WithValues("hbasecluster", req.NamespacedName).WithValues("requestid", time.Now().Unix())
+	log := ctrl.LoggerFrom(ctx).WithValues("hbasecluster", req.NamespacedName, "requestid", time.Now().Unix())
 	log.Info("Received request to reconcile")
 
 	hbasecluster := &kvstorev1.HbaseCluster{}

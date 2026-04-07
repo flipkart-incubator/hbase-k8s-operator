@@ -34,7 +34,6 @@ func getMockClientAndStandaloneReconciler() (*K8sMockClient, *HbaseStandaloneRec
 
 	reconciler := &HbaseStandaloneReconciler{
 		Client: mockClient,
-		Log:    ctrl.Log.WithName("controllers").WithName("HbaseStandalone"),
 		Scheme: scheme,
 	}
 	return mockClient, reconciler
@@ -56,7 +55,7 @@ func doStandaloneTestSetup() (*K8sMockClient, *HbaseStandaloneReconciler, contex
 // populateStandaloneHashStore pre-populates the global hashStore with expected hashes for all standalone child resources,
 // enabling "rest flow" tests to verify that no unnecessary updates are triggered when nothing has changed.
 func populateStandaloneHashStore(standalone *kvstorev1.HbaseStandalone, reconciler *HbaseStandaloneReconciler) {
-	log := reconciler.Log
+	log := ctrl.Log.WithName("test")
 
 	svc := buildService(standalone.Name, standalone.Name, standalone.Namespace, standalone.Spec.ServiceLabels, standalone.Spec.ServiceSelectorLabels, []kvstorev1.HbaseClusterDeployment{standalone.Spec.Standalone}, true)
 	ctrl.SetControllerReference(standalone, svc, reconciler.Scheme)
@@ -127,19 +126,19 @@ func TestHbaseStandaloneReconciler_SuccessfulReconciliation_ObjectsNotFound(t *t
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockSvc.Name, Namespace: standalone.Namespace}, &corev1.Service{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockSvc, []client.CreateOption(nil)).Return(nil)
 
-	mockCfgHb := buildConfigMap(standalone.Spec.Configuration.HbaseConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HbaseConfig, standalone.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+	mockCfgHb := buildConfigMap(standalone.Spec.Configuration.HbaseConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HbaseConfig, standalone.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(standalone, mockCfgHb, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockCfgHb, []client.CreateOption(nil)).Return(nil)
 
-	mockCfgHd := buildConfigMap(standalone.Spec.Configuration.HadoopConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HadoopConfig, standalone.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+	mockCfgHd := buildConfigMap(standalone.Spec.Configuration.HadoopConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HadoopConfig, standalone.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(standalone, mockCfgHd, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockCfgHd, []client.CreateOption(nil)).Return(nil)
 
 	mockSts := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
 		false, standalone.Spec.Configuration, mockCfgHd.ResourceVersion, standalone.Spec.FSGroup,
-		standalone.Spec.Standalone, reconciler.Log, true)
+		standalone.Spec.Standalone, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(standalone, mockSts, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: standalone.Spec.Standalone.Name, Namespace: standalone.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockSts, []client.CreateOption(nil)).Return(nil)
@@ -177,7 +176,7 @@ func TestHbaseStandaloneReconciler_SuccessfulReconciliation_AllObjectsFoundRestF
 		}).
 		Return(nil)
 
-	mockCfgHb := buildConfigMap(standalone.Spec.Configuration.HbaseConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HbaseConfig, standalone.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+	mockCfgHb := buildConfigMap(standalone.Spec.Configuration.HbaseConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HbaseConfig, standalone.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(standalone, mockCfgHb, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).
 		Run(func(args mock.Arguments) {
@@ -186,7 +185,7 @@ func TestHbaseStandaloneReconciler_SuccessfulReconciliation_AllObjectsFoundRestF
 		}).
 		Return(nil)
 
-	mockCfgHd := buildConfigMap(standalone.Spec.Configuration.HadoopConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HadoopConfig, standalone.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+	mockCfgHd := buildConfigMap(standalone.Spec.Configuration.HadoopConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HadoopConfig, standalone.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(standalone, mockCfgHd, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).
 		Run(func(args mock.Arguments) {
@@ -197,7 +196,7 @@ func TestHbaseStandaloneReconciler_SuccessfulReconciliation_AllObjectsFoundRestF
 
 	mockSts := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
 		false, standalone.Spec.Configuration, mockCfgHd.ResourceVersion, standalone.Spec.FSGroup,
-		standalone.Spec.Standalone, reconciler.Log, true)
+		standalone.Spec.Standalone, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(standalone, mockSts, reconciler.Scheme)
 	mockSts.Status.ReadyReplicas = standalone.Spec.Standalone.Size
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: standalone.Spec.Standalone.Name, Namespace: standalone.Namespace}, &appsv1.StatefulSet{}).
@@ -207,7 +206,7 @@ func TestHbaseStandaloneReconciler_SuccessfulReconciliation_AllObjectsFoundRestF
 		}).
 		Return(nil)
 
-	mockPdb := buildPodDisruptionBudget(standalone.Name, standalone.Namespace, standalone.Spec.Standalone, reconciler.Log)
+	mockPdb := buildPodDisruptionBudget(standalone.Name, standalone.Namespace, standalone.Spec.Standalone, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(standalone, mockPdb, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockPdb.Name, Namespace: mockPdb.Namespace}, &policyv1.PodDisruptionBudget{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockPdb, []client.CreateOption(nil)).Return(nil)
@@ -301,7 +300,7 @@ func TestHbaseStandaloneReconciler_NoPDB(t *testing.T) {
 		}).
 		Return(nil)
 
-	mockCfgHb := buildConfigMap(standalone.Spec.Configuration.HbaseConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HbaseConfig, standalone.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+	mockCfgHb := buildConfigMap(standalone.Spec.Configuration.HbaseConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HbaseConfig, standalone.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(standalone, mockCfgHb, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).
 		Run(func(args mock.Arguments) {
@@ -310,7 +309,7 @@ func TestHbaseStandaloneReconciler_NoPDB(t *testing.T) {
 		}).
 		Return(nil)
 
-	mockCfgHd := buildConfigMap(standalone.Spec.Configuration.HadoopConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HadoopConfig, standalone.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+	mockCfgHd := buildConfigMap(standalone.Spec.Configuration.HadoopConfigName, standalone.Name, standalone.Namespace, standalone.Spec.Configuration.HadoopConfig, standalone.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(standalone, mockCfgHd, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).
 		Run(func(args mock.Arguments) {
@@ -321,7 +320,7 @@ func TestHbaseStandaloneReconciler_NoPDB(t *testing.T) {
 
 	mockSts := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
 		false, standalone.Spec.Configuration, mockCfgHd.ResourceVersion, standalone.Spec.FSGroup,
-		standalone.Spec.Standalone, reconciler.Log, true)
+		standalone.Spec.Standalone, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(standalone, mockSts, reconciler.Scheme)
 	mockSts.Status.ReadyReplicas = standalone.Spec.Standalone.Size
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: standalone.Spec.Standalone.Name, Namespace: standalone.Namespace}, &appsv1.StatefulSet{}).

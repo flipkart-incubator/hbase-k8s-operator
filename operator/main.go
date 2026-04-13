@@ -30,9 +30,11 @@ import (
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
-	cache "sigs.k8s.io/controller-runtime/pkg/cache"
+	"sigs.k8s.io/controller-runtime/pkg/cache"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	metricsserver "sigs.k8s.io/controller-runtime/pkg/metrics/server"
+	"sigs.k8s.io/controller-runtime/pkg/webhook"
 
 	kvstorev1 "github.com/flipkart-incubator/hbase-k8s-operator/api/v1"
 	"github.com/flipkart-incubator/hbase-k8s-operator/controllers"
@@ -49,6 +51,14 @@ func init() {
 
 	utilruntime.Must(kvstorev1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
+}
+
+func convertToNamespaceMap(namespaces []string) map[string]cache.Config {
+	nsMap := make(map[string]cache.Config)
+	for _, ns := range namespaces {
+		nsMap[ns] = cache.Config{}
+	}
+	return nsMap
 }
 
 func getWatchNamespaces() ([]string, error) {
@@ -105,15 +115,16 @@ func main() {
 		setupLog.Info("Watching for following namespaces: " + strings.Join(ns, ","))
 	}
 
-	//ns = []string{"default", "hbase-standalone-ns", "hbase-tenant-ns", "hbase-cluster-ns"}
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
-		MetricsBindAddress:     metricsAddr,
-		Port:                   9443,
+		Metrics:                metricsserver.Options{BindAddress: metricsAddr},
+		WebhookServer:          webhook.NewServer(webhook.Options{Port: 9443}),
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "8458a868.flipkart.com",
-		NewCache:               cache.MultiNamespacedCacheBuilder(ns),
+		Cache: cache.Options{
+			DefaultNamespaces: convertToNamespaceMap(ns),
+		},
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
@@ -122,7 +133,6 @@ func main() {
 
 	if err = (&controllers.HbaseClusterReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("HbaseCluster"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HbaseCluster")
@@ -130,7 +140,6 @@ func main() {
 	}
 	if err = (&controllers.HbaseTenantReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("HbaseTenant"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr, controllers.Options{MaxConcurrentReconciles: maxReconcilersTenant}); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HbaseTenant")
@@ -139,7 +148,6 @@ func main() {
 
 	if err = (&controllers.HbaseStandaloneReconciler{
 		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("HbaseStandalone"),
 		Scheme: mgr.GetScheme(),
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "HbaseStandalone")

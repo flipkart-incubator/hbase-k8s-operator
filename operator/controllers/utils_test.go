@@ -218,8 +218,8 @@ func TestBuildProbe_TCPPort(t *testing.T) {
 	assert.Equal(t, int32(30), probe.InitialDelaySeconds)
 	assert.Equal(t, int32(5), probe.TimeoutSeconds)
 	assert.Equal(t, int32(10), probe.PeriodSeconds)
-	assert.NotNil(t, probe.Handler.TCPSocket)
-	assert.Equal(t, intstr.FromInt(16010), probe.Handler.TCPSocket.Port)
+	assert.NotNil(t, probe.ProbeHandler.TCPSocket)
+	assert.Equal(t, intstr.FromInt(16010), probe.ProbeHandler.TCPSocket.Port)
 }
 
 // TestBuildProbe_CommandBased verifies that an exec-based probe is created when a Command is specified.
@@ -228,8 +228,8 @@ func TestBuildProbe_CommandBased(t *testing.T) {
 		Command:             []string{"/bin/check"},
 		InitialDelaySeconds: 10,
 	})
-	assert.NotNil(t, probe.Handler.Exec)
-	assert.Equal(t, []string{"/bin/check"}, probe.Handler.Exec.Command)
+	assert.NotNil(t, probe.ProbeHandler.Exec)
+	assert.Equal(t, []string{"/bin/check"}, probe.ProbeHandler.Exec.Command)
 }
 
 // TestBuildProbe_CommandOverridesPort verifies that when both Port and Command are set, Command takes precedence because it is assigned last in buildProbe.
@@ -238,8 +238,8 @@ func TestBuildProbe_CommandOverridesPort(t *testing.T) {
 		Port:    8080,
 		Command: []string{"/bin/check"},
 	})
-	// Command is set after Port, so it overwrites the Handler
-	assert.NotNil(t, probe.Handler.Exec)
+	// Command is set after Port, so it overwrites the ProbeHandler
+	assert.NotNil(t, probe.ProbeHandler.Exec)
 }
 
 // ---- buildLifecycle ----

@@ -34,7 +34,7 @@ type K8sMockClient struct {
 	client.Client
 }
 
-func (m *K8sMockClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object) error {
+func (m *K8sMockClient) Get(ctx context.Context, key client.ObjectKey, obj client.Object, opts ...client.GetOption) error {
 	args := m.Called(ctx, key, obj)
 	return args.Error(0)
 }
@@ -105,12 +105,12 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_ObjectsNotFound(t *test
 	k8sMockClient.On("Create", ctx, mockSvc, []client.CreateOption(nil)).Return(nil)
 
 	for _, namespace := range []string{tenantNamespace1, tenantNamespace2, testNamespace} {
-		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHb, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 		k8sMockClient.On("Create", ctx, mockCfgHb, []client.CreateOption(nil)).Return(nil)
 
-		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHd, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 		k8sMockClient.On("Create", ctx, mockCfgHd, []client.CreateOption(nil)).Return(nil)
@@ -135,7 +135,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_ObjectsNotFound(t *test
 
 	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
-		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, reconciler.Log, true)
+		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Zookeeper.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockStsZK, []client.CreateOption(nil)).Return(nil)
@@ -182,7 +182,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound(t *test
 	k8sMockClient.On("Update", ctx, mockSvc, []client.UpdateOption(nil)).Return(nil)
 
 	for _, namespace := range []string{tenantNamespace1, tenantNamespace2, testNamespace} {
-		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHb, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).
 			Run(func(args mock.Arguments) {
@@ -192,7 +192,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound(t *test
 			Return(nil)
 		k8sMockClient.On("Update", ctx, mockCfgHb, []client.UpdateOption(nil)).Return(nil)
 
-		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHd, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).
 			Run(func(args mock.Arguments) {
@@ -227,7 +227,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound(t *test
 
 	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
-		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, reconciler.Log, true)
+		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Zookeeper.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).
 		Run(func(args mock.Arguments) {
@@ -279,7 +279,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow
 		Return(nil)
 
 	for _, namespace := range []string{tenantNamespace1, tenantNamespace2, testNamespace} {
-		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHb, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).
 			Run(func(args mock.Arguments) {
@@ -288,7 +288,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow
 			}).
 			Return(nil)
 
-		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHd, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).
 			Run(func(args mock.Arguments) {
@@ -321,7 +321,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow
 
 	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
-		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, reconciler.Log, true)
+		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
 	mockStsZK.Status.ReadyReplicas = hbasecluster.Spec.Deployments.Zookeeper.Size
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Zookeeper.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).
@@ -331,7 +331,7 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow
 		}).
 		Return(nil)
 
-	mockPdbZk := buildPodDisruptionBudget(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.Deployments.Zookeeper, reconciler.Log)
+	mockPdbZk := buildPodDisruptionBudget(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"))
 	ctrl.SetControllerReference(hbasecluster, mockPdbZk, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockPdbZk.Name, Namespace: mockPdbZk.Namespace}, &policyv1.PodDisruptionBudget{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockPdbZk, []client.CreateOption(nil)).Return(nil)
@@ -353,7 +353,6 @@ func getMockClientAndReconciler() (*K8sMockClient, *HbaseClusterReconciler) {
 
 	reconciler := &HbaseClusterReconciler{
 		Client: k8sMockClient,
-		Log:    ctrl.Log.WithName("controllers").WithName("HbaseCluster"),
 		Scheme: scheme,
 	}
 	return k8sMockClient, reconciler
@@ -393,12 +392,12 @@ func populateClusterHashStore(hbasecluster *kvstorev1.HbaseCluster, reconciler *
 	namespaces := hbasecluster.Spec.TenantNamespaces
 	namespaces = append(namespaces, hbasecluster.Namespace)
 	for _, namespace := range namespaces {
-		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+		cfg := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, cfg, reconciler.Scheme)
 		cfgMarshal, _ := json.Marshal(cfg.Data)
 		hashStore["cfg-"+cfg.Name+cfg.Namespace] = asSha256(cfgMarshal)
 
-		cfg2 := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+		cfg2 := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, cfg2, reconciler.Scheme)
 		cfg2Marshal, _ := json.Marshal(cfg2.Data)
 		hashStore["cfg-"+cfg2.Name+cfg2.Namespace] = asSha256(cfg2Marshal)
@@ -418,7 +417,7 @@ func populateClusterHashStore(hbasecluster *kvstorev1.HbaseCluster, reconciler *
 
 	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
-		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, reconciler.Log, true)
+		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
 	stsMarshal, _ := json.Marshal(mockStsZK)
 	hashStore["ss-"+mockStsZK.Name] = asSha256(stsMarshal)
@@ -447,12 +446,12 @@ func TestHbaseClusterReconciler_ZookeeperDisabled(t *testing.T) {
 	k8sMockClient.On("Create", ctx, mockSvc, []client.CreateOption(nil)).Return(nil)
 
 	for _, namespace := range []string{tenantNamespace1, tenantNamespace2, testNamespace} {
-		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, reconciler.Log)
+		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHb, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 		k8sMockClient.On("Create", ctx, mockCfgHb, []client.CreateOption(nil)).Return(nil)
 
-		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, reconciler.Log)
+		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
 		ctrl.SetControllerReference(hbasecluster, mockCfgHd, reconciler.Scheme)
 		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 		k8sMockClient.On("Create", ctx, mockCfgHd, []client.CreateOption(nil)).Return(nil)
@@ -475,7 +474,7 @@ func TestHbaseClusterReconciler_ZookeeperDisabled(t *testing.T) {
 
 	mockStsJN := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
-		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Journalnode, reconciler.Log, true)
+		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Journalnode, ctrl.Log.WithName("test"), true)
 	ctrl.SetControllerReference(hbasecluster, mockStsJN, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Journalnode.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockStsJN, []client.CreateOption(nil)).Return(nil)

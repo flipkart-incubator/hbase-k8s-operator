@@ -19,7 +19,7 @@ package controllers
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"testing"
 
 	kvstorev1 "github.com/flipkart-incubator/hbase-k8s-operator/api/v1"
@@ -41,7 +41,7 @@ func resetHashStore() {
 // loadFixture reads a JSON fixture file and unmarshals it into target. Panics on any error to ensure tests fail fast
 // rather than silently proceeding with zero-value objects.
 func loadFixture(path string, target interface{}) {
-	out, err := ioutil.ReadFile(path)
+	out, err := os.ReadFile(path)
 	if err != nil {
 		panic(fmt.Sprintf("failed to read fixture %s: %v", path, err))
 	}

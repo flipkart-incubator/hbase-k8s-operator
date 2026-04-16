@@ -211,9 +211,8 @@ func buildVolumeClaims(namespace string, vs []kvstorev1.HbaseClusterVolumeClaim)
 			},
 			Spec: corev1.PersistentVolumeClaimSpec{
 				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-				Resources: corev1.ResourceRequirements{
+				Resources: corev1.VolumeResourceRequirements{
 					Requests: corev1.ResourceList{
-						//TODO: Handle crashes
 						corev1.ResourceStorage: resource.MustParse(v.StorageSize),
 					},
 				},
@@ -288,7 +287,7 @@ func buildProbe(p kvstorev1.HbaseClusterProbe) *corev1.Probe {
 	}
 
 	if p.Port > 0 {
-		probe.Handler = corev1.Handler{
+		probe.ProbeHandler = corev1.ProbeHandler{
 			TCPSocket: &corev1.TCPSocketAction{
 				Port: intstr.FromInt(p.Port),
 			},
@@ -296,7 +295,7 @@ func buildProbe(p kvstorev1.HbaseClusterProbe) *corev1.Probe {
 	}
 
 	if len(p.Command) > 0 {
-		probe.Handler = corev1.Handler{
+		probe.ProbeHandler = corev1.ProbeHandler{
 			Exec: &corev1.ExecAction{
 				Command: p.Command,
 			},
@@ -310,7 +309,7 @@ func buildLifecycle(p kvstorev1.HbaseClusterLifecycle) *corev1.Lifecycle {
 	lifecycle := &corev1.Lifecycle{}
 
 	if p.PreStop != nil {
-		lifecycle.PreStop = &corev1.Handler{
+		lifecycle.PreStop = &corev1.LifecycleHandler{
 			Exec: &corev1.ExecAction{
 				Command: p.PreStop,
 			},
@@ -318,7 +317,7 @@ func buildLifecycle(p kvstorev1.HbaseClusterLifecycle) *corev1.Lifecycle {
 	}
 
 	if p.PostStart != nil {
-		lifecycle.PostStart = &corev1.Handler{
+		lifecycle.PostStart = &corev1.LifecycleHandler{
 			Exec: &corev1.ExecAction{
 				Command: p.PostStart,
 			},

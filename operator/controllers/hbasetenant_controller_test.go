@@ -97,10 +97,9 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_ObjectsNotFound(t *testi
 	k8sMockClient.AssertExpectations(t)
 }
 
-// TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound tests the Reconcile method
-// when all objects are found and updated successfully
+// TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound verifies that when objects exist
+// but hashStore is empty (e.g., after operator restart), the first resource update triggers a requeue.
 func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound(t *testing.T) {
-	//mock hbase tenant object
 	hbasetenant := getMockHbaseTenant()
 
 	k8sMockClient, reconciler, ctx, req := doTenantTestSetup()
@@ -120,53 +119,24 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFound(t *testi
 			*arg = *mockCfgHb
 		}).
 		Return(nil)
-
-	mockCfgHd := buildConfigMap(hbasetenant.Spec.Configuration.HadoopConfigName, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.Configuration.HadoopConfig, hbasetenant.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
-	ctrl.SetControllerReference(hbasetenant, mockCfgHd, reconciler.Scheme)
-	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).
-		Run(func(args mock.Arguments) {
-			arg := args.Get(2).(*corev1.ConfigMap)
-			*arg = *mockCfgHd
-		}).
-		Return(nil)
 	k8sMockClient.On("Update", ctx, mock.Anything, []client.UpdateOption(nil)).Return(nil)
-
-	mockStsSvc := buildService(hbasetenant.Name, hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.ServiceLabels, hbasetenant.Spec.ServiceSelectorLabels, []kvstorev1.HbaseClusterDeployment{hbasetenant.Spec.Datanode}, true)
-	ctrl.SetControllerReference(hbasetenant, mockStsSvc, reconciler.Scheme)
-	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockStsSvc.Name, Namespace: hbasetenant.Namespace}, &corev1.Service{}).
-		Run(func(args mock.Arguments) {
-			arg := args.Get(2).(*corev1.Service)
-			*arg = *mockStsSvc
-		}).
-		Return(nil)
-	k8sMockClient.On("Update", ctx, mockStsSvc, []client.UpdateOption(nil)).Return(nil)
-
-	mockSts := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
-		hbasetenant.Spec.Configuration, "", hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, ctrl.Log.WithName("test"), false)
-	ctrl.SetControllerReference(hbasetenant, mockSts, reconciler.Scheme)
-
-	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasetenant.Spec.Datanode.Name, Namespace: hbasetenant.Namespace}, &appsv1.StatefulSet{}).
-		Run(func(args mock.Arguments) {
-			arg := args.Get(2).(*appsv1.StatefulSet)
-			*arg = *mockSts
-		}).Return(nil).Times(2)
 
 	result, err := reconciler.Reconcile(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, result)
+	assert.Equal(t, ctrl.Result{RequeueAfter: time.Second * 5}, result)
 
-	// AssertExpectations asserts that everything specified with On and Return was in fact called as expected.
 	k8sMockClient.AssertExpectations(t)
 }
 
-// TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow tests the Reconcile method happy flow
-// This test will fail if ran as individual as it depends on hashstore impl.
-// when ran along with other tests it will pass as hashstore will have values filled and update method will not be called.
+// TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow verifies steady-state:
+// when all resources exist and hashes match, no updates are issued; reconciliation proceeds to PDB creation.
 func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(t *testing.T) {
-	//mock hbase tenant object
 	hbasetenant := getMockHbaseTenant()
 
 	k8sMockClient, reconciler, ctx, req := doTenantTestSetup()
+
+	resetHashStore()
+	populateTenantHashStore(hbasetenant, reconciler)
 
 	k8sMockClient.On("Get", ctx, req.NamespacedName, &kvstorev1.HbaseTenant{}).
 		Run(func(args mock.Arguments) {

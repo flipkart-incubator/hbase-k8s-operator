@@ -1383,7 +1383,7 @@ func TestReconcileStatefulSet_Exists_HashMatches_NotReady(t *testing.T) {
 
 	result, err := reconcileStatefulSet(ctx, log, "test-ns", ss, d, mockClient)
 	assert.NoError(t, err)
-	assert.Equal(t, ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, result)
+	assert.Equal(t, ctrl.Result{Requeue: true, RequeueAfter: time.Second * 10}, result)
 	mockClient.AssertExpectations(t)
 }
 

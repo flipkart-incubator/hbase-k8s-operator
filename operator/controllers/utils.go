@@ -736,8 +736,7 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 		}
 		hashStore["cfg-"+cfg.Name+cfg.Namespace] = asSha256(cfgMarshal)
 		log.Info("Updated ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
-		time.Sleep(10 * time.Second)
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: time.Second * 5}, nil
 	}
 	return ctrl.Result{}, nil
 }
@@ -783,8 +782,7 @@ func reconcileService(ctx context.Context, log logr.Logger, namespace string, sv
 		}
 		hashStore["svc-"+svc.Name] = asSha256(svcMarshal)
 		log.Info("Updated Service", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
-		time.Sleep(10 * time.Second)
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: time.Second * 5}, nil
 	}
 	return ctrl.Result{}, nil
 }
@@ -823,10 +821,10 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 		}
 		hashStore["ss-"+newSS.Name] = asSha256(newSSMarshal)
 		log.Info("Updated StatefulSet", "StatefulSet.Namespace", newSS.Namespace, "StatefulSet.Name", newSS.Name)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	} else if existingSS.Status.ReadyReplicas != d.Size || existingSS.Status.CurrentRevision != existingSS.Status.UpdateRevision {
-		log.Info("Sleeping for 20 seconds. Cluster", "NotReady", existingSS.Status, "Expected Replicas", d.Size)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+		log.Info("Waiting for StatefulSet to be ready", "NotReady", existingSS.Status, "Expected Replicas", d.Size)
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	} else {
 		log.Info("Reconciled for cluster", "StatefulSet", d.Name)
 	}
@@ -953,7 +951,7 @@ func reconcilePodDisruptionBudget(ctx context.Context, log logr.Logger, pdb *pol
 		}
 		hashStore["pdb-"+pdb.Name] = asSha256(pdbMarshal)
 		log.Info("Updated PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	} else {
 		log.Info("Reconciled for cluster", "PodDisruptionBudget", pdb.Name, "component", d.Name)
 	}

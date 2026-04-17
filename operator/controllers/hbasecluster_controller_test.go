@@ -148,10 +148,9 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_ObjectsNotFound(t *test
 	k8sMockClient.AssertExpectations(t)
 }
 
-// TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound successful reconciliation logic test case
-// if objects found and update is called
+// TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound verifies that when objects exist
+// but hashStore is empty (e.g., after operator restart), the first resource update triggers a requeue.
 func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound(t *testing.T) {
-	//mock hbase cluster object
 	hbasecluster := getMockHbaseCluster()
 
 	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
@@ -181,78 +180,22 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFound(t *test
 		Return(nil)
 	k8sMockClient.On("Update", ctx, mockSvc, []client.UpdateOption(nil)).Return(nil)
 
-	for _, namespace := range []string{tenantNamespace1, tenantNamespace2, testNamespace} {
-		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
-		ctrl.SetControllerReference(hbasecluster, mockCfgHb, reconciler.Scheme)
-		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).
-			Run(func(args mock.Arguments) {
-				arg := args.Get(2).(*corev1.ConfigMap)
-				*arg = *mockCfgHb
-			}).
-			Return(nil)
-		k8sMockClient.On("Update", ctx, mockCfgHb, []client.UpdateOption(nil)).Return(nil)
-
-		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
-		ctrl.SetControllerReference(hbasecluster, mockCfgHd, reconciler.Scheme)
-		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).
-			Run(func(args mock.Arguments) {
-				arg := args.Get(2).(*corev1.ConfigMap)
-				*arg = *mockCfgHd
-			}).
-			Return(nil)
-		k8sMockClient.On("Update", ctx, mockCfgHd, []client.UpdateOption(nil)).Return(nil)
-	}
-
-	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Datanode.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
-
-	// only one component zk is mocked here as sts reconcile method requeues the call after sts create
-	// other component's reconcile does not happen unless for previous one it ensures to have ready replica same as desired.
-	if hbasecluster.Spec.Deployments.Zookeeper.IsPodServiceRequired {
-		var name string
-		var index int32 = 0
-		for index < hbasecluster.Spec.Deployments.Zookeeper.Size {
-			name = hbasecluster.Spec.Deployments.Zookeeper.Name + "-" + strconv.Itoa(int(index))
-			mockZKPodSvc := buildService(name, hbasecluster.Name, hbasecluster.Namespace, nil, nil, []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Zookeeper}, false)
-			ctrl.SetControllerReference(hbasecluster, mockZKPodSvc, reconciler.Scheme)
-			k8sMockClient.On("Get", ctx, types.NamespacedName{Name: name, Namespace: hbasecluster.Namespace}, &corev1.Service{}).
-				Run(func(args mock.Arguments) {
-					arg := args.Get(2).(*corev1.Service)
-					*arg = *mockZKPodSvc
-				}).
-				Return(nil)
-			k8sMockClient.On("Update", ctx, mockZKPodSvc, []client.UpdateOption(nil)).Return(nil)
-			index += 1
-		}
-	}
-
-	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
-		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
-		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
-	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
-	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Zookeeper.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).
-		Run(func(args mock.Arguments) {
-			arg := args.Get(2).(*appsv1.StatefulSet)
-			*arg = *mockStsZK
-		}).
-		Return(nil)
-	k8sMockClient.On("Update", ctx, mockStsZK, []client.UpdateOption(nil)).Return(nil)
-
 	result, err := reconciler.Reconcile(ctx, req)
 	assert.NoError(t, err)
-	assert.Equal(t, ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, result)
+	assert.Equal(t, ctrl.Result{RequeueAfter: time.Second * 5}, result)
 
-	// AssertExpectations asserts that everything specified with On and Return was in fact called as expected.
 	k8sMockClient.AssertExpectations(t)
 }
 
-// TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow successful reconciliation logic test case
-// This test will fail if ran as individual as it depends on hashstore impl.
-// when run along with other tests it will pass as hashstore will have values filled and update method will not be called.
+// TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow verifies steady-state:
+// when all resources exist and hashes match, no updates are issued; reconciliation proceeds to PDB creation.
 func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(t *testing.T) {
-	//mock hbase cluster object
 	hbasecluster := getMockHbaseCluster()
 
 	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
+
+	resetHashStore()
+	populateClusterHashStore(hbasecluster, reconciler)
 
 	deployments := []kvstorev1.HbaseClusterDeployment{hbasecluster.Spec.Deployments.Journalnode, hbasecluster.Spec.Deployments.Namenode, hbasecluster.Spec.Deployments.Datanode, hbasecluster.Spec.Deployments.Hmaster}
 	if hbasecluster.Spec.Deployments.Zookeeper.Size != 0 {

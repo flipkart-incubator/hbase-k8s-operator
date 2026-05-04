@@ -17,7 +17,7 @@
 
   cpuLimit: "1"
   memoryLimit: "256Mi"
-  cpuRequest: "0.5"
+  cpuRequest: "1"
   memoryRequest: "256Mi"
   securityContext:
     runAsUser: {{ .Values.service.runAsUser }}

@@ -15,9 +15,9 @@
     $HADOOP_HOME/bin/hdfs dfsadmin -refreshNodes || true
     $HADOOP_HOME/bin/hdfs dfsadmin -refreshNodes || true
 
-  cpuLimit: "0.2"
+  cpuLimit: "1"
   memoryLimit: "256Mi"
-  cpuRequest: "0.2"
+  cpuRequest: "0.5"
   memoryRequest: "256Mi"
   securityContext:
     runAsUser: {{ .Values.service.runAsUser }}

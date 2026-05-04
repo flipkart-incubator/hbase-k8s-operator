@@ -21,18 +21,23 @@
     echo "SMD value: $SMD"
 
     if [[ -n "$FAULT_DOMAIN_COMMAND" ]]; then
-      echo "create /hbase-operator $SMD" | $HBASE_HOME/bin/hbase zkcli 2> /dev/null || true
-      echo "create /hbase-operator/$HOSTNAME $SMD" | $HBASE_HOME/bin/hbase zkcli 2>/dev/null || \
-       echo "set /hbase-operator/$HOSTNAME $SMD" | $HBASE_HOME/bin/hbase zkcli 2>/dev/null  || {
+      # ensure znodes exist (errors ignored)
+      {
+        echo "create /hbase-operator $SMD"
+        echo "create /hbase-operator/$HOSTNAME $SMD"
+      } | $HBASE_HOME/bin/hbase zkcli 2>/dev/null || true
+
+      # set the value
+      if ! echo "set /hbase-operator/$HOSTNAME $SMD" | $HBASE_HOME/bin/hbase zkcli 2>/dev/null; then
         echo "ERROR: Failed to register fault domain in ZooKeeper for $HOSTNAME"
         exit 1
-      }
+      fi
       echo ""
       echo "Completed"
     fi
-  cpuLimit: "0.1"
+  cpuLimit: "1"
   memoryLimit: "386Mi"
-  cpuRequest: "0.1"
+  cpuRequest: "1"
   memoryRequest: "386Mi"
   securityContext:
     runAsUser: {{ .Values.service.runAsUser }}

@@ -206,7 +206,7 @@
     {{- end }}
     {{- if ne $probe "" }}
     startupProbe:
-      initialDelay: {{ default 30 .startupProbeDelay }}
+      initialDelay: {{ default 10 .startupProbeDelay }}
       timeout: 60
       failureThreshold: {{ default 10 .startupProbeFailureThreshold }}
       command:
@@ -220,10 +220,10 @@
     {{- end }}
     livenessProbe:
       tcpPort: {{ first $ports }}
-      initialDelay: {{ default 60 .probeDelay }}
+      initialDelay: {{ default 0 .probeDelay }}
     readinessProbe:
       tcpPort: {{ first $ports }}
-      initialDelay: {{ default 60 .probeDelay }}
+      initialDelay: {{ default 0 .probeDelay }}
     cpuLimit: {{ .cpuLimit | quote }}
     memoryLimit: {{ .memoryLimit | quote }}
     cpuRequest: {{ .cpuRequest | quote }}

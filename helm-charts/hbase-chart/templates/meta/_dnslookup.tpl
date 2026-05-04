@@ -13,7 +13,7 @@
       echo "$i iteration"
       dig +short $(hostname -f) | grep -v -e '^$'
       if [ $? == 0 ]; then
-        sleep 30 # 30 seconds default dns caching
+        sleep 10 # dns cache wait
         echo "Breaking..."
         break
       fi

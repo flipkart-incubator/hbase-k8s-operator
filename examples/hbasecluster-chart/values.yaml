@@ -196,7 +196,7 @@ deployments:
       memoryLimit: 3Gi
       cpuRequest: 0.5
       memoryRequest: 3Gi
-      probeDelay: 60
+      probeDelay: 30
       volumeMounts:
       - name: data
         mountPath: /grid/1
@@ -207,7 +207,7 @@ deployments:
       memoryLimit: 5Gi
       cpuRequest: 0.5
       memoryRequest: 5Gi
-      probeDelay: 60
+      probeDelay: 45
       volumeMounts:
       - name: lifecycle
         mountPath: /lifecycle

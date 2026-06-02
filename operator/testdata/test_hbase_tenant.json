@@ -143,6 +143,20 @@
             "runAsGroup": 1011,
             "runAsUser": 1011
           },
+          "startupProbe": {
+            "command": [
+              "/bin/bash",
+              "-c",
+              "#!/bin/bash",
+              "/var/log/abc/yak/hbase",
+              "/etc/hbase",
+              "/opt/hbase",
+              "hbase-config"
+            ],
+            "failureThreshold": 10,
+            "initialDelay": 20,
+            "timeout": 60
+          },
           "volumeMounts": [
             {
               "mountPath": "/grid/1",
@@ -204,12 +218,12 @@
             "-c",
             "#!/bin/bash"
           ],
-          "cpuLimit": "0.1",
-          "cpuRequest": "0.1",
+          "cpuLimit": "2",
+          "cpuRequest": "2",
           "isBootstrap": false,
-          "memoryLimit": "386Mi",
-          "memoryRequest": "386Mi",
-          "name": "init-faultdomain",
+          "memoryLimit": "1Gi",
+          "memoryRequest": "1Gi",
+          "name": "init-dnregister",
           "securityContext": {
             "runAsGroup": 1011,
             "runAsUser": 1011
@@ -221,23 +235,6 @@
               "readOnly": true
             }
           ]
-        },
-        {
-          "command": [
-            "/bin/bash",
-            "-c",
-            "#!/bin/bash"
-          ],
-          "cpuLimit": "0.2",
-          "cpuRequest": "0.2",
-          "isBootstrap": false,
-          "memoryLimit": "256Mi",
-          "memoryRequest": "256Mi",
-          "name": "init-refreshnn",
-          "securityContext": {
-            "runAsGroup": 1011,
-            "runAsUser": 1011
-          }
         },
         {
           "command": [

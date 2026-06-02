@@ -206,7 +206,7 @@
     {{- end }}
     {{- if ne $probe "" }}
     startupProbe:
-      initialDelay: {{ default 30 .startupProbeDelay }}
+      initialDelay: {{ default 20 .startupProbeDelay }}
       timeout: 60
       failureThreshold: {{ default 10 .startupProbeFailureThreshold }}
       command:

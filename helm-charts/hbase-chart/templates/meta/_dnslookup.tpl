@@ -13,17 +13,17 @@
       echo "$i iteration"
       dig +short $(hostname -f) | grep -v -e '^$'
       if [ $? == 0 ]; then
-        sleep 30 # 30 seconds default dns caching
+        sleep 15
         echo "Breaking..."
         break
       fi
       i=$((i + 1))
       sleep 1
     done
-  cpuLimit: "0.2"
-  memoryLimit: "128Mi"
-  cpuRequest: "0.2"
-  memoryRequest: "128Mi"
+  cpuLimit: "1"
+  memoryLimit: "512Mi"
+  cpuRequest: "1"
+  memoryRequest: "512Mi"
   securityContext:
     runAsUser: {{ .Values.service.runAsUser }}
     runAsGroup: {{ .Values.service.runAsGroup }}

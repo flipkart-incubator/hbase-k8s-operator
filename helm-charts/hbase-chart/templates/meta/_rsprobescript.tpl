@@ -6,9 +6,10 @@ export HBASE_LOG_DIR=$0
 export HBASE_CONF_DIR=$1
 export HBASE_HOME=$2
 
-# Probe succeeds once the regionserver has bound its RPC port (16020),
-# which signals it has finished starting up and is accepting connections.
-if timeout 2 bash -c "exec 3<>/dev/tcp/localhost/16020" 2>/dev/null; then
+# Startup is complete once the RegionServer has bound its RPC port (16020).
+# The RegionServer binds to the pod address (hostname -f), not loopback, so the
+# probe targets that address; a successful TCP connect confirms readiness.
+if timeout 2 bash -c "exec 3<>/dev/tcp/$(hostname -f)/16020" 2>/dev/null; then
   echo "regionserver is bound to RPC port. Exiting..."
   exit 0
 else

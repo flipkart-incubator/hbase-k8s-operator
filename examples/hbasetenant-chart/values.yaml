@@ -70,7 +70,7 @@ datanode:
     memoryLimit: 2Gi
     cpuRequest: 0.3
     memoryRequest: 2Gi
-    probeDelay: 60
+    probeDelay: 30
     volumeMounts:
     - name: data
       mountPath: /grid/1
@@ -85,7 +85,7 @@ datanode:
     memoryLimit: 3Gi
     cpuRequest: 0.4
     memoryRequest: 3Gi
-    probeDelay: 60
+    probeDelay: 45
     volumeMounts:
     - name: lifecycle
       mountPath: /lifecycle

@@ -14,7 +14,8 @@ touch $HADOOP_LOG_FILE
 function shutdown() {
   while [[ ! -f "/lifecycle/rs-terminated" ]]; do echo "Waiting for regionserver to die"; sleep 2; done
   echo "Stopping datanode"
-  sleep 10
+  # short buffer for the RS JVM to fully exit (WAL close + ZK session cleanup) before we stop DN
+  sleep 5
   $HADOOP_HOME/bin/hdfs --daemon stop datanode
 }
 

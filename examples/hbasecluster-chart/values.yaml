@@ -5,6 +5,23 @@ managerRoleKind: Role
 managerRoleName: hbase-operator-manager-role
 managerRoleBindingName: hbase-operator-manager-rolebinding
 operatorNamespace: hbase-operator-ns
+additionalServiceAccounts:
+  - name: namenode-fencing
+roles:
+  - name: namenode-fencing-role
+    kind: Role
+    rules:
+      - apiGroups: [""]
+        resources: ["pods"]
+        verbs: ["delete"]
+roleBindings:
+  - name: namenode-fencing-rolebinding
+    roleKind: Role
+    roleName: namenode-fencing-role
+    subjects:
+      - kind: ServiceAccount
+        name: namenode-fencing
+        namespace: hbase-cluster-ns
 service:
   name: hbase-cluster
   image: hbase:2.4.12
@@ -68,6 +85,8 @@ deployments:
     - name: data
       size: "2Gi"
       storageClass: "standard"
+      annotations:
+        key: value
     volumes:
     - name: nodeinfo
       volumeSource: HostPath
@@ -95,6 +114,10 @@ deployments:
     - name: data
       size: "2Gi"
       storageClass: "standard"
+      annotations:
+        key: value
+      labels:
+        key: value
     volumes:
     - name: nodeinfo
       volumeSource: HostPath
@@ -156,6 +179,8 @@ deployments:
     - name: data
       size: "10Gi"
       storageClass: "standard"
+      labels:
+        key: value
     volumes:
     - name: lifecycle 
       volumeSource: EmptyDir
@@ -171,7 +196,7 @@ deployments:
       memoryLimit: 3Gi
       cpuRequest: 0.5
       memoryRequest: 3Gi
-      probeDelay: 60
+      probeDelay: 30
       volumeMounts:
       - name: data
         mountPath: /grid/1
@@ -182,7 +207,7 @@ deployments:
       memoryLimit: 5Gi
       cpuRequest: 0.5
       memoryRequest: 5Gi
-      probeDelay: 60
+      probeDelay: 45
       volumeMounts:
       - name: lifecycle
         mountPath: /lifecycle

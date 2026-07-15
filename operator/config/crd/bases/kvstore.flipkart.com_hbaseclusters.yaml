@@ -390,6 +390,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -573,6 +575,14 @@ spec:
                       volumeClaims:
                         items:
                           properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            labels:
+                              additionalProperties:
+                                type: string
+                              type: object
                             name:
                               type: string
                             storageClassName:
@@ -926,6 +936,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -1109,6 +1121,14 @@ spec:
                       volumeClaims:
                         items:
                           properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            labels:
+                              additionalProperties:
+                                type: string
+                              type: object
                             name:
                               type: string
                             storageClassName:
@@ -1462,6 +1482,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -1645,6 +1667,14 @@ spec:
                       volumeClaims:
                         items:
                           properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            labels:
+                              additionalProperties:
+                                type: string
+                              type: object
                             name:
                               type: string
                             storageClassName:
@@ -1998,6 +2028,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -2181,6 +2213,14 @@ spec:
                       volumeClaims:
                         items:
                           properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            labels:
+                              additionalProperties:
+                                type: string
+                              type: object
                             name:
                               type: string
                             storageClassName:
@@ -2534,6 +2574,8 @@ spec:
                         - Parallel
                         - OrderedReady
                         type: string
+                      serviceAccountName:
+                        type: string
                       shareProcessNamespace:
                         default: false
                         type: boolean
@@ -2717,6 +2759,14 @@ spec:
                       volumeClaims:
                         items:
                           properties:
+                            annotations:
+                              additionalProperties:
+                                type: string
+                              type: object
+                            labels:
+                              additionalProperties:
+                                type: string
+                              type: object
                             name:
                               type: string
                             storageClassName:

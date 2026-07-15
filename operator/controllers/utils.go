@@ -204,14 +204,15 @@ func buildVolumeClaims(namespace string, vs []kvstorev1.HbaseClusterVolumeClaim)
 	for _, v := range vs {
 		volumeClaim := corev1.PersistentVolumeClaim{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:      v.Name,
-				Namespace: namespace,
+				Name:        v.Name,
+				Namespace:   namespace,
+				Annotations: v.Annotations,
+				Labels:      v.Labels,
 			},
 			Spec: corev1.PersistentVolumeClaimSpec{
 				AccessModes: []corev1.PersistentVolumeAccessMode{corev1.ReadWriteOnce},
-				Resources: corev1.ResourceRequirements{
+				Resources: corev1.VolumeResourceRequirements{
 					Requests: corev1.ResourceList{
-						//TODO: Handle crashes
 						corev1.ResourceStorage: resource.MustParse(v.StorageSize),
 					},
 				},
@@ -286,7 +287,7 @@ func buildProbe(p kvstorev1.HbaseClusterProbe) *corev1.Probe {
 	}
 
 	if p.Port > 0 {
-		probe.Handler = corev1.Handler{
+		probe.ProbeHandler = corev1.ProbeHandler{
 			TCPSocket: &corev1.TCPSocketAction{
 				Port: intstr.FromInt(p.Port),
 			},
@@ -294,7 +295,7 @@ func buildProbe(p kvstorev1.HbaseClusterProbe) *corev1.Probe {
 	}
 
 	if len(p.Command) > 0 {
-		probe.Handler = corev1.Handler{
+		probe.ProbeHandler = corev1.ProbeHandler{
 			Exec: &corev1.ExecAction{
 				Command: p.Command,
 			},
@@ -308,7 +309,7 @@ func buildLifecycle(p kvstorev1.HbaseClusterLifecycle) *corev1.Lifecycle {
 	lifecycle := &corev1.Lifecycle{}
 
 	if p.PreStop != nil {
-		lifecycle.PreStop = &corev1.Handler{
+		lifecycle.PreStop = &corev1.LifecycleHandler{
 			Exec: &corev1.ExecAction{
 				Command: p.PreStop,
 			},
@@ -316,7 +317,7 @@ func buildLifecycle(p kvstorev1.HbaseClusterLifecycle) *corev1.Lifecycle {
 	}
 
 	if p.PostStart != nil {
-		lifecycle.PostStart = &corev1.Handler{
+		lifecycle.PostStart = &corev1.LifecycleHandler{
 			Exec: &corev1.ExecAction{
 				Command: p.PostStart,
 			},
@@ -519,6 +520,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 					SecurityContext: &corev1.PodSecurityContext{
 						FSGroup: &fsgroup,
 					},
+					ServiceAccountName:            d.ServiceAccountName,
 					ShareProcessNamespace:         &d.ShareProcessNamespace,
 					TerminationGracePeriodSeconds: &d.TerminationGracePeriodSeconds,
 					Volumes:                       buildVolumes(configuration, d.Volumes),
@@ -734,8 +736,7 @@ func reconcileConfigMap(ctx context.Context, log logr.Logger, namespace string, 
 		}
 		hashStore["cfg-"+cfg.Name+cfg.Namespace] = asSha256(cfgMarshal)
 		log.Info("Updated ConfigMap", "ConfigMap.Namespace", cfg.Namespace, "ConfigMap.Name", cfg.Name)
-		time.Sleep(10 * time.Second)
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: time.Second * 5}, nil
 	}
 	return ctrl.Result{}, nil
 }
@@ -781,8 +782,7 @@ func reconcileService(ctx context.Context, log logr.Logger, namespace string, sv
 		}
 		hashStore["svc-"+svc.Name] = asSha256(svcMarshal)
 		log.Info("Updated Service", "Service.Namespace", svc.Namespace, "Service.Name", svc.Name)
-		time.Sleep(10 * time.Second)
-		return ctrl.Result{}, nil
+		return ctrl.Result{RequeueAfter: time.Second * 5}, nil
 	}
 	return ctrl.Result{}, nil
 }
@@ -821,10 +821,10 @@ func reconcileStatefulSet(ctx context.Context, log logr.Logger, namespace string
 		}
 		hashStore["ss-"+newSS.Name] = asSha256(newSSMarshal)
 		log.Info("Updated StatefulSet", "StatefulSet.Namespace", newSS.Namespace, "StatefulSet.Name", newSS.Name)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	} else if existingSS.Status.ReadyReplicas != d.Size || existingSS.Status.CurrentRevision != existingSS.Status.UpdateRevision {
-		log.Info("Sleeping for 20 seconds. Cluster", "NotReady", existingSS.Status, "Expected Replicas", d.Size)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+		log.Info("Waiting for StatefulSet to be ready", "NotReady", existingSS.Status, "Expected Replicas", d.Size)
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	} else {
 		log.Info("Reconciled for cluster", "StatefulSet", d.Name)
 	}
@@ -951,7 +951,7 @@ func reconcilePodDisruptionBudget(ctx context.Context, log logr.Logger, pdb *pol
 		}
 		hashStore["pdb-"+pdb.Name] = asSha256(pdbMarshal)
 		log.Info("Updated PodDisruptionBudget", "PodDisruptionBudget.Namespace", pdb.Namespace, "PodDisruptionBudget.Name", pdb.Name)
-		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 20}, nil
+		return ctrl.Result{Requeue: true, RequeueAfter: time.Second * 10}, nil
 	} else {
 		log.Info("Reconciled for cluster", "PodDisruptionBudget", pdb.Name, "component", d.Name)
 	}

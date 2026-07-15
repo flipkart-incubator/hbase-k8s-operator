@@ -21,6 +21,10 @@
     export HADOOP_CONF_DIR={{ .Values.configuration.hadoopConfigMountPath }}
     export HADOOP_HOME={{ .Values.configuration.hadoopHomePath }}
 
+    SLEEP_TIME=$(( RANDOM % 120 ))
+    echo "Sleeping for $SLEEP_TIME seconds to reduce race risk."
+    sleep $SLEEP_TIME
+
     echo "N" | $HADOOP_HOME/bin/hdfs namenode -format $($HADOOP_HOME/bin/hdfs getconf -confKey dfs.nameservices) || true
   cpuLimit: {{ $namenodeCpu | quote }}
   memoryLimit: {{ $namenodeMemory | quote }}

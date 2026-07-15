@@ -1,4 +1,10 @@
 {{ define "com.flipkart.hbasecluster" }}
+{{- include "com.flipkart.hbaseresources.roles" . }}
+---
+{{- include "com.flipkart.hbaseresources.rolebindings" . }}
+---
+{{- include "com.flipkart.hbaseresources.serviceaccounts" . }}
+---
 {{- if eq .Values.sharedWithOperatorNamespace true }}
 ---
 {{- else }}
@@ -56,7 +62,7 @@ spec:
   {{- end }}
   {{- end }}
   deployments:
-    {{- $refreshNamenodeContainer := include "hbasecluster.refreshnn" . | indent 2 }}
+    {{- $dnregisterContainer := include "hbasecluster.dnregister" . | indent 2 }}
     {{- $dnsContainer := include "hbasecluster.dnslookup" . | indent 2 }}
     {{- $initnnContainer := include "hbasecluster.initnnscript" . | indent 2 }}
     {{- $initzkfcContainer := include "hbasecluster.initzkfcscript" . | indent 2 }}
@@ -100,26 +106,23 @@ spec:
       {{- include "hbasecluster.component" $data | indent 4 }}
     datanode: 
       {{- $podManagementPolicy := "Parallel" }}
-      {{- $initContainers := list $dnsContainer $refreshNamenodeContainer }}
-      {{- if .Values.commands.faultDomainCommand }}
-      {{- $faultdomainContainer := include "hbasecluster.faultdomain" . | indent 2 }}
-      {{- $initContainers = list $dnsContainer $faultdomainContainer $refreshNamenodeContainer }}
-      {{- end }}
+      {{- $initContainers := list $dnsContainer $dnregisterContainer }}
       {{- $dnscript := include "hbasecluster.dnscript" . | indent 6 }}
       {{- $rsscript := include "hbasecluster.rsscript" . | indent 6 }}
       {{- $dnprobescript := include "hbasecluster.dnprobescript" . | indent 8 }}
+      {{- $rsprobescript := include "hbasecluster.rsprobescript" . | indent 8 }}
       {{- $ports1 := list 9866}}
       {{- $ports2 := list 16020 16030}}
       {{- $portsArr := list $ports1 $ports2}}
       {{- $scripts := list $dnscript $rsscript }}
-      {{- $probescripts := list $dnprobescript "" }}
+      {{- $probescripts := list $dnprobescript $rsprobescript }}
       {{- $arg1 := list .Values.configuration.hadoopLogPath .Values.configuration.hadoopConfigMountPath .Values.configuration.hadoopHomePath }}
       {{- $arg2 := list .Values.configuration.hbaseLogPath .Values.configuration.hbaseConfigMountPath .Values.configuration.hbaseHomePath }}
       {{- $args := list $arg1 $arg2 }}
       {{- $data := dict "Values" .Values "root" .Values.deployments.datanode "scripts" $scripts "probescripts" $probescripts "initContainers" $initContainers "args" $args "portsArr" $portsArr "podManagementPolicy" $podManagementPolicy }}
       {{- include "hbasecluster.component" $data | indent 4 }}
     namenode:
-      {{- $podManagementPolicy := "OrderedReady" }}
+      {{- $podManagementPolicy := "Parallel" }}
       {{- $initContainers := list $dnsContainer $initnnContainer $initzkfcContainer $initnnbootstrapContainer }}
       {{- $nnscript := include "hbasecluster.nnscript" . | indent 6 }}
       {{- $zkfcscript := include "hbasecluster.zkfcscript" . | indent 6 }}

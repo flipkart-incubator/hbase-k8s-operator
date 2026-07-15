@@ -3,6 +3,7 @@
   size: {{ .root.replicas }}
   isPodServiceRequired: {{ default false .root.isPodServiceRequired }}
   shareProcessNamespace: {{ default false .root.shareProcessNamespace }}
+  serviceAccountName: {{ default "default" .root.serviceAccountName }}
   {{- if .root.podManagementPolicy }}
   podManagementPolicy: {{ .root.podManagementPolicy }}
   {{- else if $.podManagementPolicy }}
@@ -35,6 +36,18 @@
   - name: {{ .name }}
     storageSize: {{ .size }}
     storageClassName: {{ .storageClass }}
+    {{- if .annotations }}
+    annotations:
+    {{- range $key, $val := .annotations }}
+      {{ $key }}: {{ $val | quote }}
+    {{- end }}
+    {{- end }}
+    {{- if .labels }}
+    labels:
+    {{- range $key, $val := .labels }}
+      {{ $key }}: {{ $val | quote }}
+    {{- end }}
+    {{- end }}
   {{- end }}
   {{- end }}
   {{- if .root.volumes }}
@@ -193,7 +206,7 @@
     {{- end }}
     {{- if ne $probe "" }}
     startupProbe:
-      initialDelay: {{ default 30 .startupProbeDelay }}
+      initialDelay: {{ default 20 .startupProbeDelay }}
       timeout: 60
       failureThreshold: {{ default 10 .startupProbeFailureThreshold }}
       command:

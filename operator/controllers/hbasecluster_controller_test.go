@@ -133,9 +133,10 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_ObjectsNotFound(t *test
 		}
 	}
 
-	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+	mockStsZK, err := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
 		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Zookeeper.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockStsZK, []client.CreateOption(nil)).Return(nil)
@@ -262,9 +263,10 @@ func TestHbaseClusterReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow
 		}
 	}
 
-	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+	mockStsZK, err := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
 		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
 	mockStsZK.Status.ReadyReplicas = hbasecluster.Spec.Deployments.Zookeeper.Size
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Zookeeper.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).
@@ -358,9 +360,12 @@ func populateClusterHashStore(hbasecluster *kvstorev1.HbaseCluster, reconciler *
 		}
 	}
 
-	mockStsZK := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+	mockStsZK, err := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
 		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Zookeeper, ctrl.Log.WithName("test"), true)
+	if err != nil {
+		panic(err)
+	}
 	ctrl.SetControllerReference(hbasecluster, mockStsZK, reconciler.Scheme)
 	stsMarshal, _ := json.Marshal(mockStsZK)
 	hashStore["ss-"+mockStsZK.Name] = asSha256(stsMarshal)
@@ -415,9 +420,10 @@ func TestHbaseClusterReconciler_ZookeeperDisabled(t *testing.T) {
 		}
 	}
 
-	mockStsJN := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+	mockStsJN, err := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 		hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, "",
 		hbasecluster.Spec.FSGroup, hbasecluster.Spec.Deployments.Journalnode, ctrl.Log.WithName("test"), true)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(hbasecluster, mockStsJN, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Journalnode.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockStsJN, []client.CreateOption(nil)).Return(nil)
@@ -460,6 +466,65 @@ func TestHbaseClusterReconciler_ConfigValidationFailure(t *testing.T) {
 	result, err := reconciler.Reconcile(ctx, req)
 	assert.Error(t, err)
 	assert.Contains(t, err.Error(), "Invalid XML")
+	assert.Equal(t, ctrl.Result{}, result)
+
+	k8sMockClient.AssertExpectations(t)
+}
+
+// TestHbaseClusterReconciler_InvalidSizeLimitStatefulSetBuildFailure verifies that an invalid
+// EmptyDir sizeLimit causes reconcile to fail, publish a StatefulSetBuildFailed event, and skip StatefulSet creation.
+func TestHbaseClusterReconciler_InvalidSizeLimitStatefulSetBuildFailure(t *testing.T) {
+	resetHashStore()
+	hbasecluster := getMockHbaseCluster()
+	hbasecluster.Spec.Deployments.Zookeeper.Size = 0
+	hbasecluster.Spec.Deployments.Journalnode.IsPodServiceRequired = false
+	for i := range hbasecluster.Spec.Deployments.Journalnode.Volumes {
+		if hbasecluster.Spec.Deployments.Journalnode.Volumes[i].Name == "app-log" {
+			hbasecluster.Spec.Deployments.Journalnode.Volumes[i].SizeLimit = "not-a-quantity"
+		}
+	}
+
+	k8sMockClient, reconciler, ctx, req := doClusterTestSetup()
+
+	deployments := []kvstorev1.HbaseClusterDeployment{
+		hbasecluster.Spec.Deployments.Journalnode,
+		hbasecluster.Spec.Deployments.Namenode,
+		hbasecluster.Spec.Deployments.Datanode,
+		hbasecluster.Spec.Deployments.Hmaster,
+	}
+
+	k8sMockClient.On("Get", ctx, req.NamespacedName, &kvstorev1.HbaseCluster{}).
+		Run(func(args mock.Arguments) {
+			arg := args.Get(2).(*kvstorev1.HbaseCluster)
+			*arg = *hbasecluster
+		}).
+		Return(nil)
+
+	mockSvc := buildService(hbasecluster.Name, hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.ServiceLabels, hbasecluster.Spec.ServiceSelectorLabels, deployments, true)
+	ctrl.SetControllerReference(hbasecluster, mockSvc, reconciler.Scheme)
+	k8sMockClient.On("Get", ctx, req.NamespacedName, &corev1.Service{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+	k8sMockClient.On("Create", ctx, mockSvc, []client.CreateOption(nil)).Return(nil)
+
+	for _, namespace := range []string{tenantNamespace1, tenantNamespace2, testNamespace} {
+		mockCfgHb := buildConfigMap(hbasecluster.Spec.Configuration.HbaseConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HbaseConfig, hbasecluster.Spec.Configuration.HbaseTenantConfig, ctrl.Log.WithName("test"))
+		ctrl.SetControllerReference(hbasecluster, mockCfgHb, reconciler.Scheme)
+		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHb.Name, Namespace: mockCfgHb.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+		k8sMockClient.On("Create", ctx, mockCfgHb, []client.CreateOption(nil)).Return(nil)
+
+		mockCfgHd := buildConfigMap(hbasecluster.Spec.Configuration.HadoopConfigName, hbasecluster.Name, namespace, hbasecluster.Spec.Configuration.HadoopConfig, hbasecluster.Spec.Configuration.HadoopTenantConfig, ctrl.Log.WithName("test"))
+		ctrl.SetControllerReference(hbasecluster, mockCfgHd, reconciler.Scheme)
+		k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+		k8sMockClient.On("Create", ctx, mockCfgHd, []client.CreateOption(nil)).Return(nil)
+	}
+
+	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasecluster.Spec.Deployments.Datanode.Name, Namespace: hbasecluster.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+	k8sMockClient.On("Get", ctx, types.NamespacedName{Namespace: hbasecluster.Namespace, Name: "StatefulSetBuildFailed"}, &corev1.Event{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
+	k8sMockClient.On("Create", ctx, mock.Anything, []client.CreateOption(nil)).Return(nil)
+
+	result, err := reconciler.Reconcile(ctx, req)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid sizeLimit")
+	assert.Contains(t, err.Error(), "app-log")
 	assert.Equal(t, ctrl.Result{}, result)
 
 	k8sMockClient.AssertExpectations(t)

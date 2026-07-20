@@ -122,6 +122,8 @@ type HbaseClusterVolumeClaim struct {
 	StorageSize string            `json:"storageSize"`
 	//+optional
 	StorageClassName string `json:"storageClassName"`
+	//+optional
+	VolumeAttributesClassName string `json:"volumeAttributesClassName,omitempty"`
 }
 
 type HbaseClusterVolume struct {
@@ -134,6 +136,10 @@ type HbaseClusterVolume struct {
 	ConfigName string `json:"configName"`
 	//+optional
 	Path string `json:"path"`
+	//+optional
+	SizeLimit string `json:"sizeLimit,omitempty"`
+	//+optional
+	Medium corev1.StorageMedium `json:"medium,omitempty"`
 }
 
 type HBasePodDisruptionBudget struct {

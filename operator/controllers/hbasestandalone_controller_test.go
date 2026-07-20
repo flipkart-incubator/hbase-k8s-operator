@@ -72,9 +72,12 @@ func populateStandaloneHashStore(standalone *kvstorev1.HbaseStandalone, reconcil
 	cfg2Marshal, _ := json.Marshal(cfg2.Data)
 	hashStore["cfg-"+cfg2.Name+cfg2.Namespace] = asSha256(cfg2Marshal)
 
-	newSS := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
+	newSS, err := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
 		false, standalone.Spec.Configuration, cfg.ResourceVersion, standalone.Spec.FSGroup,
 		standalone.Spec.Standalone, log, true)
+	if err != nil {
+		panic(err)
+	}
 	ctrl.SetControllerReference(standalone, newSS, reconciler.Scheme)
 	ssMarshal, _ := json.Marshal(newSS)
 	hashStore["ss-"+newSS.Name] = asSha256(ssMarshal)
@@ -136,9 +139,10 @@ func TestHbaseStandaloneReconciler_SuccessfulReconciliation_ObjectsNotFound(t *t
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockCfgHd.Name, Namespace: mockCfgHd.Namespace}, &corev1.ConfigMap{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockCfgHd, []client.CreateOption(nil)).Return(nil)
 
-	mockSts := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
+	mockSts, err := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
 		false, standalone.Spec.Configuration, mockCfgHd.ResourceVersion, standalone.Spec.FSGroup,
 		standalone.Spec.Standalone, ctrl.Log.WithName("test"), true)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(standalone, mockSts, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: standalone.Spec.Standalone.Name, Namespace: standalone.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockSts, []client.CreateOption(nil)).Return(nil)
@@ -194,9 +198,10 @@ func TestHbaseStandaloneReconciler_SuccessfulReconciliation_AllObjectsFoundRestF
 		}).
 		Return(nil)
 
-	mockSts := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
+	mockSts, err := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
 		false, standalone.Spec.Configuration, mockCfgHd.ResourceVersion, standalone.Spec.FSGroup,
 		standalone.Spec.Standalone, ctrl.Log.WithName("test"), true)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(standalone, mockSts, reconciler.Scheme)
 	mockSts.Status.ReadyReplicas = standalone.Spec.Standalone.Size
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: standalone.Spec.Standalone.Name, Namespace: standalone.Namespace}, &appsv1.StatefulSet{}).
@@ -318,9 +323,10 @@ func TestHbaseStandaloneReconciler_NoPDB(t *testing.T) {
 		}).
 		Return(nil)
 
-	mockSts := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
+	mockSts, err := buildStatefulSet(standalone.Name, standalone.Namespace, standalone.Spec.BaseImage,
 		false, standalone.Spec.Configuration, mockCfgHd.ResourceVersion, standalone.Spec.FSGroup,
 		standalone.Spec.Standalone, ctrl.Log.WithName("test"), true)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(standalone, mockSts, reconciler.Scheme)
 	mockSts.Status.ReadyReplicas = standalone.Spec.Standalone.Size
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: standalone.Spec.Standalone.Name, Namespace: standalone.Namespace}, &appsv1.StatefulSet{}).

@@ -121,8 +121,13 @@ func (r *HbaseTenantReconciler) Reconcile(ctx context.Context, req ctrl.Request)
 		return result, err
 	}
 
-	newSS := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
+	newSS, err := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
 		hbasetenant.Spec.Configuration, resourceVersionOfHbaseConfigMap, hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, log, false)
+	if err != nil {
+		publishEvent(ctx, log, hbasetenant.Namespace, "StatefulSetBuildFailed", err.Error(), "Warning", "StatefulSet/"+hbasetenant.Spec.Datanode.Name, r.Client)
+		log.Error(err, "Failed to build StatefulSet", "StatefulSet.Name", hbasetenant.Spec.Datanode.Name)
+		return ctrl.Result{}, err
+	}
 	ctrl.SetControllerReference(hbasetenant, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasetenant.Namespace, newSS, hbasetenant.Spec.Datanode, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

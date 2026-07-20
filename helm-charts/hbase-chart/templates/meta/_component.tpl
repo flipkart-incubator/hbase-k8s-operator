@@ -36,6 +36,9 @@
   - name: {{ .name }}
     storageSize: {{ .size }}
     storageClassName: {{ .storageClass }}
+    {{- if .volumeAttributesClassName }}
+    volumeAttributesClassName: {{ .volumeAttributesClassName }}
+    {{- end }}
     {{- if .annotations }}
     annotations:
     {{- range $key, $val := .annotations }}
@@ -55,6 +58,12 @@
   {{- range .root.volumes }}
   - name: {{ .name }}
     volumeSource: {{ .volumeSource }}
+    {{- if .sizeLimit }}
+    sizeLimit: {{ .sizeLimit }}
+    {{- end }}
+    {{- if .medium }}
+    medium: {{ .medium }}
+    {{- end }}
     {{- if .path }}
     path: {{ .path }}
     {{- else if .secretName }}

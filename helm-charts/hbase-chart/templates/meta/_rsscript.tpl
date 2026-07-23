@@ -5,6 +5,9 @@ export HBASE_LOG_DIR=$0
 export HBASE_CONF_DIR=$1
 export HBASE_HOME=$2
 export USER=$(whoami)
+{{- if .Values.configuration.hbaseHeapDumpPath }}
+export HBASE_HEAPDUMP_PATH="{{ .Values.configuration.hbaseHeapDumpPath }}"
+{{- end }}
 
 FAULT_DOMAIN_COMMAND=$3
 

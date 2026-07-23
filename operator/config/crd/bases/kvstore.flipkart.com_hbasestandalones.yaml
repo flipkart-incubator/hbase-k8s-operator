@@ -681,6 +681,8 @@ spec:
                           type: string
                         storageSize:
                           type: string
+                        volumeAttributesClassName:
+                          type: string
                       required:
                       - name
                       - storageSize
@@ -691,11 +693,17 @@ spec:
                       properties:
                         configName:
                           type: string
+                        medium:
+                          description: StorageMedium defines ways that storage can
+                            be allocated to a volume.
+                          type: string
                         name:
                           type: string
                         path:
                           type: string
                         secretName:
+                          type: string
+                        sizeLimit:
                           type: string
                         volumeSource:
                           enum:

@@ -155,9 +155,14 @@ func (r *HbaseClusterReconciler) Reconcile(ctx context.Context, req ctrl.Request
 			}
 		}
 
-		newSS := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
+		newSS, err := buildStatefulSet(hbasecluster.Name, hbasecluster.Namespace, hbasecluster.Spec.BaseImage,
 			hbasecluster.Spec.IsBootstrap, hbasecluster.Spec.Configuration, resourceVersionOfHbaseConfigMap,
 			hbasecluster.Spec.FSGroup, d, log, true)
+		if err != nil {
+			publishEvent(ctx, log, hbasecluster.Namespace, "StatefulSetBuildFailed", err.Error(), "Warning", "StatefulSet/"+d.Name, r.Client)
+			log.Error(err, "Failed to build StatefulSet", "StatefulSet.Name", d.Name)
+			return ctrl.Result{}, err
+		}
 		ctrl.SetControllerReference(hbasecluster, newSS, r.Scheme)
 		result, err := reconcileStatefulSet(ctx, log, hbasecluster.Namespace, newSS, d, r.Client)
 		if (ctrl.Result{}) != result || err != nil {

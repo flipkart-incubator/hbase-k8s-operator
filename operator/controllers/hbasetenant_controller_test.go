@@ -83,8 +83,9 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_ObjectsNotFound(t *testi
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockStsSvc.Name, Namespace: hbasetenant.Namespace}, &corev1.Service{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockStsSvc, []client.CreateOption(nil)).Return(nil)
 
-	mockStsZK := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
+	mockStsZK, err := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
 		hbasetenant.Spec.Configuration, "", hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, ctrl.Log.WithName("test"), false)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(hbasetenant, mockStsZK, reconciler.Scheme)
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasetenant.Spec.Datanode.Name, Namespace: hbasetenant.Namespace}, &appsv1.StatefulSet{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockStsZK, []client.CreateOption(nil)).Return(nil)
@@ -172,8 +173,9 @@ func TestHbaseTenantReconciler_SuccessfulReconciliation_AllObjectsFoundRestFlow(
 		}).
 		Return(nil)
 
-	mockSts := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
+	mockSts, err := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
 		hbasetenant.Spec.Configuration, "", hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, ctrl.Log.WithName("test"), false)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(hbasetenant, mockSts, reconciler.Scheme)
 	mockSts.Status.ReadyReplicas = hbasetenant.Spec.Datanode.Size
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: hbasetenant.Spec.Datanode.Name, Namespace: hbasetenant.Namespace}, &appsv1.StatefulSet{}).
@@ -275,8 +277,11 @@ func populateTenantHashStore(hbasetenant *kvstorev1.HbaseTenant, reconciler *Hba
 	svcMarshal, _ := json.Marshal(svc.Spec)
 	hashStore["svc-"+svc.Name] = asSha256(svcMarshal)
 
-	mockSts := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
+	mockSts, err := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
 		hbasetenant.Spec.Configuration, "", hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, ctrl.Log.WithName("test"), false)
+	if err != nil {
+		panic(err)
+	}
 	ctrl.SetControllerReference(hbasetenant, mockSts, reconciler.Scheme)
 	stsMarshal, _ := json.Marshal(mockSts)
 	hashStore["ss-"+mockSts.Name] = asSha256(stsMarshal)
@@ -305,8 +310,9 @@ func TestHbaseTenantReconciler_ConfigReconcileDisabled(t *testing.T) {
 	k8sMockClient.On("Get", ctx, types.NamespacedName{Name: mockStsSvc.Name, Namespace: hbasetenant.Namespace}, &corev1.Service{}).Return(errors.NewNotFound(schema.GroupResource{}, req.Name))
 	k8sMockClient.On("Create", ctx, mockStsSvc, []client.CreateOption(nil)).Return(nil)
 
-	mockSts := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
+	mockSts, err := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
 		hbasetenant.Spec.Configuration, "", hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, ctrl.Log.WithName("test"), false)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(hbasetenant, mockSts, reconciler.Scheme)
 	k8sMockClient.On("Create", ctx, mockSts, []client.CreateOption(nil)).Return(nil)
 
@@ -352,8 +358,9 @@ func TestHbaseTenantReconciler_NoPDB(t *testing.T) {
 		}).
 		Return(nil)
 
-	mockSts := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
+	mockSts, err := buildStatefulSet(hbasetenant.Name, hbasetenant.Namespace, hbasetenant.Spec.BaseImage, false,
 		hbasetenant.Spec.Configuration, "", hbasetenant.Spec.FSGroup, hbasetenant.Spec.Datanode, ctrl.Log.WithName("test"), false)
+	assert.NoError(t, err)
 	ctrl.SetControllerReference(hbasetenant, mockSts, reconciler.Scheme)
 	mockSts.Status.ReadyReplicas = hbasetenant.Spec.Datanode.Size
 	// Single STS mock serves both getExistingAnnotationOfStatefulSet and reconcileStatefulSet

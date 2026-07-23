@@ -123,7 +123,7 @@ func getStatefulSetAnnotation(log logr.Logger, cl client.Client, ctx context.Con
 	return lastStatefulSetConfigVersion
 }
 
-func buildVolumes(c kvstorev1.HbaseClusterConfiguration, vs []kvstorev1.HbaseClusterVolume) []corev1.Volume {
+func buildVolumes(c kvstorev1.HbaseClusterConfiguration, vs []kvstorev1.HbaseClusterVolume) ([]corev1.Volume, error) {
 	volumes := []corev1.Volume{}
 	volumes = append(volumes, corev1.Volume{
 		Name: c.HbaseConfigName,
@@ -162,10 +162,21 @@ func buildVolumes(c kvstorev1.HbaseClusterConfiguration, vs []kvstorev1.HbaseClu
 		}
 
 		if v.VolumeSource == "EmptyDir" {
+			emptyDir := &corev1.EmptyDirVolumeSource{}
+			if len(v.Medium) > 0 {
+				emptyDir.Medium = v.Medium
+			}
+			if len(v.SizeLimit) > 0 {
+				qty, err := resource.ParseQuantity(v.SizeLimit)
+				if err != nil {
+					return nil, errs.New("Volume: " + v.Name + ". Invalid sizeLimit: " + v.SizeLimit)
+				}
+				emptyDir.SizeLimit = &qty
+			}
 			volume = corev1.Volume{
 				Name: v.Name,
 				VolumeSource: corev1.VolumeSource{
-					EmptyDir: &corev1.EmptyDirVolumeSource{},
+					EmptyDir: emptyDir,
 				},
 			}
 		}
@@ -195,7 +206,7 @@ func buildVolumes(c kvstorev1.HbaseClusterConfiguration, vs []kvstorev1.HbaseClu
 		volumes = append(volumes, volume)
 	}
 
-	return volumes
+	return volumes, nil
 }
 
 func buildVolumeClaims(namespace string, vs []kvstorev1.HbaseClusterVolumeClaim) []corev1.PersistentVolumeClaim {
@@ -221,6 +232,9 @@ func buildVolumeClaims(namespace string, vs []kvstorev1.HbaseClusterVolumeClaim)
 
 		if len(v.StorageClassName) > 0 {
 			volumeClaim.Spec.StorageClassName = &v.StorageClassName
+		}
+		if len(v.VolumeAttributesClassName) > 0 {
+			volumeClaim.Spec.VolumeAttributesClassName = &v.VolumeAttributesClassName
 		}
 		volumeClaims = append(volumeClaims, volumeClaim)
 	}
@@ -461,7 +475,7 @@ func validateConfiguration(ctx context.Context, log logr.Logger, namespace strin
 
 func buildStatefulSet(name string, namespace string, baseImage string, isBootstrap bool,
 	configuration kvstorev1.HbaseClusterConfiguration, configVersion string, fsgroup int64,
-	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isMultiStatefulSet bool) *appsv1.StatefulSet {
+	d kvstorev1.HbaseClusterDeployment, log logr.Logger, isMultiStatefulSet bool) (*appsv1.StatefulSet, error) {
 
 	ls := getSharedLabelsMap(name, nil)
 
@@ -497,6 +511,12 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		selectorMatchLabelsMap = matchLabelsForMultiStatefulSet(name, d.Name)
 	}
 
+	volumes, err := buildVolumes(configuration, d.Volumes)
+	if err != nil {
+		log.Error(err, "Failed to build volumes for StatefulSet", "StatefulSet.Name", d.Name, "StatefulSet.Namespace", namespace)
+		return nil, err
+	}
+
 	dep := &appsv1.StatefulSet{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      d.Name,
@@ -523,7 +543,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 					ServiceAccountName:            d.ServiceAccountName,
 					ShareProcessNamespace:         &d.ShareProcessNamespace,
 					TerminationGracePeriodSeconds: &d.TerminationGracePeriodSeconds,
-					Volumes:                       buildVolumes(configuration, d.Volumes),
+					Volumes:                       volumes,
 					Containers:                    buildContainers(baseImage, configuration, d.Containers, d.SideCarContainers),
 					InitContainers:                buildInitContainers(baseImage, configuration, d.InitContainers, isBootstrap),
 				},
@@ -555,7 +575,7 @@ func buildStatefulSet(name string, namespace string, baseImage string, isBootstr
 		dep.Spec.Template.Spec.TopologySpreadConstraints = d.TopologySpreadConstraint
 	}
 
-	return dep
+	return dep, nil
 }
 
 func buildService(svcName string, crName string, namespace string, labels map[string]string, selectorLabels map[string]string, deployments []kvstorev1.HbaseClusterDeployment, isClusterSvc bool) *corev1.Service {

@@ -95,9 +95,14 @@ func (r *HbaseStandaloneReconciler) Reconcile(ctx context.Context, req ctrl.Requ
 		return result, err
 	}
 
-	newSS := buildStatefulSet(hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.BaseImage,
+	newSS, err := buildStatefulSet(hbasestandalone.Name, hbasestandalone.Namespace, hbasestandalone.Spec.BaseImage,
 		false, hbasestandalone.Spec.Configuration, cfg.ResourceVersion, hbasestandalone.Spec.FSGroup,
 		hbasestandalone.Spec.Standalone, log, true)
+	if err != nil {
+		publishEvent(ctx, log, hbasestandalone.Namespace, "StatefulSetBuildFailed", err.Error(), "Warning", "StatefulSet/"+hbasestandalone.Spec.Standalone.Name, r.Client)
+		log.Error(err, "Failed to build StatefulSet", "StatefulSet.Name", hbasestandalone.Spec.Standalone.Name)
+		return ctrl.Result{}, err
+	}
 	ctrl.SetControllerReference(hbasestandalone, newSS, r.Scheme)
 	result, err = reconcileStatefulSet(ctx, log, hbasestandalone.Namespace, newSS, hbasestandalone.Spec.Standalone, r.Client)
 	if (ctrl.Result{}) != result || err != nil {

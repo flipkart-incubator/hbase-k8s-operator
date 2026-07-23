@@ -69,7 +69,8 @@ func TestBuildVolumes_BaseConfigVolumes(t *testing.T) {
 		HbaseConfigName:  "hbase-cfg",
 		HadoopConfigName: "hadoop-cfg",
 	}
-	volumes := buildVolumes(config, nil)
+	volumes, err := buildVolumes(config, nil)
+	assert.NoError(t, err)
 
 	assert.Len(t, volumes, 2)
 	assert.Equal(t, "hbase-cfg", volumes[0].Name)
@@ -92,7 +93,8 @@ func TestBuildVolumes_AllVolumeTypes(t *testing.T) {
 		{Name: "secret-vol", VolumeSource: "Secret", SecretName: "my-secret"},
 		{Name: "host-vol", VolumeSource: "HostPath", Path: "/host/path"},
 	}
-	volumes := buildVolumes(config, extraVolumes)
+	volumes, err := buildVolumes(config, extraVolumes)
+	assert.NoError(t, err)
 
 	assert.Len(t, volumes, 6)
 
@@ -102,6 +104,8 @@ func TestBuildVolumes_AllVolumeTypes(t *testing.T) {
 
 	assert.Equal(t, "empty-vol", volumes[3].Name)
 	assert.NotNil(t, volumes[3].VolumeSource.EmptyDir)
+	assert.Empty(t, volumes[3].VolumeSource.EmptyDir.Medium)
+	assert.Nil(t, volumes[3].VolumeSource.EmptyDir.SizeLimit)
 
 	assert.Equal(t, "secret-vol", volumes[4].Name)
 	assert.NotNil(t, volumes[4].VolumeSource.Secret)
@@ -110,6 +114,83 @@ func TestBuildVolumes_AllVolumeTypes(t *testing.T) {
 	assert.Equal(t, "host-vol", volumes[5].Name)
 	assert.NotNil(t, volumes[5].VolumeSource.HostPath)
 	assert.Equal(t, "/host/path", volumes[5].VolumeSource.HostPath.Path)
+}
+
+// TestBuildVolumes_EmptyDirWithSizeLimit verifies that EmptyDir volumes with sizeLimit produce a populated SizeLimit quantity.
+func TestBuildVolumes_EmptyDirWithSizeLimit(t *testing.T) {
+	config := kvstorev1.HbaseClusterConfiguration{
+		HbaseConfigName:  "hbase-cfg",
+		HadoopConfigName: "hadoop-cfg",
+	}
+	extraVolumes := []kvstorev1.HbaseClusterVolume{
+		{Name: "empty-vol", VolumeSource: "EmptyDir", SizeLimit: "2Gi"},
+	}
+	volumes, err := buildVolumes(config, extraVolumes)
+	assert.NoError(t, err)
+
+	assert.Len(t, volumes, 3)
+	assert.Equal(t, "empty-vol", volumes[2].Name)
+	assert.NotNil(t, volumes[2].VolumeSource.EmptyDir)
+	assert.NotNil(t, volumes[2].VolumeSource.EmptyDir.SizeLimit)
+	assert.Equal(t, "2Gi", volumes[2].VolumeSource.EmptyDir.SizeLimit.String())
+}
+
+// TestBuildVolumes_EmptyDirWithMediumAndSizeLimit verifies that EmptyDir volumes can set both medium and sizeLimit.
+func TestBuildVolumes_EmptyDirWithMediumAndSizeLimit(t *testing.T) {
+	config := kvstorev1.HbaseClusterConfiguration{
+		HbaseConfigName:  "hbase-cfg",
+		HadoopConfigName: "hadoop-cfg",
+	}
+	extraVolumes := []kvstorev1.HbaseClusterVolume{
+		{Name: "empty-vol", VolumeSource: "EmptyDir", Medium: corev1.StorageMediumMemory, SizeLimit: "512Mi"},
+	}
+	volumes, err := buildVolumes(config, extraVolumes)
+	assert.NoError(t, err)
+
+	assert.Len(t, volumes, 3)
+	assert.Equal(t, "empty-vol", volumes[2].Name)
+	assert.NotNil(t, volumes[2].VolumeSource.EmptyDir)
+	assert.Equal(t, corev1.StorageMediumMemory, volumes[2].VolumeSource.EmptyDir.Medium)
+	assert.NotNil(t, volumes[2].VolumeSource.EmptyDir.SizeLimit)
+	assert.Equal(t, "512Mi", volumes[2].VolumeSource.EmptyDir.SizeLimit.String())
+}
+
+// TestBuildVolumes_EmptyDirWithInvalidSizeLimit verifies that an invalid sizeLimit returns an error.
+func TestBuildVolumes_EmptyDirWithInvalidSizeLimit(t *testing.T) {
+	config := kvstorev1.HbaseClusterConfiguration{
+		HbaseConfigName:  "hbase-cfg",
+		HadoopConfigName: "hadoop-cfg",
+	}
+	extraVolumes := []kvstorev1.HbaseClusterVolume{
+		{Name: "empty-vol", VolumeSource: "EmptyDir", SizeLimit: "not-a-quantity"},
+	}
+	_, err := buildVolumes(config, extraVolumes)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid sizeLimit")
+	assert.Contains(t, err.Error(), "empty-vol")
+}
+
+// TestBuildStatefulSet_InvalidSizeLimit verifies that buildStatefulSet propagates invalid EmptyDir sizeLimit errors from buildVolumes.
+func TestBuildStatefulSet_InvalidSizeLimit(t *testing.T) {
+	config := kvstorev1.HbaseClusterConfiguration{
+		HbaseConfigName:  "hbase-cfg",
+		HadoopConfigName: "hadoop-cfg",
+	}
+	deployment := kvstorev1.HbaseClusterDeployment{
+		Name: "test-dn",
+		Size: 1,
+		Volumes: []kvstorev1.HbaseClusterVolume{
+			{Name: "app-log", VolumeSource: "EmptyDir", SizeLimit: "not-a-quantity"},
+		},
+		Containers: []kvstorev1.HbaseClusterContainer{
+			{Name: "hbase", CpuLimit: "1", CpuRequest: "1", MemoryLimit: "1Gi", MemoryRequest: "1Gi"},
+		},
+	}
+
+	_, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, ctrl.Log.WithName("test"), false)
+	assert.Error(t, err)
+	assert.Contains(t, err.Error(), "Invalid sizeLimit")
+	assert.Contains(t, err.Error(), "app-log")
 }
 
 // TestBuildVolumes_UnknownVolumeSource verifies that an unrecognized VolumeSource type still appends a volume but with an empty Name, since no branch in buildVolumes matches.
@@ -121,7 +202,8 @@ func TestBuildVolumes_UnknownVolumeSource(t *testing.T) {
 	extraVolumes := []kvstorev1.HbaseClusterVolume{
 		{Name: "unknown-vol", VolumeSource: "Unknown"},
 	}
-	volumes := buildVolumes(config, extraVolumes)
+	volumes, err := buildVolumes(config, extraVolumes)
+	assert.NoError(t, err)
 	// 2 base + 1 appended (empty volume since no branch matched — name is not set)
 	assert.Len(t, volumes, 3)
 	assert.Equal(t, "", volumes[2].Name)
@@ -148,6 +230,25 @@ func TestBuildVolumeClaims_WithoutStorageClass(t *testing.T) {
 	})
 	assert.Len(t, claims, 1)
 	assert.Nil(t, claims[0].Spec.StorageClassName)
+}
+
+// TestBuildVolumeClaims_WithVolumeAttributesClass verifies that a PVC is created with the specified VolumeAttributesClassName pointer set.
+func TestBuildVolumeClaims_WithVolumeAttributesClass(t *testing.T) {
+	claims := buildVolumeClaims("test-ns", []kvstorev1.HbaseClusterVolumeClaim{
+		{Name: "data", StorageSize: "10Gi", VolumeAttributesClassName: "silver"},
+	})
+	assert.Len(t, claims, 1)
+	assert.NotNil(t, claims[0].Spec.VolumeAttributesClassName)
+	assert.Equal(t, "silver", *claims[0].Spec.VolumeAttributesClassName)
+}
+
+// TestBuildVolumeClaims_WithoutVolumeAttributesClass verifies that omitting VolumeAttributesClassName results in a nil pointer.
+func TestBuildVolumeClaims_WithoutVolumeAttributesClass(t *testing.T) {
+	claims := buildVolumeClaims("test-ns", []kvstorev1.HbaseClusterVolumeClaim{
+		{Name: "data", StorageSize: "5Gi"},
+	})
+	assert.Len(t, claims, 1)
+	assert.Nil(t, claims[0].Spec.VolumeAttributesClassName)
 }
 
 // TestBuildVolumeClaims_WithLabelsAndAnnotations verifies that custom labels and annotations are propagated to the PVC metadata.
@@ -609,7 +710,8 @@ func TestBuildStatefulSet_Basic(t *testing.T) {
 		},
 	}
 
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, false)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, false)
+	assert.NoError(t, err)
 
 	assert.Equal(t, "test-dn", ss.Name)
 	assert.Equal(t, "test-ns", ss.Namespace)
@@ -642,7 +744,8 @@ func TestBuildStatefulSet_WithConfigVersion(t *testing.T) {
 		},
 	}
 
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "v12345", int64(1000), deployment, log, false)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "v12345", int64(1000), deployment, log, false)
+	assert.NoError(t, err)
 	assert.Equal(t, "v12345", ss.Spec.Template.Annotations[STATEFULSET_V2_ANNOTATION])
 }
 
@@ -668,7 +771,8 @@ func TestBuildStatefulSet_EmptyConfigVersion(t *testing.T) {
 		},
 	}
 
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, false)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, false)
+	assert.NoError(t, err)
 	_, exists := ss.Spec.Template.Annotations[STATEFULSET_V2_ANNOTATION]
 	assert.False(t, exists)
 }
@@ -695,7 +799,8 @@ func TestBuildStatefulSet_MultiStatefulSet(t *testing.T) {
 		},
 	}
 
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, true)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, true)
+	assert.NoError(t, err)
 	assert.Equal(t, "test-dn", ss.Spec.Selector.MatchLabels["statefulset.kubernetes.io/statefulset-name"])
 }
 
@@ -724,7 +829,8 @@ func TestBuildStatefulSet_OptionalFields(t *testing.T) {
 		},
 	}
 
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, false)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), deployment, log, false)
+	assert.NoError(t, err)
 	assert.Equal(t, "custom-host", ss.Spec.Template.Spec.Hostname)
 	assert.Equal(t, "custom-subdomain", ss.Spec.Template.Spec.Subdomain)
 	assert.Equal(t, corev1.DNSClusterFirst, ss.Spec.Template.Spec.DNSPolicy)
@@ -1274,7 +1380,8 @@ func TestReconcileStatefulSet_NotFound_Creates(t *testing.T) {
 				LivenessProbe: kvstorev1.HbaseClusterProbe{Port: 9866}, SecurityContext: kvstorev1.HbaseClusterSecurity{}},
 		},
 	}
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), d, log, false)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), d, log, false)
+	assert.NoError(t, err)
 
 	mockClient.On("Get", ctx, types.NamespacedName{Name: "test-dn", Namespace: "test-ns"}, &appsv1.StatefulSet{}).
 		Return(errors.NewNotFound(schema.GroupResource{}, "test-dn"))
@@ -1324,7 +1431,8 @@ func TestReconcileStatefulSet_Exists_HashMatches_Ready(t *testing.T) {
 				LivenessProbe: kvstorev1.HbaseClusterProbe{Port: 9866}, SecurityContext: kvstorev1.HbaseClusterSecurity{}},
 		},
 	}
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), d, log, false)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), d, log, false)
+	assert.NoError(t, err)
 
 	ssMarshal, _ := json.Marshal(ss)
 	hashStore["ss-"+ss.Name] = asSha256(ssMarshal)
@@ -1366,7 +1474,8 @@ func TestReconcileStatefulSet_Exists_HashMatches_NotReady(t *testing.T) {
 				LivenessProbe: kvstorev1.HbaseClusterProbe{Port: 9866}, SecurityContext: kvstorev1.HbaseClusterSecurity{}},
 		},
 	}
-	ss := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), d, log, false)
+	ss, err := buildStatefulSet("my-cluster", "test-ns", "base:1.0", false, config, "", int64(1000), d, log, false)
+	assert.NoError(t, err)
 
 	ssMarshal, _ := json.Marshal(ss)
 	hashStore["ss-"+ss.Name] = asSha256(ssMarshal)

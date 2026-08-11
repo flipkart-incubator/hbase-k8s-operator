@@ -34,4 +34,3 @@ trap shutdown SIGTERM SIGINT
 exec $HBASE_HOME/bin/hbase-daemon.sh foreground_start master &
 wait
 {{- end }}
-

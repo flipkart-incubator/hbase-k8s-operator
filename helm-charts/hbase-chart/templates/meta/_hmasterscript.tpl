@@ -5,6 +5,9 @@ export HBASE_LOG_DIR=$0
 export HBASE_CONF_DIR=$1
 export HBASE_HOME=$2
 export USER=$(whoami)
+{{- if .Values.configuration.hbaseHeapDumpPath }}
+export HBASE_HEAPDUMP_PATH="{{ .Values.configuration.hbaseHeapDumpPath }}"
+{{- end }}
 
 mkdir -p $HBASE_LOG_DIR
 touch $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log && tail -F $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log &

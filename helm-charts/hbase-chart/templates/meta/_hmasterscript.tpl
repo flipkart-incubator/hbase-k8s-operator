@@ -14,27 +14,11 @@ touch $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log && tail -F $HBASE_LOG_DI
 touch $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out && tail -F $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out &
 
 function shutdown() {
-  # SIGTERM alone does not clear /hbase/master; without an explicit clear the
-  # backup waits ~zookeeper.session.timeout (~60s). Drive stop + clear from
-  # PID 1 (Kubernetes signals only this process).
+  # stop alone does not clear /hbase/master; without clear the backup waits
+  # ~zookeeper.session.timeout (~60s). Kubernetes signals PID 1 only, so both
+  # steps run here before the container is torn down.
   echo "Stopping HMaster"
-  MPID=$(ps -eo pid,args | awk '/[D]proc_master/ {print $1; exit}')
-  if [ -n "$MPID" ] && kill -0 "$MPID" 2>/dev/null; then
-    kill -TERM "$MPID" 2>/dev/null || true
-    echo "Sent SIGTERM to master JVM pid=$MPID; waiting for exit"
-    for _ in $(seq 1 30); do
-      kill -0 "$MPID" 2>/dev/null || break
-      sleep 1
-    done
-    if kill -0 "$MPID" 2>/dev/null; then
-      kill -9 "$MPID" 2>/dev/null || true
-      while kill -0 "$MPID" 2>/dev/null; do sleep 1; done
-    fi
-  else
-    # ps missed the JVM; stop uses the pid file. Does not clear the znode.
-    echo "Master JVM not found; falling back to hbase-daemon.sh stop master"
-    $HBASE_HOME/bin/hbase-daemon.sh stop master
-  fi
+  $HBASE_HOME/bin/hbase-daemon.sh stop master
 
   # deleteIfEquals: removes /hbase/master only if it still names this server.
   PIDDIR=$(. "$HBASE_CONF_DIR/hbase-env.sh" >/dev/null 2>&1; echo "${HBASE_PID_DIR:-/tmp}")

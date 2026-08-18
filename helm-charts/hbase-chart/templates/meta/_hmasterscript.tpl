@@ -14,23 +14,20 @@ touch $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).log && tail -F $HBASE_LOG_DI
 touch $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out && tail -F $HBASE_LOG_DIR/hbase-$USER-master-$(hostname).out &
 
 function shutdown() {
-  # Graceful stop: SIGTERM the master JVM and wait until it exits so
-  # ActiveMasterManager can delete /hbase/master (or close the ZK session)
-  # before this container dies. Without waiting, kubelet SIGKILLs the JVM
-  # and backup waits ~zookeeper.session.timeout (~60s) for failover.
-  echo "Stopping Hmaster"
-  MPID=$(ps -eo pid,args | awk '/[D]proc_master/ {print $1; exit}')
-  if [ -n "$MPID" ]; then
-    kill -TERM "$MPID"
-    echo "Sent SIGTERM to master JVM pid=$MPID; waiting for exit"
-    while kill -0 "$MPID" 2>/dev/null; do
-      sleep 1
-    done
-    echo "Hmaster JVM exited"
-  else
-    echo "Master JVM not found; falling back to hbase-daemon.sh stop master"
-    $HBASE_HOME/bin/hbase-daemon.sh stop master
+  # stop alone does not clear /hbase/master; without clear the backup waits
+  # ~zookeeper.session.timeout (~60s). Kubernetes signals PID 1 only, so both
+  # steps run here before the container is torn down.
+  echo "Stopping HMaster"
+  $HBASE_HOME/bin/hbase-daemon.sh stop master
+
+  # deleteIfEquals: removes /hbase/master only if it still names this server.
+  PIDDIR=$(. "$HBASE_CONF_DIR/hbase-env.sh" >/dev/null 2>&1; echo "${HBASE_PID_DIR:-/tmp}")
+  export HBASE_ZNODE_FILE="$PIDDIR/hbase-${USER}-master.znode"
+  if [ -f "$HBASE_ZNODE_FILE" ]; then
+    echo "Clearing master znode"
+    ( cd "$HBASE_LOG_DIR" && timeout 30 $HBASE_HOME/bin/hbase master clear )
   fi
+  echo "HMaster stop completed"
 }
 
 trap shutdown SIGTERM SIGINT

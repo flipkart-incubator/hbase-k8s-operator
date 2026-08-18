@@ -30,6 +30,10 @@ function shutdown() {
       kill -9 "$MPID" 2>/dev/null || true
       while kill -0 "$MPID" 2>/dev/null; do sleep 1; done
     fi
+  else
+    # ps missed the JVM; stop uses the pid file. Does not clear the znode.
+    echo "Master JVM not found; falling back to hbase-daemon.sh stop master"
+    $HBASE_HOME/bin/hbase-daemon.sh stop master
   fi
 
   # deleteIfEquals: removes /hbase/master only if it still names this server.

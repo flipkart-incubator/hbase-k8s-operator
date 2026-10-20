@@ -145,7 +145,7 @@ deployments:
       volumeSource: EmptyDir
     sidecarcontainers:
     - name: rackutils
-      image: hbase-rack-utils:1.0.1
+      image: hbase-rack-utils:1.0.4
       cpuLimit: 0.2
       memoryLimit: 256Mi
       cpuRequest: 0.2

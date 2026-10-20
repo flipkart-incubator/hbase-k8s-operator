@@ -456,7 +456,7 @@
             ],
             "cpuLimit": "0.2",
             "cpuRequest": "0.2",
-            "image": "edge.fkinternal.com/operator-hbase/hbase-rack-utils:1.0.3",
+            "image": "edge.fkinternal.com/operator-hbase/hbase-rack-utils:1.0.4",
             "memoryLimit": "256Mi",
             "memoryRequest": "256Mi",
             "name": "rackutils",

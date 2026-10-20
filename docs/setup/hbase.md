@@ -1438,7 +1438,7 @@ spec:
           runAsGroup: 1011
       sidecarContainers:
       - name: rackutils
-        image: hbase-rack-utils:1.0.1
+        image: hbase-rack-utils:1.0.4
         command: [./entrypoint]
         args: [com.flipkart.hbase.HbaseRackUtils /etc/hbase /hbase-operator /opt/share/rack_topology.data]
         cpuLimit: "0.2"
